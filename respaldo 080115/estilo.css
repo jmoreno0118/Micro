@@ -1,0 +1,228 @@
+/************* menu pincipal y estilo general  *************/
+body {
+	margin: 0;
+	padding: 0;
+	background-color: #EEEEE0;
+	color: white;
+	font: small Arial, Helvetica, Verdana, sans-serif;
+    }
+#contenedor {
+	background-color: #ffffff;
+	color: black;
+	margin: 30px 10% 40px 10%;
+	padding: 10px;
+	min-width: 640px;
+/*	 max-width: 1260px;  */
+	}
+header{
+	background-color: #CCCC99;
+	color: #050845;
+	background-image: url(img/titulofondo.jpg);
+	background-repeat: repeat-y;
+	display:block; /* Only for IE8 or less */
+}
+#encabezadoBase {
+	background-color: #666633;
+	height: 1%;  /* es para eliminar bug en IE en donde aparece y desaparece la linea */
+   }
+#encabezadoBase form{
+	text-align: right;
+	padding: 0 20px 0 0;
+  }
+#leyenda {
+	float: left;
+	font-weight: bold;
+	font-size:large;
+	color: white;
+	font-style: italic;
+	margin: 0 100px 0 0;
+	padding: 0 0 0 20px;
+	margin: 2px solid blue;
+}
+#cuerpoprincipal{
+	position: relative;
+	margin-top: 10px;
+	width: 100%;
+	top:0;
+	left: 0;
+	}
+#contenido {
+	margin: 0 0 0 230px;
+	border: 1px solid #b9d2e3;
+	background-color: white;
+	color: black;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	-o-border-radius:10px;
+	-ms-border-radius:10px;
+	border-radius:10px;
+	}
+#contenido .temas{
+	margin: 10px 20px 10px 40px;
+	}
+#contenido .temas h2 {
+	color: #245185;
+	padding-bottom: 0.2em;
+	border-bottom: 1px solid #b9d2e3;
+	font-size: 130%;
+	}
+
+#contenido .temas ul.principal {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	}
+	#contenido .temas  h3 {
+	font-size: 110%;
+	text-decoration: underline;
+	color: #245185;
+	}
+#contenido .temas p {
+color: #666666;
+font-size: 90%;
+}
+/********** esto no se va a borrar.  Lo dejare por si hay que hacer alguna liga
+#contenido .temas p.mas{
+	margin-top: 0;
+	text-align: right;
+	}
+#contenido .temas p.mas a:link, #content .temas p.mas a:visited {
+	background-image: url(img/more-bullet.gif);
+	background-repeat: no-repeat;
+	background-position: center left;
+	padding-left: 14px;
+	font-size: 90%;
+	color: #1e4c82;
+	}      **********************/
+nav {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 220px;
+	background-color: #CCCC99;
+	margin: 0;
+	padding: 0;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	-o-border-radius:10px;
+	-ms-border-radius:10px;
+	border-radius:10px;
+	display:block; /* Only for IE8 or less */
+}
+nav .tabular {
+	padding: 10px;
+	}
+/*nav p{
+	font-size: 90%;
+	line-height: 1.4em;
+	}*/
+nav h3 {
+	font-size: 110%;
+	margin: 0;
+	padding: 0.2em 0 0.2em 10px;
+	font-weight: bold;
+	color:white;
+}
+nav ul ul{
+	display: none;
+}
+nav ul li:hover > ul {
+	display: block;
+	}
+nav ul {
+	margin-left: 0;
+	padding-left: 30px;
+	list-style:none;
+	position: relative;  /*Nos pertmitira posicionar los submenus */ 
+	display:inline-table /* se ajustará el ancho del menú para encajar */
+	}
+nav li {
+	font-size: 90%;
+	line-height: 1.4em;
+	}
+nav ul li a {
+	text-decoration: none;
+	} 
+nav ul a:link, nav ul a:visited {
+	color: #990033;  /* color ladrillo */
+}
+nav ul li:hover {
+	background: #666633;
+	}
+nav ul li:hover a {
+	color: #ffffff;
+	}
+nav ul ul {
+	position: absolute;
+	left: 95%;
+	/* top:0;  el submenu se posiciona a la misma altura que el manu */
+	}
+nav ul ul {
+	background-color: #666633;
+	}
+nav ul ul {
+	margin:0;
+	padding:0;
+	width:150px;
+	border-left:1px solid white;
+	border-top:2px solid #666633;
+	border-bottom:2px solid #666633;
+	}
+nav ul ul li {
+	padding:2px 5px 2px 8px;
+	}
+nav ul ul li:hover {
+	background-color: #CCCC99;
+	}  
+nav ul ul li:hover  a{
+	color: #990033;  /* color ladrillo */
+	}
+#footer {
+	clear: both;
+	margin:10px 0 0 0;
+	border: 1px solid #666633;
+	background-color: #666633;
+	color:white;
+	}	
+#footer p {
+	margin: 2px 0 0 10px;
+	} 
+/************* Registro del usuario (login *************/
+#registro {
+	border: 1px solid #b9d2e3;
+	margin: 15% 15% 15% 15%;
+	padding: 10px 15px 10px 30px;
+	background-color: white;
+	color: black;
+	-moz-border-radius:10px;
+	-webkit-border-radius:10px;
+	-o-border-radius:10px;
+	-ms-border-radius:10px;
+	border-radius:10px;
+	}
+/************* mesaje de error **********************/
+#mensajerror{
+	padding:5%; 
+	}
+#mensajerror p{
+	font-size: 130%;
+	font-weight:bold;
+	}
+/************* mesaje de confirmacion **********************/
+#confirma{
+	margin:2%;
+	padding:3%; 
+	}
+#confirma p{
+	font-size: 130%;
+	font-weight:normal;
+	}
+table{
+	color:Black;
+	font-size:small;
+	border-collapse: collapse;
+	width: 100%;
+	}
+table, th, td{
+	border: 1px solid #999999;
+	}
