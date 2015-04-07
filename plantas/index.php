@@ -23,7 +23,15 @@
   if(isset($_POST['accion']) and $_POST['accion']=='Nueva')
   {
   	$clientes = getClientes();
-	$valores['Numero_Clienteidfk'] = 0;
+	$valores = array('razonsocial'=>'',
+				     'planta'=>'',
+				     'calle'=>'',
+				     'colonia'=>'',
+				     'ciudad'=>'',
+				     'estado'=>'',
+				     'cp'=>'',
+				     'rfc'=>'',
+				     'Numero_Clienteidfk'=>'');
 	$pestanapag ='Agrega planta';
 	$titulopagina ='Agregar una nueva planta';
 	$boton = 'Guardar Planta';

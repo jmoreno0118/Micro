@@ -89,9 +89,9 @@ $(document).ready(function(){
 	  <div>
 	    <label for="planta">Planta: </label>
 		<select name="planta" id="planta" >
-		   <option selected="selected">--Selecciona planta--</option>
+		   <option selected="selected" disables>--Selecciona planta--</option>
 	   </select>
-	   <button id="refreshPlantas">Refrescar plantas</button>
+	   <button type="button" id="refreshPlantas">Refrescar plantas</button>
 	  </div>
 	  <div>
 	    <label for="atencion">La orden irá dirigida a: </label>

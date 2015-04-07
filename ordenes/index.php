@@ -160,7 +160,7 @@
   $atencion=$resultado['atencion'];
   $atenciontel=$resultado['atenciontel'];
   $atencioncorreo=$resultado['atencioncorreo'];
-  $planta=$resultado['plantaidfk'];
+  $planta=(isset($resultado['plantaidfk']))?$resultado['plantaidfk']:0;
   $boton='Salva cambios';
   $otant=$ot; 
   // genera las listas de clientes, representantes,higiene y ecologia.
