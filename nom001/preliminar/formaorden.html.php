@@ -128,12 +128,12 @@
       </tr>
       <tr>
         <td>Plomo</td>
-        <td style="<?php if(strpos($parametros[$i]['plomo'], '<') !== false){if(doubleval($parametros[$i]['plomo']) > doubleval($maximos[$i]['plomo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['plomo']); ?></td>
+        <td style="<?php if(strpos($parametros[$i]['plomo'], '<') == false){if(doubleval($parametros[$i]['plomo']) > doubleval($maximos[$i]['plomo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['plomo']); ?></td>
         <td><?php htmlout($maximos[$i]['plomo']); ?></td>
       </tr>
       <tr>
         <td>Zinc</td>
-        <td style="<?php if(strpos($parametros[$i]['zinc'], '<') !== false){if(doubleval($parametros[$i]['zinc']) > doubleval($maximos[$i]['zinc'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['zinc']); ?></td>
+        <td style="<?php if(strpos($parametros[$i]['zinc'], '<') == false){if(doubleval($parametros[$i]['zinc']) > doubleval($maximos[$i]['zinc'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['zinc']); ?></td>
         <td><?php htmlout($maximos[$i]['zinc']); ?></td>
       </tr>
     </table>

@@ -269,12 +269,12 @@
         }
         catch (PDOException $e)
         {
-        $mensaje='Error de orden.'.$e;
+        $mensaje='Error al tratar de obtener información de la orden.';
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
         exit();
         }
         if(!$orden){
-            $mensaje='Error de orden.';
+            $mensaje='Error al tratar de obtener información de la orden.';
             include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
             exit();
         }
@@ -599,11 +599,11 @@
                 $pdf->SetFont('Arial', '', 9);
                 $pdf->Cell(0, 5, utf8_decode($orden['Giro_Empresa']), 1, 1, 'R');
 
-                $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(50, 10, utf8_decode('Dirección'), 1, 0, 'C');
-
-                $pdf->SetFont('Arial', '', 9);
-                $pdf->MultiCell(0, 5, utf8_decode($orden['Calle_Numero']."\nCol. ".$orden['Colonia']." C.P. ".$orden['Codigo_Postal']." ".$orden['Ciudad']." ".$orden["Estado"]), 1, 'R');
+                $pdf->SetWidths(array(50,115));
+                $pdf->SetFonts(array('B',''));
+                $pdf->SetFontSizes(array(9));
+                $pdf->SetAligns(array('C','R'));
+                $pdf->Row(array(utf8_decode('Dirección'),utf8_decode($orden['Calle_Numero']."\nCol. ".$orden['Colonia']." C.P. ".$orden['Codigo_Postal']." ".$orden['Ciudad']." ".$orden["Estado"])));
                 $pdf->Ln();
 
                 $pdf->SetFont('Arial', 'B', 10);
@@ -774,6 +774,11 @@
                 $pdf->Ln();
 
 
+                if(count($parametros2)<=0){
+                    $mensaje='Faltan llenar datos de las mediciones.';
+                    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+                    exit();
+                }
                 $promcoliformes = 0;
                 for ($i=0; $i < $cantidad; $i++) {
                     $promcoliformes += $parametros2[$i]['coliformes'];

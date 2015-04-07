@@ -131,8 +131,8 @@
     $pdo->beginTransaction();
 
     $sql='UPDATE clientestbl SET
-     empresagiro=:empresagiro
-     WHERE id = (SELECT clienteidfk
+     Giro_Empresa=:empresagiro
+     WHERE Numero_Cliente = (SELECT clienteidfk
           FROM ordenestbl
           WHERE id = :id)';
     $s=$pdo->prepare($sql);
@@ -1514,7 +1514,7 @@
     $s->bindValue(':id',$ot);
     $s->execute();
     $e = $s->fetch();
-    return $e['responsable'];
+    return ($e['responsable'])? $e['responsable'] : "";
    }
    catch (PDOException $e)
    {

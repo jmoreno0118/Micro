@@ -82,16 +82,16 @@
         <?php elseif($name === "mflotante"):?>
          <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-          <option value="">Seleccionar</option>
-          <option value="0"<?php if(intval($valores["mflotante"]) === 0) echo 'selected'?>>Ausente</option>
-          <option value="1" <?php if(intval($valores["mflotante"]) === 1) echo 'selected'?>>Presente</option>
+          <option value=""<?php if($valores["mflotante"] === "") echo 'selected'?>>Seleccionar</option>
+          <option value="0"<?php if($valores["mflotante"] === 0) echo 'selected'?>>Ausente</option>
+          <option value="1" <?php if($valores["mflotante"] === 1) echo 'selected'?>>Presente</option>
          </select> 
         <?php elseif($name === "olor" OR $name === "color" OR $name === "turbiedad" OR $name === "GyAvisual" OR $name === "burbujas"):?>
          <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-          <option value="">Seleccionar</option>
-          <option value="0"<?php if(intval($valores[$name]) === 0) echo 'selected'?>>No</option>
-          <option value="1" <?php if(intval($valores[$name]) === 1) echo 'selected'?>>Sí</option>
+          <option value=""<?php if($valores[$name] === "") echo 'selected'?>>Seleccionar</option>
+          <option value="0"<?php if($valores[$name] === 0) echo 'selected'?>>No</option>
+          <option value="1" <?php if($valores[$name] === 1) echo 'selected'?>>Sí</option>
          </select>
         <?php else: ?>
     		 <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
