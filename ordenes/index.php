@@ -199,7 +199,7 @@
 		 atencion=:atencion,
 		 atenciontel=:atenciontel,
 		 atencioncorreo=:atencioncorreo,
-     plantasidfk=:plantasidfk
+     plantaidfk=:plantaidfk
 		 WHERE id=:id';
 	 $s=$pdo->prepare($sql);
 	 $s->bindValue(':id',$_POST['id']);
@@ -210,7 +210,7 @@
 	 $s->bindValue(':atencion',$_POST['atencion']);
 	 $s->bindValue(':atenciontel',$_POST['atenciontel']);
 	 $s->bindValue(':atencioncorreo',$_POST['atencioncorreo']);
-   $s->bindValue(':plantasidfk',$_POST['planta']);
+   $s->bindValue(':plantaidfk',$_POST['planta']);
 	 $s->execute();
 	 //borrra los estudios anteriores y garda los nuevos
 	 $sql='DELETE FROM estudiostbl WHERE ordenidfk=:id';
@@ -250,7 +250,7 @@
    catch (PDOException $e)
    {
     $pdo->rollback();
-    $mensaje='Hubo un error en la actalización de la orden.  Favor de intentarlo nuevamente ';
+    $mensaje='Hubo un error en la actualización de la orden.  Favor de intentarlo nuevamente'.$e;
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();
    }   

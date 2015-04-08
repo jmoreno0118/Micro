@@ -8,7 +8,9 @@
   {
     echo html($texto);
   }
-  	
+  function htmldecode($texto){
+    return html_entity_decode($texto, ENT_COMPAT, 'UTF-8');
+  }
   // otra referencia puede ser http://michelf.com/projects/php-markdown/
   function markdown2html($texto)
   {

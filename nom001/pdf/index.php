@@ -2,6 +2,7 @@
  /********** Norma 001 **********/
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/magicquotes.inc.php';
  require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/acceso.inc.php';
+ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';
 
 /**************************************************************************************************/
 /* Modificaciones al FPDF */
@@ -237,44 +238,77 @@
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
         try   
         {
-            if(isset($_GET['ot']) AND isset($_GET['id'])){
-                $sql='SELECT ordenestbl.id, ordenestbl.ot, clientestbl.Razon_Social, clientestbl.Calle_Numero, clientestbl.Colonia, clientestbl.Ciudad, 
-                    clientestbl.Estado, clientestbl.Nombre_Usuario,  ordenestbl.signatario, ordenestbl.ot, ordenestbl.fechalta, clientestbl.Giro_Empresa,
-                    clientestbl.Codigo_Postal, muestreosaguatbl.responsable, muestreosaguatbl.fechamuestreo
-                    FROM clientestbl
-                    INNER JOIN ordenestbl ON clientestbl.Numero_Cliente = ordenestbl.clienteidfk
+            $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.signatario, ordenestbl.ot, ordenestbl.fechalta, muestreosaguatbl.responsable,
+                        muestreosaguatbl.fechamuestreo, ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion
+                    FROM  ordenestbl
                     INNER JOIN generalesaguatbl ON ordenestbl.id = generalesaguatbl.ordenaguaidfk
                     INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
-                    INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk
-                    WHERE estudiostbl.nombre="NOM 001" AND ordenestbl.ot = :ot AND ordenestbl.id = :id';
-                $s=$pdo->prepare($sql);
+                    INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk';
+            if(isset($_GET['ot']) AND isset($_GET['id'])){
+                $where=' WHERE estudiostbl.nombre="NOM 001" AND ordenestbl.ot = :ot AND ordenestbl.id = :id';
+                $s=$pdo->prepare($sql.$where);
                 $s->bindValue(':ot', $_GET['ot']);
                 $s->bindValue(':id', $_GET['id']);
-            $s->execute();
+                $s->execute();
+                $orden = $s->fetch();
             }else{
-                $sql='SELECT ordenestbl.id, ordenestbl.ot, clientestbl.Razon_Social, clientestbl.Calle_Numero, clientestbl.Colonia, clientestbl.Ciudad, 
-                    clientestbl.Estado, clientestbl.Nombre_Usuario,  ordenestbl.signatario, ordenestbl.ot, ordenestbl.fechalta, clientestbl.Giro_Empresa,
-                    clientestbl.Codigo_Postal, muestreosaguatbl.responsable, muestreosaguatbl.fechamuestreo
-                    FROM clientestbl
-                    INNER JOIN ordenestbl ON clientestbl.Numero_Cliente = ordenestbl.clienteidfk
-                    INNER JOIN generalesaguatbl ON ordenestbl.id = generalesaguatbl.ordenaguaidfk
-                    INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
-                    INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk
-                    WHERE estudiostbl.nombre="NOM 001" AND ordenestbl.ot = :ot ';
-                $s=$pdo->prepare($sql);
+                $where=' WHERE estudiostbl.nombre="NOM 001" AND ordenestbl.ot = :ot';
+                $s=$pdo->prepare($sql.$where);
                 $s->bindValue(':ot', $_POST['ot']);
                 $s->execute();
+                $orden = $s->fetch();
             }
-            $orden = $s->fetch();
+
+            //var_dump($orden);
+
+            if($orden['plantaidfk'] !== NULL){
+                $sql='SELECT plantastbl.razonsocial, plantastbl.calle, plantastbl.colonia, plantastbl.ciudad, 
+                    plantastbl.estado, plantastbl.cp
+                    FROM plantastbl
+                    WHERE plantastbl.id = :id';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $orden['plantaidfk']);
+                $s->execute();
+                $resultado = $s->fetch();
+
+                $cliente = array('Razon_Social' => $resultado['razonsocial'],
+                                'Calle_Numero' => $resultado['calle'],
+                                'Colonia' => $resultado['colonia'],
+                                'Ciudad' => $resultado['ciudad'],
+                                'Estado' => $resultado['estado'],
+                                'Giro_Empresa' => '',
+                                'Codigo_Postal' => $resultado['cp']);
+
+                $sql='SELECT clientestbl.Giro_Empresa
+                    FROM clientestbl
+                    WHERE clientestbl.Numero_Cliente = :id';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $orden['clienteidfk']);
+                $s->execute();
+                $giro = $s->fetch();
+
+                $cliente['Giro_Empresa'] = $giro['Giro_Empresa'];
+
+            }else{
+                $sql='SELECT clientestbl.Razon_Social, clientestbl.Calle_Numero, clientestbl.Colonia, clientestbl.Ciudad, 
+                    clientestbl.Estado, clientestbl.Giro_Empresa, clientestbl.Codigo_Postal
+                    FROM clientestbl
+                    WHERE clientestbl.Numero_Cliente = :id';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $orden['clienteidfk']);
+                $s->execute();
+                $cliente = $s->fetch();
+            }
+            
         }
         catch (PDOException $e)
         {
-        $mensaje='Error al tratar de obtener información de la orden.';
+        $mensaje='Error al tratar de obtener información de la orden.'.$e;
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
         exit();
         }
         if(!$orden){
-            $mensaje='Error al tratar de obtener información de la orden.';
+            $mensaje='Error al tratar de obtener información de la orden.'.$e;
             include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
             exit();
         }
@@ -331,17 +365,17 @@
         //echo date('d', strtotime($orden['fechalta']))."-".$meses[date('n', strtotime($orden['fechalta']))-1]. "-".date('Y',strtotime($orden['fechalta'])) ;
 
         $pdf->SetFont('Arial', 'B', 12);
-        $pdf->Cell(0, 5, utf8_decode($orden['Razon_Social']), 0 ,1); ////////////////// Nombre de empresa
+        $pdf->Cell(0, 5, utf8_decode(htmldecode($cliente['Razon_Social'])), 0 ,1); ////////////////// Nombre de empresa
         $pdf->Ln(1);
 
         $pdf->SetFont('Arial', '', 11);
-        $pdf->Cell(0, 5, utf8_decode($orden['Calle_Numero']),0 ,1); //////////// Dirección
+        $pdf->Cell(0, 5, utf8_decode(htmldecode($cliente['Calle_Numero'])),0 ,1); //////////// Dirección
         $pdf->Ln(1);
-        $pdf->Cell(0, 5, utf8_decode("Col. ".$orden['Colonia'].", ".$orden['Ciudad'].", ".$orden['Estado']), 0, 1); //////////// Dirección
+        $pdf->Cell(0, 5, utf8_decode("Col. ".htmldecode($cliente['Colonia']).", ".htmldecode($cliente['Ciudad']).", ".htmldecode($cliente['Estado'])), 0, 1); //////////// Dirección
         $pdf->Ln();
         $pdf->Ln();
 
-        $pdf->Cell(0, 5, utf8_decode("At'n.: ".$orden['Nombre_Usuario']."."), 0, 1, 'R'); //////////////////////////////// Atn
+        $pdf->Cell(0, 5, utf8_decode("At'n.: ".htmldecode($orden['atencion'])."."), 0, 1, 'R'); //////////////////////////////// Atn
         $pdf->Ln();
         $pdf->Ln();
 
@@ -591,19 +625,19 @@
                 $pdf->Cell(50, 5, utf8_decode('Compañía'), 1, 0, 'C');
 
                 $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(0, 5, utf8_decode($orden['Razon_Social']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($cliente['Razon_Social']), 1, 1, 'R');
 
                 $pdf->SetFont('Arial', 'B', 9);
                 $pdf->Cell(50, 5, utf8_decode('Giro de la empresa'), 1, 0, 'C');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($orden['Giro_Empresa']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($cliente['Giro_Empresa']), 1, 1, 'R');
 
                 $pdf->SetWidths(array(50,115));
                 $pdf->SetFonts(array('B',''));
                 $pdf->SetFontSizes(array(9));
                 $pdf->SetAligns(array('C','R'));
-                $pdf->Row(array(utf8_decode('Dirección'),utf8_decode($orden['Calle_Numero']."\nCol. ".$orden['Colonia']." C.P. ".$orden['Codigo_Postal']." ".$orden['Ciudad']." ".$orden["Estado"])));
+                $pdf->Row(array(utf8_decode('Dirección'),utf8_decode(htmldecode($cliente['Calle_Numero'])."\nCol. ".htmldecode($cliente['Colonia'])." C.P. ".htmldecode($cliente['Codigo_Postal'])." ".htmldecode($cliente['Ciudad'])." ".htmldecode($cliente["Estado"]))));
                 $pdf->Ln();
 
                 $pdf->SetFont('Arial', 'B', 10);
@@ -773,8 +807,8 @@
                 $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
                 $pdf->Ln();
 
-
-                if(count($parametros2)<=0){
+                //var_dump($parametros2);
+                if(count($parametros2)<=0 OR $parametros2 === ""){
                     $mensaje='Faltan llenar datos de las mediciones.';
                     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
                     exit();
