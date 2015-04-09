@@ -26,9 +26,10 @@
    $usuarioactivo = $_SESSION['usuario'];
    try   
     {$sql='';
-	 $select='SELECT ordenestbl.id, ot, razonsocial, planta, municipio, clientestbl.estado';
+	 //	 falta agragar la planta
+	 $select='SELECT ordenestbl.id, ot, Razon_Social,  Ciudad, clientestbl.Estado';
 	 $from=' FROM ordenestbl
-			INNER JOIN clientestbl ON clienteidfk=clientestbl.id
+			INNER JOIN clientestbl ON clienteidfk=Numero_Cliente
 			INNER JOIN estudiostbl ON ordenidfk=ordenestbl.id
 			INNER JOIN representantestbl ON representantestbl.id=ordenestbl.representanteidfk
 			INNER JOIN usuarioreptbl ON usuarioreptbl.representanteidfk = representantestbl.id
@@ -54,15 +55,15 @@
     catch (PDOException $e)
     {
      $mensaje='Hubo un error extrayendo la lista de ordenes.';
-	 include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+	 include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php'.$e;
 	 exit();
     }
 
     foreach ($s as $linea)
     {
      $ordenes[]=array('id'=>$linea['id'],'ot'=>$linea['ot'],
-				'razonsocial'=>$linea['razonsocial'],'planta'=>$linea['planta'],
-				'municipio'=>$linea['municipio'],'estado'=>$linea['estado']);
+				'razonsocial'=>$linea['Razon_Social'],'planta'=>'Planta'/*$linea['planta']*/,
+				'municipio'=>$linea['Ciudad'],'estado'=>$linea['Estado']);
     }
    include 'formaordenesilum.html.php';
    exit();
@@ -76,10 +77,9 @@ if((isset($_POST['accion']) and $_POST['accion']=='Ver OT'))
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
   try
   {
-    $sql='SELECT ordenestbl.id, clienteidfk, ot, fechalta, tipo,
-	  clientestbl.id, razonsocial, planta, calle, colonia, municipio, estado, cp, rfc, atencion, tel FROM ordenestbl
-	  INNER JOIN clientestbl ON clienteidfk=clientestbl.id
-	  WHERE ordenestbl.id=:id';
+    $sql='SELECT id, clienteidfk, ot, fechalta, tipo, Razon_Social,  Calle_Numero, Colonia, Ciudad, Estado, Codigo_Postal, RFC, atencion, atenciontel, atencioncorreo FROM ordenestbl
+	  INNER JOIN clientestbl ON clienteidfk=Numero_Cliente
+	  WHERE id=:id';
       $s=$pdo->prepare($sql);
       $s->bindValue(':id',$_POST['id']);
       $s->execute();
@@ -92,16 +92,18 @@ if((isset($_POST['accion']) and $_POST['accion']=='Ver OT'))
 	  exit();
 	}
 	$resultado=$s->fetch();
-	$datos=array('Razon social'=>$resultado['razonsocial'],
-				'Planta'=>$resultado['planta'],
-				'Dirección'=>$resultado['calle'],
-				'Colonia'=>$resultado['colonia'],
-				'Municipio'=>$resultado['municipio'],
-				'Estado'=>$resultado['estado'],
-				'C.P.'=>$resultado['cp'],
-				'RFC'=>$resultado['rfc'],
+	$datos=array('Razon social'=>$resultado['Razon_Social'],
+				//'Planta'=>$resultado['planta'],
+				'Planta'=>'Planta',
+				'Dirección'=>$resultado['Calle_Numero'],
+				'Colonia'=>$resultado['Colonia'],
+				'Municipio'=>$resultado['Ciudad'],
+				'Estado'=>$resultado['Estado'],
+				'C.P.'=>$resultado['Codigo_Postal'],
+				'RFC'=>$resultado['RFC'],
 				'Atencion a'=>$resultado['atencion'],
-				'Tels'=>$resultado['tel'],
+				'Tels'=>$resultado['atenciontel'],
+				'Correo'=>$resultado['atencioncorreo'],
 				'Tipo de estudio'=>$resultado['tipo'],
 				'Fecha de alta'=>$resultado['fechalta']);
 	$id=$resultado['id'];
@@ -127,8 +129,7 @@ if((isset($_POST['accion']) and $_POST['accion']=='Ver OT'))
 	include 'muestraot.html.php';
 	exit();
  }	
- 
-/**************************************************************************************************/	
+	
 /* Ver reconocimientos iniciales de una orden de trabajo */
 /**************************************************************************************************/
 

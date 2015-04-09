@@ -15,7 +15,7 @@
     {
         function Header()
         {
-            $this->Image("logolaboratorio3.gif", 20, 15, 165, 33);
+            $this->Image("../../img/logolaboratorio3.gif", 20, 15, 165, 33);
         }
 
         function Footer()
