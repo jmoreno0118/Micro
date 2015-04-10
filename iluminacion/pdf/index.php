@@ -210,6 +210,66 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
             $this->Ln($h);
         }
 
+        function RowColor($data, $fill=false)
+        {
+            //Calculate the height of the row
+            $nb=0;
+            $sh=array();
+
+            for($i=0;$i<count($data);$i++){
+                if(count($this->nfonts) > 0 AND count($this->nfontsize) > 0){
+                    $b=(count($this->nfonts) === 1) ? $this->nfonts[0] : $this->nfonts[$i];
+                    $c=(count($this->nfontsize) === 1) ? $this->nfontsize[0] : $this->nfontsize[$i];
+                    $this->SetFont('Arial', $b, $c);
+                }
+                $nb=max($nb,$this->NbLines($this->widths[$i],$data[$i]));
+
+                //Se guarda la altura de cada texto
+                $sh[]=$this->NbLines($this->widths[$i],$data[$i]);
+            }
+            $h=5*$nb;
+            //Issue a page break first if needed
+            $this->CheckPageBreak($h);
+            //Draw the cells of the row
+            for($i=0;$i<count($data);$i++)
+            {
+                if($i === 5 OR $i === 9 OR $i === 13){
+                    $fill = true;
+                    $valor = explode(' ± ', $data[$i]);
+                    if(intval($valor[0]) >= $data[$i+1]){
+                        $this->SetFillColor(0, 255, 0);
+                    }else{
+                        $this->SetFillColor(255, 0, 0);
+                    }
+                }else{
+                    $this->SetFillColor(255, 255, 255);
+                }
+                $w=$this->widths[$i];
+                $a=isset($this->aligns[$i]) ? $this->aligns[$i] : 'L';
+                //Save the current position
+                $x=$this->GetX();
+                $y=$this->GetY();
+                //Draw the border
+                $this->Rect($x, $y, $w, $h, 'DF');
+
+                //Número de renglones de separación arriba y abajo, se resta la altura
+                //total menos la altura del texto, se divide entre dos (obtener altura de
+                //arriba y de abajo) y esto entre 5 para obtener el número de renglones
+                //según la altura del renglón, y así anexar dichos renglones extra al texto
+                $nr = (($h-($sh[$i]*5))/2)/5;
+                for ($j=0; $j < $nr; $j++){ 
+                    $data[$i]="\n".$data[$i]."\n";
+                }
+                
+                //Print the text
+                $this->MultiCell($w,5,$data[$i],0,$a, $fill);
+                //Put the position to the right of the cell
+                $this->SetXY($x+$w,$y);
+            }
+            //Go to the next line
+            $this->Ln($h);
+        }
+
         function CheckPageBreak($h)
         {
             //If the height h would cause an overflow, add a new page immediately
@@ -721,7 +781,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->SetAligns(array('C'));
 
     for ($i=0; $i <6 ; $i++) { 
-        $pdf->Row(array(utf8_decode($i+1),
+        $pdf->RowColor(array(utf8_decode($i+1),
                     utf8_decode('2013-02-20'),
                     utf8_decode('Descarga'),
                     utf8_decode('Descarga'),
@@ -730,7 +790,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                     utf8_decode('100'),
                     utf8_decode('No Aplica'),
                     utf8_decode('No Aplica'),
-                    utf8_decode('168 ± 20'),
+                    utf8_decode('99 ± 20'),
                     utf8_decode('100'),
                     utf8_decode('No Aplica'),
                     utf8_decode('No Aplica'),
@@ -743,7 +803,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     }
 
     $pdf->Cell(0, 5, utf8_decode('Departamento: Mantenimiento'), 1, 1, 'C', true);
-    $pdf->Row(array(utf8_decode('7'),
+    $pdf->RowColor(array(utf8_decode('7'),
                     utf8_decode('2013-02-20'),
                     utf8_decode('Descarga'),
                     utf8_decode('Descarga'),
@@ -764,7 +824,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
             );
 
     $pdf->Cell(0, 5, utf8_decode('Departamento: Oficinas'), 1, 1, 'C', true);
-    $pdf->Row(array(utf8_decode('8'),
+    $pdf->RowColor(array(utf8_decode('8'),
                     utf8_decode('2013-02-20'),
                     utf8_decode('Descarga'),
                     utf8_decode('Descarga'),
@@ -784,7 +844,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                 )
             );
 
-    $pdf->Row(array(utf8_decode('9'),
+    $pdf->RowColor(array(utf8_decode('9'),
                     utf8_decode('2013-02-20'),
                     utf8_decode('Descarga'),
                     utf8_decode('Descarga'),
