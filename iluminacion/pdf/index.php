@@ -65,7 +65,7 @@
             $this->nfontsize=$fs;
         }
 
-        function Row($data)
+        function Row($data, $fill=false)
         {
             //Calculate the height of the row
             $nb=0;
@@ -94,7 +94,7 @@
                 $x=$this->GetX();
                 $y=$this->GetY();
                 //Draw the border
-                $this->Rect($x,$y,$w,$h, 'DF');
+                $this->Rect($x, $y, $w, $h, 'DF');
 
                 //Número de renglones de separación arriba y abajo, se resta la altura
                 //total menos la altura del texto, se divide entre dos (obtener altura de
@@ -106,7 +106,7 @@
                 }
                 
                 //Print the text
-                $this->MultiCell($w,5,$data[$i],1,$a, true);
+                $this->MultiCell($w,5,$data[$i],0,$a, $fill);
                 //Put the position to the right of the cell
                 $this->SetXY($x+$w,$y);
             }
@@ -163,6 +163,46 @@
                 //Put the position to the right of the cell
                 $this->SetXY($x+$this->widths[$i+1],$y);
             }
+        }
+
+        function noEnterRow($data)
+        {
+            //Calculate the height of the row
+            $nb=0;
+            $sh=array();
+
+            for($i=0;$i<count($data);$i++){
+                if(count($this->nfonts) > 0 AND count($this->nfontsize) > 0){
+                    $b=(count($this->nfonts) === 1) ? $this->nfonts[0] : $this->nfonts[$i];
+                    $c=(count($this->nfontsize) === 1) ? $this->nfontsize[0] : $this->nfontsize[$i];
+                    $this->SetFont('Arial', $b, $c);
+                }
+                $nb=max($nb,$this->NbLines($this->widths[$i],$data[$i]));
+
+                //Se guarda la altura de cada texto
+                $sh[]=$this->NbLines($this->widths[$i],$data[$i]);
+            }
+            $h=5*$nb;
+            //Issue a page break first if needed
+            $this->CheckPageBreak($h);
+            //Draw the cells of the row
+            for($i=0;$i<count($data);$i++)
+            {
+                $w=$this->widths[$i];
+                $a=isset($this->aligns[$i]) ? $this->aligns[$i] : 'L';
+                //Save the current position
+                $x=$this->GetX();
+                $y=$this->GetY();
+                //Draw the border
+                $this->Rect($x, $y, $w, $h, 'DF');
+                
+                //Print the text
+                $this->MultiCell($w,5,$data[$i],0,$a);
+                //Put the position to the right of the cell
+                $this->SetXY($x+$w,$y);
+            }
+            //Go to the next line
+            $this->Ln($h);
         }
 
         function CheckPageBreak($h)
@@ -265,9 +305,113 @@
             //Restore x
             $this->x = $bak_x;
         }
+
+        var $B=0;
+        var $I=0;
+        var $U=0;
+        var $HREF='';
+        var $ALIGN='';
+
+        function WriteHTML($html)
+        {
+            //HTML parser
+            $html=str_replace("\n", ' ', $html);
+            $a=preg_split('/<(.*)>/U', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+            foreach($a as $i=>$e)
+            {
+                if($i%2==0)
+                {
+                    //Text
+                    if($this->HREF)
+                        $this->PutLink($this->HREF, $e);
+                    elseif($this->ALIGN == 'center')
+                        $this->Cell(0, 5, $e, 0, 1, 'C');
+                    else
+                        $this->Write(5, $e);
+                }
+                else
+                {
+                    //Tag
+                    if($e{0}=='/')
+                        $this->CloseTag(strtoupper(substr($e, 1)));
+                    else
+                    {
+                        //Extract properties
+                        $a2=split(' ', $e);
+                        $tag=strtoupper(array_shift($a2));
+                        $prop=array();
+                        foreach($a2 as $v)
+                            if(ereg('^([^=]*)=["\']?([^"\']*)["\']?$', $v, $a3))
+                                $prop[strtoupper($a3[1])]=$a3[2];
+                        $this->OpenTag($tag, $prop);
+                    }
+                }
+            }
+        }
+
+        function OpenTag($tag, $prop)
+        {
+            //Opening tag
+            if($tag=='B' or $tag=='I' or $tag=='U')
+                $this->SetStyle($tag, true);
+            if($tag=='A')
+                $this->HREF=$prop['HREF'];
+            if($tag=='BR')
+                $this->Ln(5);
+            if($tag=='P')
+                $this->ALIGN=$prop['ALIGN'];
+            if($tag=='HR')
+            {
+                if( $prop['WIDTH'] != '' )
+                    $Width = $prop['WIDTH'];
+                else
+                    $Width = $this->w - $this->lMargin-$this->rMargin;
+                $this->Ln(2);
+                $x = $this->GetX();
+                $y = $this->GetY();
+                $this->SetLineWidth(0.4);
+                $this->Line($x, $y, $x+$Width, $y);
+                $this->SetLineWidth(0.2);
+                $this->Ln(2);
+            }
+        }
+
+        function CloseTag($tag)
+        {
+            //Closing tag
+            if($tag=='B' or $tag=='I' or $tag=='U')
+                $this->SetStyle($tag, false);
+            if($tag=='A')
+                $this->HREF='';
+            if($tag=='P')
+                $this->ALIGN='';
+        }
+
+        function SetStyle($tag, $enable)
+        {
+            //Modify style and select corresponding font
+            $this->$tag+=($enable ? 1 : -1);
+            $style='';
+            foreach(array('B', 'I', 'U') as $s)
+                if($this->$s>0)
+                    $style.=$s;
+            $this->SetFont('', $style);
+        }
+
+        function PutLink($URL, $txt)
+        {
+            //Put a hyperlink
+            $this->SetTextColor(0, 0, 255);
+            $this->SetStyle('U', true);
+            $this->Write(5, $txt, $URL);
+            $this->SetStyle('U', false);
+            $this->SetTextColor(0);
+        }
+
     }
 
     $pdf = new PDF();
+    $pdf->SetDrawColor(0);
 
 
 /**************************************************************************************************/
@@ -275,7 +419,7 @@
 /**************************************************************************************************/
     $pdf->AddPage();
     $pdf->SetMargins(20, 0, 25);
-    $pdf->SetLineWidth(.1);
+    $pdf->SetLineWidth(.2);
 
     $pdf->Ln(43);
     $pdf->SetFont('Arial', 'B', 7);
@@ -1040,11 +1184,11 @@
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("La iluminación industrial es uno de los principales factores ambientales de carácter microclimático, que tiene como principal finalidad facilitar la visualización de las cosas dentro del contexto espacial, de modo que el trabajo se pueda realizar en unas condiciones aceptables de eficacia, comodidad y seguridad."), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      La iluminación industrial es uno de los principales factores ambientales de carácter microclimático, que tiene como principal finalidad facilitar la visualización de las cosas dentro del contexto espacial, de modo que el trabajo se pueda realizar en unas condiciones aceptables de eficacia, comodidad y seguridad."), 0, 'J');
     $pdf->Ln();
-    $pdf->MultiCell(0, 5, utf8_decode("Si se consiguen estos objetivos, las consecuencias no sólo repercuten favorablemente sobre las personas, reduciendo la fatiga, la tasa de errores y accidentes, sino que además contribuyen a aumentar la cantidad y calidad de trabajo."), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      Si se consiguen estos objetivos, las consecuencias no sólo repercuten favorablemente sobre las personas, reduciendo la fatiga, la tasa de errores y accidentes, sino que además contribuyen a aumentar la cantidad y calidad de trabajo."), 0, 'J');
     $pdf->Ln();
-    $pdf->MultiCell(0, 5, utf8_decode("En el presente reporte se establecen los niveles de iluminación en las diferentes áreas de la empresa ALCOCER AGUILAR JOSÉ MANUEL, en la planta ACEROS LAMASI MATRÍZ, ubicada en Chetumal, Quintana Roo, para control interno, a través de la medición directa de los mismos y su correlación con los niveles mínimos recomendados establecidos en la NOM-025-STPS-2008."), 0, 'J');
+    $pdf->MultiCell(0, 5, $pdf->WriteHTML(utf8_decode("      En el presente reporte se establecen los niveles de iluminación en las diferentes áreas de la empresa <b>ALCOCER AGUILAR JOSÉ MANUEL, en la planta ACEROS LAMASI MATRÍZ</b>, ubicada en <b>Chetumal, Quintana Roo</b>, para control interno, a través de la medición directa de los mismos y su correlación con los niveles mínimos recomendados establecidos en la NOM-025-STPS-2008.")), 0, 'J');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', 'B', 10);
@@ -1052,9 +1196,9 @@
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("Según el art. 95 del Reglamento Federal de Seguridad, Higiene y Medio Ambiente, las áreas,  planos y lugares de trabajo, deberán contar con las condiciones y niveles de iluminación adecuadas al tipo de actividad que se realice."), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      Según el art. 95 del Reglamento Federal de Seguridad, Higiene y Medio Ambiente, las áreas,  planos y lugares de trabajo, deberán contar con las condiciones y niveles de iluminación adecuadas al tipo de actividad que se realice."), 0, 'J');
     $pdf->Ln();
-    $pdf->MultiCell(0, 5, utf8_decode("De acuerdo a lo anterior, se debe efectuar el reconocimiento, evaluación y control de los niveles de iluminación en el centro de trabajo,  según lo establecido en los numerales 8, 9 y 10 de la NOM-025-STPS-2008."), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      De acuerdo a lo anterior, se debe efectuar el reconocimiento, evaluación y control de los niveles de iluminación en el centro de trabajo,  según lo establecido en los numerales 8, 9 y 10 de la NOM-025-STPS-2008."), 0, 'J');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', 'B', 10);
@@ -1065,7 +1209,7 @@
     $pdf->Cell(0, 5, utf8_decode('2.1 General'), 0, 1, 'L');
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("Evaluar los niveles de iluminación y establecer sus características de forma que este no sea un factor de riesgo para los trabajadores en el centro de trabajo."), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      Evaluar los niveles de iluminación y establecer sus características de forma que este no sea un factor de riesgo para los trabajadores en el centro de trabajo."), 0, 'J');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', 'B', 10);
@@ -1106,7 +1250,7 @@
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("A continuación se describen las actividades realizadas para la evaluación de las condiciones de iluminación:"), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      A continuación se describen las actividades realizadas para la evaluación de las condiciones de iluminación:"), 0, 'J');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', 'B', 10);
@@ -1114,7 +1258,7 @@
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("Tal y como se establece en la norma vigente, el propósito del reconocimiento es determinar las áreas y puestos de trabajo que cuenten con una deficiente iluminación o que presenten deslumbramiento, para lo cual se deben considerar los reportes de los trabajadores y realizar un recorrido por todas las áreas del centro de trabajo en donde existan trabajadores, así como, recabar la información técnica y administrativa que permita seleccionar las áreas y puestos de trabajo por evaluar."), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      Tal y como se establece en la norma vigente, el propósito del reconocimiento es determinar las áreas y puestos de trabajo que cuenten con una deficiente iluminación o que presenten deslumbramiento, para lo cual se deben considerar los reportes de los trabajadores y realizar un recorrido por todas las áreas del centro de trabajo en donde existan trabajadores, así como, recabar la información técnica y administrativa que permita seleccionar las áreas y puestos de trabajo por evaluar."), 0, 'J');
     $pdf->Ln();
 
     $pdf->Cell(10, 5, '  ', 0, 0, 'R');
@@ -1138,7 +1282,7 @@
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("Los puntos de medición fueron seleccionados en función de las necesidades y características de cada centro de trabajo, de tal manera que se describiera el entorno ambiental de la iluminación de una forma confiable, considerando el proceso de producción, la ubicación de las luminarias, de las áreas y puestos de trabajo y la posición de la maquinaria y equipo, según lo establece la norma de referencia, en el numeral A.2.3.1."), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      Los puntos de medición fueron seleccionados en función de las necesidades y características de cada centro de trabajo, de tal manera que se describiera el entorno ambiental de la iluminación de una forma confiable, considerando el proceso de producción, la ubicación de las luminarias, de las áreas y puestos de trabajo y la posición de la maquinaria y equipo, según lo establece la norma de referencia, en el numeral A.2.3.1."), 0, 'J');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', 'B', 10);
@@ -1149,15 +1293,17 @@
     $pdf->MultiCell(115, 5, utf8_decode("Luminómetro marca International Light, modelo ILT1400, con corrección cosenoidal y desviación máxima de su detector de +/- 5% de su respuesta espectral fotópica y con exactitud de +/- 5%,  No. de Serie ILT14000655."), 0, 'J');
     $pdf->Ln();
 
+    $pdf->Image("../../img/luminometro.png", 140, 190, 40, 40);
+
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(0, 5, utf8_decode('4. EVALUACIÓN'), 0, 1, 'L');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("La evaluación de los niveles de iluminación se llevó a cabo conforme lo establece el apéndice A de  la NOM-025-STPS-2008."), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      La evaluación de los niveles de iluminación se llevó a cabo conforme lo establece el apéndice A de  la NOM-025-STPS-2008."), 0, 'J');
     $pdf->Ln();
 
-    $pdf->MultiCell(0, 5, utf8_decode("A partir de los registros del reconocimiento se llevó a cabo la evaluación de los niveles de iluminación en las áreas y puestos de trabajo bajo los siguientes criterios:"), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      A partir de los registros del reconocimiento se llevó a cabo la evaluación de los niveles de iluminación en las áreas y puestos de trabajo bajo los siguientes criterios:"), 0, 'J');
     $pdf->Ln();
 
 
@@ -1228,7 +1374,7 @@
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("Se elaboró un reporte con la información proporcionada por el cliente (Anexo 1) conforme lo marca el punto 12 de la NOM-025-STPS-2008, los datos obtenidos durante la evaluación y la siguiente información:"), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      Se elaboró un reporte con la información proporcionada por el cliente (Anexo 1) conforme lo marca el punto 12 de la NOM-025-STPS-2008, los datos obtenidos durante la evaluación y la siguiente información:"), 0, 'J');
     $pdf->Ln();
 
 /**************************************************************************************************/
@@ -1244,7 +1390,7 @@
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
 
     $pdf->SetFont('Arial', '', 7);
-    $pdf->Cell(0, 3, utf8_decode('Página No.  de 10'), 0, 1, 'R');
+    $pdf->Cell(0, 3, utf8_decode('Página No. 6 de 10'), 0, 1, 'R');
     $pdf->Cell(0, 3, utf8_decode("O.T. 916I - 2015"), 0, 1, 'R');
     $pdf->Ln();
 
@@ -1303,12 +1449,13 @@
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(0, 5, utf8_decode("El número de zonas a evaluar se obtuvo conforme lo dice la norma con la tabla indicada en ella y la siguiente fórmula:"), 0, 'J');
+    $pdf->MultiCell(0, 5, utf8_decode("      El número de zonas a evaluar se obtuvo conforme lo dice la norma con la tabla indicada en ella y la siguiente fórmula:"), 0, 'J');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 8);
+    $pdf->Image("../../img/formula ic.png", 30, 225, 30, 15);
     $pdf->Cell(50, 5, '', 0, 0, 'R');
-    $pdf->MultiCell(0, 4, utf8_decode("Donde: \n IC   :  Índice de Área \n x,y  :  dimensiones del área (largo y ancho) en metros \n h  :  Altura de la luminaria respecto al plano de trabajo,  en  metros"), 0, 'L');
+    $pdf->MultiCell(0, 4, utf8_decode("Donde: \n IC   :  Índice de Área \n x,y  :  dimensiones del área (largo y ancho) en metros \n h     :  Altura de la luminaria respecto al plano de trabajo,  en  metros"), 0, 'L');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 10);
@@ -1316,36 +1463,295 @@
     $pdf->Ln();
 
     $pdf->SetFont('Arial', '', 8);
+    $pdf->Image("../../img/formula k.png", 30, 255, 30, 15);
     $pdf->Cell(50, 5, '', 0, 0, 'R');
-    $pdf->MultiCell(0, 4, utf8_decode("Donde:\nKƒ    :  Factor de reflexión\nE1  :  Nivel de Iluminación reflejada\nE2  :  Nivel de iluminación incidente"), 0, 'L');
+    $pdf->MultiCell(0, 4, utf8_decode("Donde:\nKf   :  Factor de reflexión\nE1  :  Nivel de Iluminación reflejada\nE2  :  Nivel de iluminación incidente"), 0, 'L');
     $pdf->Ln();
 
 /**************************************************************************************************/
 /********************************************* Hoja 9 *********************************************/
 /**************************************************************************************************/
+    $pdf->AddPage();
+    $pdf->SetMargins(20, 0, 25);
+    $pdf->SetLineWidth(.1);
+
+    $pdf->Ln(43);
+    $pdf->SetTextColor(100);
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
+
+    $pdf->SetFont('Arial', '', 7);
+    $pdf->Cell(0, 3, utf8_decode('Página No. 7 de 10'), 0, 1, 'R');
+    $pdf->Cell(0, 3, utf8_decode("O.T. 916I - 2015"), 0, 1, 'R');
+    $pdf->Ln();
+
+    $pdf->SetTextColor(0);
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(0, 5, utf8_decode('5. REFERENCIAS PARA LA EVALUACIÓN'), 0, 1, 'L');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->MultiCell(0, 5, utf8_decode("Con el propósito de evaluar los resultados de las mediciones practicadas a continuación se proporcionan los niveles mínimos de iluminación recomendados por la norma de referencia."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->SetFillColor(116, 144, 119);
+    $pdf->SetTextColor(255);
+    $pdf->SetWidths(array(72.5, 72.5, 30));
+    $pdf->SetFonts(array('B'));
+    $pdf->SetFontSizes(array(9));
+    $pdf->SetAligns(array('C','C','C'));
+    $pdf->Row(array(utf8_decode('TAREA VISUAL DEL PUESTO DE TRABAJO'),
+                utf8_decode('AREA DE TRABAJO'),
+                utf8_decode('NIVELES MÍNIMOS DE ILUMINACIÓN EN LUX')
+            )
+        );
+
+    $valores = array(
+                    array('Tarea' => 'En exteriores: distinguir el área de tránsito, desplazarse caminando, vigilancia, movimiento de vehículo',
+                        'Area' => 'Áreas generales, exteriores, patios y estacionamientos',
+                        'Niveles' => '20'),
+                    array('Tarea' => 'En interiores distinguir el área de tránsito, desplazarse caminando, vigilancia, movimiento de vehículos',
+                        'Area' => 'Áreas generales interiores: Almacenes de poco movimiento, pasillos, escaleras, estacionamientos cubiertos, labores en minas, iluminación de emergencia.',
+                        'Niveles' => '50'),
+                    array('Tarea' => 'En interiores ',
+                        'Area' => 'Áreas de circulación y pasillos; salas de espera; salas de descanso:;  cuartos de almacén;  plataformas; cuartos de calderas',
+                        'Niveles' => '100'),
+                    array('Tarea' => 'Requerimiento visual simple: Inspección visual, recuento de piezas, trabajo en banco y máquina',
+                        'Area' => 'Áreas de servicios al personal: Almacenaje rudo, recepción y despacho, casetas de vigilancia, cuartos de compresores y pailería',
+                        'Niveles' => '200'),
+                    array('Tarea' => 'Distinción moderada de detalles: Ensamble simple, trabajo medio en banco y máquina, inspección simple, empaque y trabajo de oficina',
+                        'Area' => 'Áreas de servicios al personal: Almacenaje rudo, recepción y despacho, casetas de vigilancia, cuartos de compresores y pailería',
+                        'Niveles' => '300'),
+                    array('Tarea' => 'Distinción clara de detalles: maquinado y acabados delicados, ensamble inspección moderadamente difícil, captura y procesamiento de información, manejo de instrumentos y equipos de laboratorio',
+                        'Area' => 'Talleres de precisión, salas de cómputo, áreas de dibujo, laboratorios',
+                        'Niveles' => '500'),
+                    array('Tarea' => 'Distinción fina de detalles: Maquinado de precisión, ensamble e inspección de trabajos delicados, manejo de instrumentos y equipo de precisión, manejo de piezas pequeñas',
+                        'Area' => 'Talleres de alta precisión: De pintura y acabado de superficies y laboratorios de control de calidad',
+                        'Niveles' => '750'),
+                    array('Tarea' => 'Alta exactitud en la distinción de detalles: Ensamble, proceso e inspección de piezas pequeñas y complejas y acabado con pulidos finos',
+                        'Area' => 'Áreas de proceso: Ensamble e inspección de piezas complejas y acabados con pulido fino',
+                        'Niveles' => '1000'),
+                    array('Tarea' => 'Alto grado de especialización en la distinción de detalles ',
+                        'Area' => 'Áreas de proceso de gran exactitud',
+                        'Niveles' => '2000')
+                    );
+
+    $pdf->SetFonts(array(''));
+    $pdf->SetAligns(array('J','J','C'));
+    blanco($pdf);
+    foreach ($valores as $key => $value) {
+        $pdf->noEnterRow(array(utf8_decode($value['Tarea']),
+                utf8_decode($value['Area']),
+                utf8_decode($value['Niveles'])
+            )
+        );
+    }
+
+    $pdf->SetFont('Arial', '', 8);
+    $pdf->Cell(0, 5, utf8_decode('Tomado de la tabla 1 de la NOM-025-STPS-2008.'), 0, 1, 'L');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', 'B', 8);
+    $pdf->MultiCell(0, 4, utf8_decode("Las áreas evaluadas fueron comparadas con 50 lux (Pasillos), 200 lux (Requerimiento visual simple) y 300 lux (Distinción moderada de detalles)."), 0, 'L');
+    $pdf->Ln();
 
 /**************************************************************************************************/
 /********************************************* Hoja 10 ********************************************/
 /**************************************************************************************************/
+    $pdf->AddPage();
+    $pdf->SetMargins(20, 0, 25);
+    $pdf->SetLineWidth(.1);
+
+    $pdf->Ln(43);
+    $pdf->SetTextColor(100);
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
+
+    $pdf->SetFont('Arial', '', 7);
+    $pdf->Cell(0, 3, utf8_decode('Página No. 8 de 10'), 0, 1, 'R');
+    $pdf->Cell(0, 3, utf8_decode("O.T. 916I - 2015"), 0, 1, 'R');
+    $pdf->Ln();
+
+    $pdf->SetTextColor(0);
+    $pdf->SetFont('Arial', 'B', 12);
+    $pdf->Cell(0, 5, utf8_decode('NIVELES MÁXIMOS PERMISIBLES DEL FACTOR DE REFLEXIÓN'), 0, 1, 'C');
+    $pdf->Ln();
+
+    $pdf->SetFillColor(116, 144, 119);
+    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->Cell(30, 5, '', 0, 0, 'L');
+    $pdf->Cell(50, 5, utf8_decode('CONCEPTO'), 1, 0, 'C', true);
+    $pdf->Cell(50, 5, utf8_decode('NIVEL MÁXIMO PERMISIBLE'), 1, 1, 'C', true);
+
+    blanco($pdf, 9, '');
+    $pdf->Cell(30, 5, '', 0, 0, 'L');
+    $pdf->Cell(50, 5, utf8_decode('Paredes'), 1, 0, 'L', true);
+    $pdf->Cell(50, 5, utf8_decode('60%'), 1, 1, 'L', true);
+
+    $pdf->Cell(30, 5, '', 0, 0, 'L');
+    $pdf->Cell(50, 5, utf8_decode('Planos de trabajo'), 1, 0, 'L', true);
+    $pdf->Cell(50, 5, utf8_decode('50%'), 1, 1, 'L', true);
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(0, 5, utf8_decode('6. RESULTADOS'), 0, 1, 'L');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->MultiCell(0, 5, utf8_decode("      Los resultados que se obtuvieron con el empleo de la estrategia anteriormente descrita se indican en el listado presentado en el anexo 2."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->MultiCell(0, 5, utf8_decode("      En estos listados y en los planos de identificación de las mediciones se identifica con un código de colores los valores obtenidos, de acuerdo al riesgo que presenta así:"), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->Image("../../img/semaforo 5.png", 40, 123, 80, 20);
+    $pdf->Ln(20);
+
+    blanco($pdf, 6, 'B');
+    $pdf->Cell(35, 3, utf8_decode('N.I.M.R.:'), 0, 0, 'R', true);
+    blanco($pdf, 6, '');
+    $pdf->Cell(70, 3, utf8_decode('Nivel de Iluminación Mínimo Recomendado (lux)'), 0, 1, 'L', true);
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->MultiCell(0, 5, utf8_decode("Los informes de evaluación se presentan en el anexo 3."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(0, 5, utf8_decode('7. DESVIACIONES'), 0, 1, 'L');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->MultiCell(0, 5, utf8_decode("No se presentó desviación alguna en la medición de las condiciones de iluminación"), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(0, 5, utf8_decode('8. CONCLUSIONES'), 0, 1, 'L');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->MultiCell(0, 5, utf8_decode("      El estudio llevado a cabo cuyos resultados se expresan en el contenido de este informe,  son consecuencia de la aplicación de las estrategias y procedimientos derivados de las indicaciones contenidas en la regulación."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->MultiCell(0, 5, utf8_decode("      El propósito de la reglamentación es el de promover que los patrones ejecuten las actividades que como mínimo a su juicio, se requieren para conservar la salud del personal."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->MultiCell(0, 5, utf8_decode("      Para ello le expresa en primer término la necesidad de que realicen lo necesario para contar con la información que le permita la identificación de sus riesgos y en segundo la evaluación de la probabilidad de daño de los mismos con base en las tolerancias de las normas."), 0, 'J');
+    $pdf->Ln();
+    $pdf->MultiCell(0, 5, utf8_decode("      Finalmente le instruye sobre el compromiso de promover acciones programadas de control que abatan la magnitud de los riesgos a niveles que conduzcan la conservación de la salud."), 0, 'J');
+    $pdf->Ln();
+
+
 
 /**************************************************************************************************/
 /********************************************* Hoja 11 ********************************************/
 /**************************************************************************************************/
+    $pdf->AddPage();
+    $pdf->SetMargins(20, 0, 25);
+    $pdf->SetLineWidth(.1);
+
+    $pdf->Ln(43);
+    $pdf->SetTextColor(100);
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
+
+    $pdf->SetFont('Arial', '', 7);
+    $pdf->Cell(0, 3, utf8_decode('Página No. 9 de 10'), 0, 1, 'R');
+    $pdf->Cell(0, 3, utf8_decode("O.T. 916I - 2015"), 0, 1, 'R');
+    $pdf->Ln();
+
+    $pdf->SetTextColor(0);
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->MultiCell(0, 5, utf8_decode("      Bajo esa circunstancia las conclusiones y recomendaciones que se expresan en este informe, se han elaborado con base en los preceptos reglamentarios de ejecución e interpretación indicados, sin embargo, con ello al cumplirlos solo se comprueba lo expresado en los ordenamientos y no precisamente lo que pudiera requerirse para garantizar la conservación de la salud de la población laboral que se pretende proteger."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->MultiCell(0, 5, utf8_decode("      La necesidad de efectuar acciones complementarias adicionales a las indicadas en la normatividad entre otras es debida en primer término por la posible no representatividad de los resultados cuando se lleva a cabo una sola medición, en segundo por la certeza en la aplicación de los valores de tolerancia adoptados para la población expuesta y en tercero por la respuesta especifica individual de cada trabajador bajo control dadas sus particulares condiciones de salud."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->MultiCell(0, 5, utf8_decode("      Las conclusiones que es posible derivar para el propósito de este estudio, con las reservas que se derivan de lo anteriormente expuesto son:"), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos en los 45 sitios evaluados, en el primer y segundo ciclo de medición son adecuados, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por arriba de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos en 1 de los 45 sitios evaluados, en el tercer ciclo de medición, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+    $pdf->Ln();
+
+    $pdf->Cell(0, 5, utf8_decode('El comportamiento general de las mediciones se muestra en el siguiente gráfico:'), 0, 1, 'C');
+    $pdf->Ln();
+
+    $pdf->Ln(40);
+    $pdf->Ln();
+
+    $pdf->MultiCell(0, 5, $pdf->WriteHTML(utf8_decode("<b>8.1 </b> El factor de reflexión obtenido se encuentra por debajo del nivel máximo recomendado, por lo que se puede concluir que no se presentan deslumbramientos bajo las condiciones en las que se realizó el estudio.")), 0, 'J');
+    $pdf->Ln();
 
 /**************************************************************************************************/
 /********************************************* Hoja 12 ********************************************/
 /**************************************************************************************************/
+    $pdf->AddPage();
+    $pdf->SetMargins(20, 0, 25);
+    $pdf->SetLineWidth(.1);
 
-/**************************************************************************************************/
-/********************************************* Hoja 13 ********************************************/
-/**************************************************************************************************/
-        $pdf->Output();
-        exit();
+    $pdf->Ln(43);
+    $pdf->SetTextColor(100);
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
 
-/**************************************************************************************************/
-/* Acción por defualt, llevar a búsqueda de ordenes */
-/**************************************************************************************************/
+    $pdf->SetFont('Arial', '', 7);
+    $pdf->Cell(0, 3, utf8_decode('Página No. 10 de 10'), 0, 1, 'R');
+    $pdf->Cell(0, 3, utf8_decode("O.T. 916I - 2015"), 0, 1, 'R');
+    $pdf->Ln(30);
 
+    $pdf->SetTextColor(0);
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(0, 5, utf8_decode('9.  LISTADO DE ANEXOS'), 0, 1, 'L');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(20, 5, 'Anexo 1:  ', 0, 0, 'R');
+    $pdf->MultiCell(0, 5, utf8_decode('Información de reconocimiento'), 0, 'L');
+    $pdf->Ln(1);
+
+    $pdf->Cell(20, 5, 'Anexo 2:  ', 0, 0, 'R');
+    $pdf->MultiCell(0, 5, utf8_decode('Listado de resultados de las evaluaciones de iluminación'), 0, 'L');
+    $pdf->Ln(1);
+
+    $pdf->Cell(20, 5, 'Anexo 3:  ', 0, 0, 'R');
+    $pdf->MultiCell(0, 5, utf8_decode('Informes de evaluación'), 0, 'L');
+    $pdf->Ln(1);
+
+    $pdf->Cell(20, 5, 'Anexo 4:  ', 0, 0, 'R');
+    $pdf->MultiCell(0, 5, utf8_decode('Planos'), 0, 'L');
+    $pdf->Ln(1);
+
+    $pdf->Cell(20, 5, 'Anexo 5:  ', 0, 0, 'R');
+    $pdf->MultiCell(0, 5, utf8_decode('Certificados de calibración, Acreditación E.M.A., Aprobación y Registro de la S.T.P.S.'), 0, 'L');
+    $pdf->Ln(30);
+
+    $pdf->Cell(0, 5, utf8_decode('Acreditación No.: AL-0102-015/2012'), 0, 1, 'L');
+    $pdf->Cell(0, 5, utf8_decode('Vigente a partir del 2012-08-10'), 0, 1, 'L');
+    $pdf->Cell(0, 5, utf8_decode('Aprobación STPS: LP-STPS-001/13'), 0, 1, 'L');
+    $pdf->Cell(0, 5, utf8_decode('Vigente a partir del 2013-04-19'), 0, 1, 'L');
+    $pdf->Ln();
+
+    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->Ln(30);
+    $pdf->Cell(60, 6, utf8_decode('Atentamente:'), 0, 1, 'L');
+
+    $pdf->Cell(0, 5, '', 0, 1);
+    $pdf->Ln(10);
+
+    $pdf->SetFont('Arial', 'U', 9);
+    $pdf->Cell(60, 5, utf8_decode('                                                                        '), 0, 0, 'C');
+    $pdf->Cell(45, 5, '', 0, 1, 'C');
+
+    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->Cell(60, 4, utf8_decode('T.S.U. Omar Amador Arellano'), 0, 1, 'C');
+    $pdf->Cell(60, 4, utf8_decode('Signatario autorizado por la EMA'), 0, 0, 'C');
+
+    $pdf->Output();
+    exit();
 
 /**************************************************************************************************/
 /* Función para añadir nueva hoja */
@@ -1360,48 +1766,6 @@
       $pdf->SetFont('Arial', 'B', 8);
       $pdf->Cell(0, 3, 'AIR-F-11', 0, 1, 'R');
       $pdf->Ln(7);
-
-      $pdf->SetTextColor(0);
-      $pdf->SetFont('Arial', 'B', 9);
-      $pdf->Ln();
-      $pdf->Cell(0, 3, utf8_decode('CARACTERIZACIÓN DE AGUA'), 0, 1, 'C');
-      $pdf->Ln();
-
-      $pdf->Cell(0, 3, utf8_decode('RESIDUAL DE ACUERDO A LA NOM-001-SEMARNAT-1996'), 0, 1, 'C');
-      $pdf->Ln();
-
-      $pdf->Cell(70, 4, '');
-
-      $pdf->SetFont('Arial', 'B', 8);
-      $pdf->SetFillColor(220);
-      $pdf->SetDrawColor(180);
-      $pdf->SetLineWidth(1.2);
-      $pdf->Cell(20, 4, utf8_decode('N° de O.T.'), 1, 0, 'C', true);
-
-      $pdf->SetFont('Arial', '', 8);
-      $pdf->SetFillColor(255);
-      $pdf->Cell(15, 4, utf8_decode($orden['ot']), 1, 0, 'C', true);
-
-      $pdf->SetFont('Arial', 'B', 8);
-      $pdf->SetFillColor(220);
-      $pdf->Cell(15, 4, utf8_decode('Hoja'), 1, 0, 'C', true);
-
-      $pdf->SetFont('Arial', '', 8);
-      $pdf->SetFillColor(255);
-      $pdf->Cell(15, 4, utf8_decode($pagina), 1, 0, 'C', true);
-
-      $pdf->SetFont('Arial', 'B', 8);
-      $pdf->SetFillColor(220);
-      $pdf->Cell(15, 4, utf8_decode('De'), 1, 0, 'C', true);
-
-      $pdf->SetFont('Arial', '', 8);
-      $pdf->SetFillColor(255);
-      $pdf->Cell(15, 4, utf8_decode($paginas), 1, 1, 'C', true);
-      $pdf->Ln();
-
-      $pdf->SetFillColor(215, 231, 248);
-      $pdf->SetDrawColor(190);
-      $pdf->SetLineWidth(.8);
     }
 
 function azul($pdf){
