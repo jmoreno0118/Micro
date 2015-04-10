@@ -1,8 +1,13 @@
 <?php
- /********** Norma 001 **********/
+ /********** Iluminació **********/
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/magicquotes.inc.php';
  require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/acceso.inc.php';
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';
+
+require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/jpgraph.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/jpgraph_pie.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/jpgraph_pie3d.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/jpgraph_bar.php';
 
 /**************************************************************************************************/
 /* Modificaciones al FPDF */
@@ -798,6 +803,7 @@
                     utf8_decode('No Aplica')
                 )
             );
+    $pdf->Ln(1);
 
     blanco($pdf, 6, 'B');
     $pdf->Cell(20, 3, utf8_decode('No. Med:'), 0, 0, 'R', true);
@@ -826,6 +832,101 @@
 
     $pdf->Image("../../img/semaforo 5.png", 20, 170, 70, 17);
 
+    $data = array(6,3);
+    $labels = array("Valores\ndentro de\nnorma\n(%.1f%%)",
+                "Valores\nfuera de\nnorma\n(%.1f%%)");
+     
+    $graph = new PieGraph(310,200);
+    $graph->SetShadow();
+     
+    $graph->title->Set(utf8_decode("Análisis de resultados 1er Ciclo"));
+    $graph->title->SetFont(FF_FONT1,FS_BOLD);
+     
+    $p1 = new PiePlot3D($data);
+    $p1->SetSize(0.5);
+    $p1->SetCenter(0.5);
+    $p1->ExplodeAll(15);
+    $p1->SetStartAngle(60);
+    $p1->SetLabels($labels);
+    $p1->SetLabelPos(0);
+    $p1->value->SetColor('black');
+    
+    $graph->Add($p1);
+    $p1->SetSliceColors(array('green','red'));
+    //$graph->Stroke();
+
+    $nombreImagen = '' . uniqid() . '.png';
+    // Display the graph
+    $graph->Stroke($nombreImagen);
+
+    //Aqui agrego la imagen que acabo de crear con jpgraph
+    $pdf->Image($nombreImagen, 110, 156, 55, 45);
+
+    unlink($nombreImagen);
+
+    $data = array(2,7);
+    $labels = array("Valores\ndentro de\nnorma\n(%.1f%%)",
+                "Valores\nfuera de\nnorma\n(%.1f%%)");
+
+    $graph = new PieGraph(310,200);
+    $graph->SetShadow();
+     
+    $graph->title->Set(utf8_decode("Análisis de resultados 2do Ciclo"));
+    $graph->title->SetFont(FF_FONT1,FS_BOLD);
+     
+    $p1 = new PiePlot3D($data);
+    $p1->SetSize(0.5);
+    $p1->SetCenter(0.5);
+    $p1->ExplodeAll(15);
+    $p1->SetStartAngle(60);
+    $p1->SetLabels($labels);
+    $p1->SetLabelPos(0);
+    $p1->value->SetColor('black');
+    
+    $graph->Add($p1);
+    $p1->SetSliceColors(array('green','red'));
+    //$graph->Stroke();
+
+    $nombreImagen = '' . uniqid() . '.png';
+    // Display the graph
+    $graph->Stroke($nombreImagen);
+
+    //Aqui agrego la imagen que acabo de crear con jpgraph
+    $pdf->Image($nombreImagen, 165, 156, 55, 45);
+
+    unlink($nombreImagen);
+
+    $data = array(0,9);
+    $labels = array("Valores\ndentro de\nnorma\n(%.1f%%)",
+                "Valores\nfuera de\nnorma\n(%.1f%%)");
+
+    $graph = new PieGraph(310,200);
+    $graph->SetShadow();
+     
+    $graph->title->Set(utf8_decode("Análisis de resultados 3er Ciclo"));
+    $graph->title->SetFont(FF_FONT1,FS_BOLD);
+     
+    $p1 = new PiePlot3D($data);
+    $p1->SetSize(0.5);
+    $p1->SetCenter(0.5);
+    $p1->ExplodeAll(15);
+    $p1->SetStartAngle(60);
+    $p1->SetLabels($labels);
+    $p1->SetLabelPos(0);
+    $p1->value->SetColor('black');
+    
+    $graph->Add($p1);
+    $p1->SetSliceColors(array('green','red'));
+    //$graph->Stroke();
+
+    $nombreImagen = '' . uniqid() . '.png';
+    // Display the graph
+    $graph->Stroke($nombreImagen);
+
+    //Aqui agrego la imagen que acabo de crear con jpgraph
+    $pdf->Image($nombreImagen, 220, 156, 55, 45);
+
+    unlink($nombreImagen);
 
 /**************************************************************************************************/
 /********************************************* Hoja 2 *********************************************/
@@ -1006,6 +1107,33 @@
         );
 
     $pdf->Ln(3);
+
+    $datay1=array(35,160,0);
+ 
+    $graph = new Graph(500,250,'auto');    
+    $graph->SetScale("textlin");
+    $graph->SetShadow();
+    $graph->img->SetMargin(30,15,15,30);
+    $graph->xaxis->SetTickLabels(array('1','2','3'));
+     
+    $bplot1 = new BarPlot($datay1);
+    $bplot1->SetShadow();
+
+    // Setup color for gradient fill style 
+    $bplot1->SetFillGradient("navy","lightsteelblue",GRAD_HOR);
+         
+    // Set color for the frame of each bar
+    $bplot1->SetColor("navy");
+    $graph->Add($bplot1);
+     
+     $nombreImagen = '' . uniqid() . '.png';
+    // Display the graph
+    $graph->Stroke($nombreImagen);
+
+    //Aqui agrego la imagen que acabo de crear con jpgraph
+    $pdf->Image($nombreImagen, 20, 182, 90, 60);
+
+    unlink($nombreImagen);
 
     $pdf->Cell(100, 6, '', 0, 0);
     gris($pdf);
@@ -1496,7 +1624,7 @@
 
     $pdf->SetFillColor(116, 144, 119);
     $pdf->SetTextColor(255);
-    $pdf->SetWidths(array(72.5, 72.5, 30));
+    $pdf->SetWidths(array(70, 60, 35));
     $pdf->SetFonts(array('B'));
     $pdf->SetFontSizes(array(9));
     $pdf->SetAligns(array('C','C','C'));
@@ -1538,6 +1666,7 @@
 
     $pdf->SetFonts(array(''));
     $pdf->SetAligns(array('J','J','C'));
+    $pdf->SetFontSizes(array(8));
     blanco($pdf);
     foreach ($valores as $key => $value) {
         $pdf->noEnterRow(array(utf8_decode($value['Tarea']),
