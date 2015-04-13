@@ -77,7 +77,8 @@ if((isset($_POST['accion']) and $_POST['accion']=='Ver OT'))
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
   try
   {
-    $sql='SELECT id, clienteidfk, ot, fechalta, tipo, Razon_Social,  Calle_Numero, Colonia, Ciudad, Estado, Codigo_Postal, RFC, atencion, atenciontel, atencioncorreo FROM ordenestbl
+    $sql='SELECT id, clienteidfk, ot, fechalta, tipo, Razon_Social,  Calle_Numero, Colonia, Ciudad, Estado, Codigo_Postal, RFC, atencion, atenciontel, atencioncorreo 
+      FROM ordenestbl
 	  INNER JOIN clientestbl ON clienteidfk=Numero_Cliente
 	  WHERE id=:id';
       $s=$pdo->prepare($sql);
@@ -140,19 +141,21 @@ if((isset($_POST['accion']) and $_POST['accion']=='Ver OT'))
 	{
      verRecs($_GET['idot']);
 	}
-   else 
-	 { verRecs($_POST['id']); }
+    else 
+	{
+	 verRecs($_POST['id']);
+	}
   }
 
 /**************************************************************************************************/
 /* Ver reconocimientos iniciales de una orden de trabajo */
 /**************************************************************************************************/
-
   if(isset($_GET['volverpts']))
   {
    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
    verPuntos($_GET['idrci']);
   }
+
 /**************************************************************************************************/
 /* Capturar reconocimientos iniciales de una orden de trabajo */
 /**************************************************************************************************/
@@ -441,7 +444,8 @@ if((isset($_POST['accion']) and $_POST['accion']=='Ver OT'))
  }
 /*************** sigue modificacion 1 ************************/
 function desglosapost($post="")
-{ global $campos, $contenidos, $puestos, $numtrabajadores, $actividades;
+{ 
+  global $campos, $contenidos, $puestos, $numtrabajadores, $actividades;
   $campos=array();
   $contenidos=array();
   $puestos=array();
@@ -478,6 +482,7 @@ function desglosapost($post="")
    $titulopagina='Editar reconocimiento inicial';
    $accion='';
    $boton = 'salvarci';
+
 /* *******************
   inicia modificacion
 ******************** */
@@ -501,10 +506,10 @@ function desglosapost($post="")
     include 'formaconfirmacambiorci.html.php';
     exit();
   }
+
 /* *******************
   termina modificacion
 ******************** */
-
    try
    {
     $sql='UPDATE recsilumtbl SET

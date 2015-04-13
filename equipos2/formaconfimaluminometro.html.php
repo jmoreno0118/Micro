@@ -23,7 +23,7 @@
      <h2>Confirmación de borrado del luminometro</h2>
      <fieldset>
       <legend>Borrar</legend>
-	   <form action="" method="post">
+	   <form action="" method="post">.
 	   <div>
 	     <p>Estas seguro de que deseas borrar el luminometro de marca: <?php htmlout($marca); ?>, 
 		   modelo: <?php htmlout($modelo); ?>, y número de serie: <?php htmlout($serie);?>.</p>

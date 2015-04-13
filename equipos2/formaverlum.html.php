@@ -28,10 +28,9 @@
    </div>
    <?php if (isset($luminometros)) : ?>
     <table>
-      <tr><th>Tipo</th><th>Inventario</th><th>Marca</th><th>Modelo</th><th>Serie</th><th></th></tr>
+      <tr><th>Inventario</th><th>Marca</th><th>Modelo</th><th>Serie</th><th></th></tr>
       <?php foreach ($luminometros as $luminometro): ?>
       <tr>
-        <td><?php htmlout($luminometro['tipo']); ?></td>
        <td><?php htmlout($luminometro['inventario']); ?></td>
        <td><?php htmlout($luminometro['marca']); ?></td>
        <td><?php htmlout($luminometro['modelo'])?></td>

@@ -20,7 +20,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     {
         function Header()
         {
-            $this->Image("../../img/logolaboratorio3.gif", 10, 15, 165, 33);
+            $this->Image("../../img/logolaboratorio3.gif", 10, 15, 165, 31.5);
         }
 
         function Footer()
@@ -744,7 +744,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                         array(utf8_decode('N.I. (Lux)'),
                             utf8_decode('NIMR (lux)'),
                               utf8_decode('Reflexión paredes (60%)'),
-                              utf8_decode('Reflexión  plano de trabajo (50%)')
+                              utf8_decode('Reflexión plano de trabajo (50%)')
                             )
                         )
                     );
@@ -756,7 +756,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                         array(utf8_decode('N.I. (Lux)'),
                               utf8_decode('NIMR (lux)'),
                               utf8_decode('Reflexión paredes (60%)'),
-                              utf8_decode('Reflexión  plano de trabajo (50%)')
+                              utf8_decode('Reflexión plano de trabajo (50%)')
                             )
                         )
                     );
@@ -766,7 +766,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                         array(utf8_decode('N.I. (Lux)'),
                               utf8_decode('NIMR (lux)'),
                               utf8_decode('Reflexión paredes (60%)'),
-                              utf8_decode('Reflexión  plano de trabajo (50%)')
+                              utf8_decode('Reflexión plano de trabajo (50%)')
                             )
                         )
                     );
