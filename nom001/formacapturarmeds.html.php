@@ -31,11 +31,11 @@
                           "Valores máximos" => "nom01maximosidfk",
                           "Número de medición" => "numedicion",
              							"Lugar del muestreo (5.0)" => "lugarmuestreo",
-             							"Descripción del proceso" => "descriproceso",
+             							"Descripción del proceso (Max. 100)" => "descriproceso",
                           "Tipo de medición" => "tipomediciones",
                           "Proósito (6.0)" => "proposito",
              							"Materias primas usadas (8.0)" => "materiasusadas",
-             							"Tratamiento del agua antes de la descarga (9.0)" => "tratamiento",
+             							"Tratamiento del agua antes de la descarga (9.0) (Max. 100)" => "tratamiento",
              							"Características de la descarga (10.0)" => "Caracdescarga",
              							"Tipo de receptor de la decarga (11.0)" => "receptor",
              							"Estrategia de muestreo (12.0)" => "estrategia",
@@ -82,17 +82,20 @@
         <?php elseif($name === "mflotante"):?>
          <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-          <option value=""<?php if($valores["mflotante"] === "") echo 'selected'?>>Seleccionar</option>
-          <option value="0"<?php if($valores["mflotante"] === 0) echo 'selected'?>>Ausente</option>
-          <option value="1" <?php if($valores["mflotante"] === 1) echo 'selected'?>>Presente</option>
+          <option value=""<?php if(strval($valores["mflotante"]) === "") echo 'selected'?>>Seleccionar</option>
+          <option value="0"<?php if(strval($valores["mflotante"]) === "0") echo 'selected'?>>Ausente</option>
+          <option value="1" <?php if(strval($valores["mflotante"]) === "1") echo 'selected'?>>Presente</option>
          </select> 
         <?php elseif($name === "olor" OR $name === "color" OR $name === "turbiedad" OR $name === "GyAvisual" OR $name === "burbujas"):?>
          <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-          <option value=""<?php if($valores[$name] === "") echo 'selected'?>>Seleccionar</option>
-          <option value="0"<?php if($valores[$name] === 0) echo 'selected'?>>No</option>
-          <option value="1" <?php if($valores[$name] === 1) echo 'selected'?>>Sí</option>
+          <option value=""<?php if(strval($valores[$name]) === "") echo 'selected'?>>Seleccionar</option>
+          <option value="0"<?php if(strval($valores[$name]) === "0") echo 'selected'?>>No</option>
+          <option value="1" <?php if(strval($valores[$name]) === "1") echo 'selected'?>>Sí</option>
          </select>
+         <?php elseif($name === "descriproceso" OR $name === "proposito" OR $name === "tratamiento" OR $name === "observaciones" OR $name === "estrategia"):?>
+         <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label><br>
+         <textarea style="resize: none;" maxlength=<?php echo ($name === "descriproceso" OR $name === "tratamiento")? "100" : "6500"; ?> rews=5 cols=50 name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>"><?php htmlout($valores[$name]); ?></textarea>
         <?php else: ?>
     		 <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
 	    	 <input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>" <?php if(($name === "numedicion" AND $valores['numedicion'] !== "") OR ($name === "responsable" AND $valores['responsable'] !== "")){ ?> disabled <?php } ?>>
@@ -174,20 +177,35 @@
           }
         },
         lugarmuestreo: "required",
-        descriproceso: "required",
+        descriproceso: {
+         required: true,
+         maxlength: 100
+        },
         tipomediciones: "required",
-        proposito: "required",
+        proposito: {
+         required: true,
+         maxlength: 6500
+        },
         materiasusadas: "required",
-        tratamiento: "required",
+        tratamiento: {
+         required: true,
+         maxlength: 100
+        },
         Caracdescarga: "required",
         receptor: "required",
-        estrategia: "required",
+        estrategia: {
+         required: true,
+         maxlength: 6500
+        },
         numuestras: {
          required: true,
          digits: true,
          dosint: true
         },
-        observaciones: "required",
+        observaciones: {
+         required: true,
+         maxlength: 6500
+        },
         fechamuestreo: {
          required: true,
          dateISO: true

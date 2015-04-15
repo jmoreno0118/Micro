@@ -210,7 +210,7 @@
    catch (PDOException $e)
    {
     $pdo->rollback();
-    $mensaje='Hubo un error al tratar de insertar la medicion. Favor de intentar nuevamente.'.$e;
+    $mensaje='Hubo un error al tratar de insertar la medicion. Favor de intentar nuevamente.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();
    }
@@ -300,7 +300,7 @@
    catch (PDOException $e)
    {
     $pdo->rollback();
-    $mensaje='Hubo un error al tratar de insertar las muestras compuestas. Favor de intentar nuevamente.'.$e;
+    $mensaje='Hubo un error al tratar de insertar las muestras compuestas. Favor de intentar nuevamente.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();
    }
@@ -465,7 +465,7 @@
    catch (PDOException $e)
    {
     $pdo->rollback();
-    $mensaje='Hubo un error borrando la medición. Intente de nuevo. '.$e;
+    $mensaje='Hubo un error borrando la medición. Intente de nuevo. ';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();
    }
@@ -578,7 +578,7 @@
    }
    catch (PDOException $e)
    {
-    $mensaje='Hubo un error extrayendo la información de parametros.'.$e;
+    $mensaje='Hubo un error extrayendo la información de parametros.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();
    }
@@ -1035,7 +1035,7 @@
      }
      catch (PDOException $e)
      {
-      $mensaje='Hubo un error extrayendo la información de muestras compuestas.'.$e;
+      $mensaje='Hubo un error extrayendo la información de muestras compuestas.';
       include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
       exit();
      }
@@ -1126,7 +1126,7 @@
     catch (PDOException $e)
     {
      $pdo->rollback();
-     $mensaje='Hubo un error al tratar de actulizar la medicion. Favor de intentar nuevamente.'.$e;
+     $mensaje='Hubo un error al tratar de actulizar la medicion. Favor de intentar nuevamente.';
      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
      exit();
     }
@@ -1237,7 +1237,7 @@
      }
      catch (PDOException $e)
      {
-      $mensaje='Hubo un error extrayendo la información de adicionales.'.$e;
+      $mensaje='Hubo un error extrayendo la información de adicionales.';
       include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
       exit();
      }

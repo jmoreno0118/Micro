@@ -37,8 +37,8 @@
 			<label for="mcompuestas[<?php echo $i; ?>][observaciones]">Observaciones:</label>
       <input type="text" name="mcompuestas[<?php echo $i; ?>][observaciones]" id="mcompuestas[<?php echo $i; ?>][observaciones]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["observaciones"]);} ?>">
       <br>
-      <label for="mcompuestas[<?php echo $i; ?>][caracteristicas]">Caracteristicas:</label>
-      <input type="text" name="mcompuestas[<?php echo $i; ?>][caracteristicas]" id="mcompuestas[<?php echo $i; ?>][caracteristicas]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["caracteristicas"]);} ?>">
+      <label for="mcompuestas[<?php echo $i; ?>][caracteristicas]">Caracteristicas: (Max. 350)</label><br>
+      <textarea style="resize: none;" maxlength=350 rews=5 cols=50 name="mcompuestas[<?php echo $i; ?>][caracteristicas]" id="mcompuestas[<?php echo $i; ?>][caracteristicas]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["caracteristicas"]);} ?></textarea>
       <br>
       <label for="mcompuestas[<?php echo $i; ?>][fechalab]">Fecha recepción laboratorio(aaaa-mm-dd):</label>
       <input type="text" name="mcompuestas[<?php echo $i; ?>][fechalab]" id="mcompuestas[<?php echo $i; ?>][fechalab]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["fechalab"]);} ?>">
@@ -110,7 +110,8 @@
        required: true
       },
       'mcompuestas[$i][caracteristicas]':{
-       required: true
+       required: true,
+       maxlength: 350
       },
       'mcompuestas[$i][fechalab]':{
         required: true,
