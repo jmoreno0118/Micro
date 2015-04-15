@@ -36,7 +36,6 @@
    							"Color de Techo" => "techocolor",
    							"Color de Pared" => "paredcolor",
    							"Color de Piso" => "pisocolor",
-   							"Influencia" => "influencia",
    							"Percepción" => "percepcion");
    ?>
     <form action="?<?php htmlout($accion); ?>" method="post">
@@ -46,6 +45,14 @@
 	    	<input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>">
     	</div>
     	<?php endforeach?>
+      <div>
+       <label for="influencia">Influencia:</label>
+       <select name="influencia" id="influencia">
+        <option value=""<?php if($valores["influencia"] === "") echo 'selected'?>>Seleccionar</option>
+        <option value="0"<?php if(strval($valores["influencia"]) === "0") echo 'selected'?>>No</option>
+        <option value="1" <?php if(strval($valores["influencia"]) === "1") echo 'selected'?>>Sí</option>
+       </select>
+      </div>
 	  <fieldset>
 	  <legend>Descripción de puestos:</legend>
 	    <?php for ($i=0; $i<20; $i++) :?>

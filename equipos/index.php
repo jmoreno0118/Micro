@@ -167,7 +167,7 @@
      $s=$pdo->prepare($sql);
      $s->bindValue(':id',$_POST['id']);
      $s->execute();
-
+ 
      $pdo->commit();
    }
    catch (PDOException $e)

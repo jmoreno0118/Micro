@@ -295,25 +295,27 @@
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 
   foreach ($array as $key => $value) {
-  	$sql='INSERT INTO luminometrostbl SET
+  	$sql='INSERT INTO equipostbl SET
 		marca='.$value["marca"].',
 		modelo='.$value["modelo"].',
 		serie='.$value["serie"].',
-		intervalos='.json_encode($value["intervalos"]);
+    tipo=\'Luminometro\',
+		correccion='.json_encode($value["intervalos"]);
 	echo "<br>";
 	echo $sql;
   }
   foreach ($array as $key => $value) {
 	  try
 	  {
-		$sql='INSERT INTO luminometrostbl SET
+		$sql='INSERT INTO equipostbl SET
 			marca=\''.$value["marca"].'\',
 			modelo=\''.$value["modelo"].'\',
 			serie=\''.$value["serie"].'\',
-			intervalos=\''.json_encode($value["intervalos"]).'\'';
+      tipo=\'Luminometro\',
+			correccion=\''.json_encode($value["intervalos"]).'\'';
 		$pdo->exec($sql);
 		}
-		catch (PDOExeption $e)
+		catch (PDOExeption $e) 
 		{
 		  $pdo->rollbak();
 		  $mensaje='Hubo un error tratando de colocar los valores iniciales de la norma 001'.$e;
@@ -323,4 +325,3 @@
 	}
 	echo 'los valores iniciales se han colocado correctamente';
 ?>
-

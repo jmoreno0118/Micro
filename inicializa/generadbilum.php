@@ -110,7 +110,7 @@
 		departamento VARCHAR(25),
 		area VARCHAR(25),
 		ubicacion VARCHAR(50),
-		identificación VARCHAR(50),
+		identificacion VARCHAR(50),
 		observaciones VARCHAR(255),
 		nirm INT(3))
 		DEFAULT CHARACTER SET utf8 ENGINE=InnoDB';
@@ -134,25 +134,6 @@
 		e1plano DECIMAL(3,1) NOT NULL,
 		e2plano DECIMAL(3,1) NOT NULL,
 		puntoidfk INT)
-		DEFAULT CHARACTER SET utf8 ENGINE=InnoDB';
-	$pdo->exec($sql);
-  }
-  catch (PDOExeption $e)
-  {
-	$mensaje='hubo un error creando la medicion del punto '.$e;
-	include 'error.html.php';
-	exit();
-  }
-
-  // **** tabla de luminometros ****
-  try
-  {
-    $sql='CREATE TABLE IF NOT EXISTS luminometrostbl (
-	    id INT NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-		marca VARCHAR(100) NOT NULL,
-		modelo VARCHAR(100) NOT NULL,
-		serie VARCHAR(100) NOT NULL,
-		intervalos VARCHAR(1000) NOT NULL)
 		DEFAULT CHARACTER SET utf8 ENGINE=InnoDB';
 	$pdo->exec($sql);
   }

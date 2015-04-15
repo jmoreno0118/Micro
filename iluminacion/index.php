@@ -820,7 +820,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
 					 "observaciones" => "",
 					 "nirm" => "");
 	$idrci=$_GET['idrci'];
-	$id="";				 
+	$id="";
   	formularioPuntos('Agrega Punto', 'Agregar un nuevo punto', 'guardarpunto', $idrci, $id, $valores);
   }
 
@@ -872,7 +872,8 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
 			 e1pared=:e1pared,
 			 e2pared=:e2pared,
 			 e1plano=:e1plano,
-			 e2plano=:e2plano';
+			 e2plano=:e2plano,
+			 equiposidfk=:luminometro';
 	   $s=$pdo->prepare($sql);
 	   $s->bindValue(':puntoidfk', $puntosid);
 	   $s->bindValue(':hora', $value["hora"]);
@@ -880,6 +881,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
 	   $s->bindValue(':e2pared', $value["e2pared"]);
 	   $s->bindValue(':e1plano', $value["e1plano"]);
 	   $s->bindValue(':e2plano', $value["e2plano"]);
+	   $s->bindValue(':luminometro', $value["luminometro"]);
 	   $s->execute();
       }
      }
@@ -1148,34 +1150,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
   if (isset($_POST['accion']) and $_POST['accion']=='Cancela borra punto')
   {
    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-/*   try
-   {
-   	$pdo->beginTransaction();
-     $sql='DELETE FROM puntorecilumtbl WHERE puntoidfk=:id';
-	 $s=$pdo->prepare($sql);
-	 $s->bindValue(':id',$_POST['idpunto']);
-	 $s->execute();
-
-     $sql='DELETE FROM medsilumtbl WHERE puntoidfk=:id';
-	 $s=$pdo->prepare($sql);
-	 $s->bindValue(':id',$_POST['idpunto']);
-	 $s->execute();
-
-     $sql='DELETE FROM puntostbl WHERE id=:id';
-	 $s=$pdo->prepare($sql);
-	 $s->bindValue(':id',$_POST['idpunto']);
-	 $s->execute();
-	$pdo->commit();
-   }
-   catch (PDOException $e)
-   {
-   	$pdo->rollback();
-    $mensaje='Hubo un error borrando el punto. Intente de nuevo. '.$e;
-	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-	exit();
-   } */
    $idrci=idrecdepuntos($_POST['id']);
-//   echo $idrci.' idrci '.$_POST['id'].' id';exit();
    verPuntos($_POST['idrci']);
   }
 
@@ -1396,6 +1371,21 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
     if($meds !== ""){
      $mediciones = $meds;
     }
+
+    try   
+	{
+	 $sql='SELECT * FROM equipostbl WHERE tipo = "Luminometro"';
+	 $s=$pdo->prepare($sql);
+   	 $s->execute();
+    }
+    catch (PDOException $e)
+    {
+     $mensaje='Hubo un error extrayendo la influencia.';
+	 include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+	 exit();
+    }
+    $luminometros = $s->fetchAll();
+
     $idot=idotdeidrci($idrci);
   	include 'formacapturarpuntos.html.php';
   	exit();
@@ -1458,9 +1448,8 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
 	try   
 	{
 	 $sql='SELECT recilumidfk FROM puntorecilumtbl
-		
-		INNER JOIN puntostbl ON puntostbl.id=puntorecilumtbl.puntoidfk
-		   WHERE puntostbl.id = :id';
+			INNER JOIN puntostbl ON puntostbl.id=puntorecilumtbl.puntoidfk
+		   	WHERE puntostbl.id = :id';
 	 $s=$pdo->prepare($sql); 
 	 $s->bindValue(':id', $id);
    	 $s->execute();
@@ -1494,7 +1483,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
 	 exit();
     }
     $resultado = $s->fetch();
-    return $resultado['ot']; 
+    return $resultado['ot'];
   }
 /**************************************************************************************************/
 /* Función obtener el numero de id de ordenes partir del ot */

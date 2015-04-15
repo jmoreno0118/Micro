@@ -18,8 +18,7 @@
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/encabezado.inc.php'; ?>
   </header>
   <div id="cuerpoprincipal"> 
-   <h2>Iluminometros</h2>
-   <p><a href="../nom001">Regresa a búsqueda de ordenes</a></p>
+   <h2>Equipos</h2>
    <div style="float:left;">
     <form action="?" method="post">
      <input type="hidden" name="id" value="<?php htmlout($ot); ?>">
