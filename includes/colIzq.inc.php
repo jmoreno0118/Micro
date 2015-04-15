@@ -10,7 +10,7 @@
 		 <li><a href="">Dosis de ruido</a></li>
 		 <li><a href="">temperaturas extremas o abatidas</a></li>
 		 <li><a href="">Radiaciones NO ionizantes</a></li>
-		 <li><a href="">Vibraciones mano-brazo</a></li>
+		 <li><a href="vibracion/">Vibraciones mano-brazo</a></li>
 		 <li><a href="">Vibraciones cuerpo completo</a></li>
 		 <li><a href="">Radiaciones ionizantes</a></li>
 	   </ul></li>
@@ -40,12 +40,6 @@
      <li><a href="usuarios/">Usuarios</a></li>
      <li><a href="ordenes/">OT's</a></li>
      <li><a href="clientes/">clientes</a></li>
-     <li><a href="">Normas</a>
-		<ul>
-	     <li><a href="nom001/mnom001/">Máximos NOM001</a></li>
-	     <li><a href="nom001/limnom001/">Límites NOM001</a></li>
-	   </ul>
-     </li>
     </ul>
    </div> <!-- tabular -->
   </nav>

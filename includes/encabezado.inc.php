@@ -1,5 +1,5 @@
     <img src="<?php echo $ruta; ?>" alt="Logo Microanalisis" height="106"
-      width="640"/>
+      width="640"/> 
     <div id="encabezadoBase">
      <p id="leyenda">Sistema de captura remota.</p>
 	 <form action="" method="post">

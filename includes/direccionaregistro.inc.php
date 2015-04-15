@@ -1,3 +1,3 @@
 <?php
-   header("Location: http://localhost/reportes/");
+   header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/');
 ?>

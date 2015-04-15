@@ -18,7 +18,7 @@
   </header>
   <div id="cuerpoprincipal">
     <div id="mensajerror">
-	  
+	  <?php var_dump($_POST); ?>
 	   <fieldset>
 	   <legend> Error !! </legend>
 	   <div>
