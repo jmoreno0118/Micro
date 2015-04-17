@@ -8,8 +8,11 @@
   <!--[if lt IE 9]>
    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]-->
+<link rel="stylesheet" href="../includes/jquery-validation-1.13.1/demo/site-demos.css">
 <script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
 <script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
+<script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
+<script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
    <link rel="stylesheet" type="text/css" href="/reportes/estilo.css" />
 <script type="text/javascript">
 $(document).ready(function(){
@@ -56,7 +59,7 @@ $(document).ready(function(){
 	  		<input name="nplanta" type="submit" value="Nueva Planta">
 	  	</form>
 	  </div>
-    <form action="?<?php htmlout($accion); ?>" method="post">
+    <form id="ordenform" action="?<?php htmlout($accion); ?>" method="post">
 	  <?php if (isset($mensaje)): ?>
 	    <div><strong><?php htmlout($mensaje); ?></strong></div>
 	  <?php endif; ?> 
@@ -89,7 +92,7 @@ $(document).ready(function(){
 	  <div>
 	    <label for="planta">Planta: </label>
 		<select name="planta" id="planta" >
-		   <option selected="selected" disables>--Selecciona planta--</option>
+		   <option selected="selected" disabled value="0">--Selecciona planta--</option>
 	   </select>
 	   <button type="button" id="refreshPlantas">Refrescar plantas</button>
 	  </div>
@@ -163,3 +166,33 @@ $(document).ready(function(){
   </div> <!-- contenedor -->
 </body>
 </html>
+<script type="text/javascript">
+
+    $("#ordenform").validate({
+      rules: {
+        ot: {
+         required: true
+        },
+        representante: {
+         required: true
+        },
+        cliente: {
+         required: true
+        },
+        atencion: {
+         required: true
+        },
+        atenciontel: {
+         required: true
+        },
+        atencioncorreo: {
+         required: true
+        },
+        tipo: {
+         required: true
+        }
+      },
+      success: "valid",
+    });
+
+</script>

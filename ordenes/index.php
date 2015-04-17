@@ -45,7 +45,7 @@
   $id='';
   $boton='Agrega orden';
   $otant='';
-  $planta = 1;
+  $planta = 0;
   // genera las listas de clientes, representantes,higiene y ecologia.
   $clientes=listaclientes();
   $representantes=listarepresentantes();
@@ -57,11 +57,51 @@
  if (isset($_GET['agregaot']))
  {
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+
+   if(!isset($_POST['planta'])){
+    try{
+      $sql='SELECT * FROM clientestbl WHERE Numero_Cliente=:id';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':id',$_POST['cliente']);
+      $s->execute();
+      $cliente=$s->fetch();
+
+      $sql='INSERT INTO plantastbl SET
+       razonsocial=:razonsocial,
+       planta=:planta,
+       calle=:calle,
+       colonia=:colonia,
+       ciudad=:ciudad,
+       estado=:estado,
+       cp=:cp,
+       rfc=:rfc,
+       Numero_Clienteidfk=:cliente';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':razonsocial', $cliente['Razon_Social']);
+      $s->bindValue(':planta', $cliente['Razon_Social']);
+      $s->bindValue(':calle', $cliente['Calle_Numero']);
+      $s->bindValue(':colonia', $cliente['Colonia']);
+      $s->bindValue(':ciudad', $cliente['Ciudad']);
+      $s->bindValue(':estado', $cliente['Estado']);
+      $s->bindValue(':cp', $cliente['Codigo_Postal']);
+      $s->bindValue(':rfc', $cliente['RFC']);
+      $s->bindValue(':cliente', $cliente['Numero_Cliente']);
+      $s->execute();
+      $_POST['planta']=$pdo->lastInsertid();
+    }
+    catch (PDOException $e)
+    {
+     $mensaje='Hubo un error al tratar de agregar la planta. Favor de intentar nuevamente. '.$e;
+     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+     exit();
+    }
+   }
+
    try
    {
     $sql='INSERT INTO ordenestbl SET
 		 ot=:ot,
-         fechalta=:fechalta,
+     fechalta=:fechalta,
 		 representanteidfk=:represetanteid,
 		 clienteidfk=:clienteid,
 		 tipo=:tipo,

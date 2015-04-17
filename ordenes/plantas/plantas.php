@@ -10,10 +10,12 @@
 			$s->bindValue(':id',$_POST['id']);
 			$s->execute();
 			$plantas = $s->fetchAll();
-			echo '<option selected="selected" disable>--Selecciona planta--</option>';
+		 	$selected = ($_POST['planta'] === '0') ? 'selected' : '';
+			echo '<option '.$selected.' disabled value="0">--Selecciona planta--</option>';
 			if(count($plantas) > 0){
 		 		foreach ($plantas as $key => $value) {
-		 			$selected = ($_POST['id'] === $_POST['cliente'] && $_POST['planta'] === $value['id']) ? 'selected' : '';
+		 			$selected = ($_POST['id'] === $_POST['cliente'] && $_POST['planta'] === strval($value['id']
+		 				)) ? 'selected' : '';
 					echo '<option value="'.$value['id'].'"'.$selected.'>'.$value['planta'].'</option>';
 				}
 			}

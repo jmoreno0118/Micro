@@ -1340,6 +1340,14 @@
     $id = $_POST['id'];
     try
      {
+      $sql='SELECT ot
+        FROM ordenestbl
+        WHERE id = :id';
+      $s=$pdo->prepare($sql); 
+      $s->bindValue(':id',$ot);
+      $s->execute();
+      $nombreot = $s->fetch();
+
       $sql='SELECT * FROM croquistbl WHERE generalaguaidfk = :id';
       $s=$pdo->prepare($sql); 
       $s->bindValue(':id', $id);
