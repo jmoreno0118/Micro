@@ -87,8 +87,8 @@
    }, 'Ingresar de 1 a 3 decimales.');
 
    jQuery.validator.addMethod('flujo', function (value, element, param) {
-    return /^(\S\/\F|\d{1,2}\.\d{1,4})$/.test(value); 
-   }, 'Ingresar de 1 a 4 decimales.');
+    return /^(\S\/\F|\d{1,2}\.\d{1,10})$/.test(value); 
+   }, 'Ingresar de 1 a 10 decimales.');
 
     $("#compuestasform").validate({
       rules: {

@@ -52,7 +52,7 @@
       	</div>
       	<?php endforeach?>
   	  
-  	    <?php for ($i=0; $i<$cantidad; $i++) :?>
+  	    <?php for ($i=0; $i<$cantidad-1; $i++) :?>
   	    <div>
   	    	<label for="parametros[<?php echo $i; ?>][GyA]">Grasas y Aceites:</label>
     			<input type="text" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>">
@@ -142,16 +142,16 @@
   $(document).ready(function() {
 
    jQuery.validator.addMethod('permitido', function (value, element, param) {
-    return /^(\<\d{1,3}\.\d{1,4}|\d{1,3}\.\d{1,4} *\± *\d{1,3}\.\d{1,4})$/.test(value);
+    return /^(\< *\d{1,3}\.\d{1,4}|\d{1,3}\.\d{1,4} *\± *\d{1,3}\.\d{1,4})$/.test(value);
    }, 'Sólo valores decimales iniciando con < o conteniendo ±.');
 
    jQuery.validator.addMethod('gya', function (value, element, param) {
-    return /^(\<12|\d*\.\d{1,3}|\d*)$/.test(value);
+    return /^(\< *12|\d*\.\d{1,3}|\d*)$/.test(value);
    }, 'Sólo "<12" o valores enteros o decimales.');
 
    jQuery.validator.addMethod('coliformes', function (value, element, param) {
-    return /^(\>2400|\d*)$/.test(value);
-   }, 'Sólo valores enteros o ">2400"');
+    return /^(\< *3|\> *2400|\d*)$/.test(value);
+   }, 'Sólo valores enteros o ">2400" o "<3"');
 
     $("#medsform").validate({
       rules: {

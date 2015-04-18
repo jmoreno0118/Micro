@@ -66,15 +66,15 @@
       $s->execute();
       $cliente=$s->fetch();
 
-      $sql='INSERT INTO plantastbl SET
-       razonsocial=:razonsocial,
-       planta=:planta,
-       calle=:calle,
-       colonia=:colonia,
-       ciudad=:ciudad,
-       estado=:estado,
-       cp=:cp,
-       rfc=:rfc,
+      $sql='SELECT * FROM plantastbl WHERE
+       razonsocial=:razonsocial AND
+       planta=:planta AND
+       calle=:calle AND
+       colonia=:colonia AND
+       ciudad=:ciudad AND
+       estado=:estado AND
+       cp=:cp AND
+       rfc=:rfc AND
        Numero_Clienteidfk=:cliente';
       $s=$pdo->prepare($sql);
       $s->bindValue(':razonsocial', $cliente['Razon_Social']);
@@ -87,7 +87,34 @@
       $s->bindValue(':rfc', $cliente['RFC']);
       $s->bindValue(':cliente', $cliente['Numero_Cliente']);
       $s->execute();
-      $_POST['planta']=$pdo->lastInsertid();
+      $existe=$s->fetch();
+
+      if(!$existe){
+        $sql='INSERT INTO plantastbl SET
+         razonsocial=:razonsocial,
+         planta=:planta,
+         calle=:calle,
+         colonia=:colonia,
+         ciudad=:ciudad,
+         estado=:estado,
+         cp=:cp,
+         rfc=:rfc,
+         Numero_Clienteidfk=:cliente';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':razonsocial', $cliente['Razon_Social']);
+        $s->bindValue(':planta', $cliente['Razon_Social']);
+        $s->bindValue(':calle', $cliente['Calle_Numero']);
+        $s->bindValue(':colonia', $cliente['Colonia']);
+        $s->bindValue(':ciudad', $cliente['Ciudad']);
+        $s->bindValue(':estado', $cliente['Estado']);
+        $s->bindValue(':cp', $cliente['Codigo_Postal']);
+        $s->bindValue(':rfc', $cliente['RFC']);
+        $s->bindValue(':cliente', $cliente['Numero_Cliente']);
+        $s->execute();
+        $_POST['planta']=$pdo->lastInsertid();
+      }else{
+        $_POST['planta']=$existe['id'];
+      }
     }
     catch (PDOException $e)
     {
