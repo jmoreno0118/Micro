@@ -32,7 +32,7 @@
      <input type="hidden" name="ot" value="<?php htmlout($nombreot['ot']); ?>">
      <input type="submit" name="accion" value="informe">
     </form>
-    <!--a href="<?php htmlout('http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/pdf/index.php?ot='.$nombreot['ot'].'&id='.$ot); ?>" target="_blank">Informe</a-->
+    <a href="<?php htmlout('http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/pdf/index.php?ot='.$nombreot['ot'].'&id='.$ot); ?>" target="_blank">Informe</a>
    </div>
 
    <div style="float:right;">
@@ -72,6 +72,11 @@
       </tr>
       <?php endforeach; ?>
     </table>
+    <form action="" method="post">
+      <input type="hidden" name="ot" value="<?php htmlout($ot); ?>">
+      <input type="checkbox" name="terminada" value="1" <?php if(!is_null($nombreot['fechafin'])) echo "checked"; ?>>Terminada
+      <input type="submit" name="accion" value="Enviar">
+    </form>
    <?php else : ?>
      <p>Lo sentimos no se encontró ningún reconocimiento inicial en la orden de trabajo seleccionada</p>  
    <?php endif; ?>

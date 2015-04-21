@@ -1364,7 +1364,31 @@
    exit();
   }
 
-
+/**************************************************************************************************/
+/* Ir a subir croquis */
+/**************************************************************************************************/
+  if(isset($_POST['accion']) and $_POST['accion']=='Enviar')
+  {
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    if(isset($_POST['terminada'])){
+      try
+      {
+        $sql='UPDATE ordenestbl SET
+          fechafin=CURDATE()
+          WHERE id=:id';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id',$_POST['ot']);
+        $s->execute();
+      }
+      catch(PDOException $e)
+      {
+        $mensaje='Hubo un error al tratar de terminar la orden. Intentar nuevamente y avisar de este error a sistemas.';
+        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+        exit(); 
+      }
+    }
+    verMeds($_POST['ot']);
+  }
 
 /**************************************************************************************************/
 /* Acción por defualt, llevar a búsqueda de ordenes */
@@ -1380,7 +1404,7 @@
    $_SESSION['OT'] = $ot;
    try   
    {
-    $sql='SELECT ot
+    $sql='SELECT ot, fechafin
         FROM ordenestbl
         WHERE id = :id';
     $s=$pdo->prepare($sql); 
