@@ -36,7 +36,7 @@
       </tr>
       <tr>
         <td>Cuerpo receptor y Uso de agua</td>
-        <td><?php htmlout($maximos[$i]['identificacion']); ?></td>    
+        <td><?php htmlout($maximos[$i]['descargaen']." - ".$maximos[$i]['uso']); ?></td>    
       </tr>
     </table>
     <br>

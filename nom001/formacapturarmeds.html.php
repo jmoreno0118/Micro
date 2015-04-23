@@ -28,7 +28,8 @@
    <h2><?php htmlout($titulopagina); ?></h2>
    <?php
    		$formulario = array("Giro de la empresa" => "empresagiro",
-                          "Valores máximos" => "nom01maximosidfk",
+                          "Descarga en" => "descargaen",
+                          "Uso" => "uso",
                           "Número de medición" => "numedicion",
              							"Lugar del muestreo (5.0)" => "lugarmuestreo",
              							"Descripción del proceso (Max. 100)" => "descriproceso",
@@ -58,50 +59,49 @@
     <form id="medsform" name="medsform" action="?" method="post">
     	<?php foreach($formulario as $label => $name): ?>
     	<div>
+        <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
         <?php if($name === "tipomediciones"):?>
-        <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-         <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" <?php if($valores['tipomediciones'] !== ""){ ?> disabled <?php } ?>>
-          <option value="">Seleccionar</option>
-          <option value="1" <?php if($valores["tipomediciones"] === '1') echo 'selected'?>>Puntual</option>
-          <option value="8" <?php if($valores["tipomediciones"] === '8') echo 'selected'?>>8 horas</option>
-          <option value="24" <?php if($valores["tipomediciones"] === '24') echo 'selected'?>>24 horas</option>
-        </select>
-        <?php if($valores['tipomediciones'] !== ""){ ?>
-          <input type="hidden" name="<?php htmlout($name); ?>" value="<?php htmlout($valores["tipomediciones"]); ?>">
-        <?php } ?>
-        <?php elseif($name === "nom01maximosidfk"):?>
-        <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-         <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-          <option value="">Seleccionar</option>
-          <?php foreach ($maximos as $value): ?>
-            <option value="<?php htmlout($value['id']); ?>"<?php if($valores["nom01maximosidfk"] === $value['id']) echo 'selected'?>>
-              <?php htmlout($value['identificacion']); ?>
-            </option>
-          <?php endforeach; ?>
-        </select> 
+          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" <?php if($valores['tipomediciones'] !== ""){ ?> disabled <?php } ?>>
+            <option value="">Seleccionar</option>
+            <option value="1" <?php if($valores["tipomediciones"] === '1') echo 'selected'?>>Puntual</option>
+            <option value="8" <?php if($valores["tipomediciones"] === '8') echo 'selected'?>>8 horas</option>
+            <option value="24" <?php if($valores["tipomediciones"] === '24') echo 'selected'?>>24 horas</option>
+          </select>
+          <?php if($valores['tipomediciones'] !== ""){ ?>
+            <input type="hidden" name="<?php htmlout($name); ?>" value="<?php htmlout($valores["tipomediciones"]); ?>">
+          <?php } ?>
+        <?php elseif($name === "descargaen"):?>
+          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
+            <option value="" disabled <?php if($valores["descargaen"] === '0') echo 'selected'?>>--Selecciona Descarga en--</option>
+            <?php foreach ($descargaen as $value): ?>
+              <option value="<?php htmlout($value['descargaen']); ?>">
+                <?php htmlout($value['descargaen']); ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+          <?php elseif($name === "uso"):?>
+          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
+            <option value="" disabled selected="selected">--Selecciona uso--</option>
+          </select>
         <?php elseif($name === "mflotante"):?>
-         <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-         <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-          <option value=""<?php if(strval($valores["mflotante"]) === "") echo 'selected'?>>Seleccionar</option>
-          <option value="0"<?php if(strval($valores["mflotante"]) === "0") echo 'selected'?>>Ausente</option>
-          <option value="1" <?php if(strval($valores["mflotante"]) === "1") echo 'selected'?>>Presente</option>
-         </select> 
+          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
+            <option value=""<?php if(strval($valores["mflotante"]) === "") echo 'selected'?>>Seleccionar</option>
+            <option value="0"<?php if(strval($valores["mflotante"]) === "0") echo 'selected'?>>Ausente</option>
+            <option value="1" <?php if(strval($valores["mflotante"]) === "1") echo 'selected'?>>Presente</option>
+          </select> 
         <?php elseif($name === "olor" OR $name === "color" OR $name === "turbiedad" OR $name === "GyAvisual" OR $name === "burbujas"):?>
-         <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-         <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-          <option value=""<?php if(strval($valores[$name]) === "") echo 'selected'?>>Seleccionar</option>
-          <option value="0"<?php if(strval($valores[$name]) === "0") echo 'selected'?>>No</option>
-          <option value="1" <?php if(strval($valores[$name]) === "1") echo 'selected'?>>Sí</option>
-         </select>
-         <?php elseif($name === "descriproceso" OR $name === "proposito" OR $name === "tratamiento" OR $name === "observaciones" OR $name === "estrategia"):?>
-         <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label><br>
-         <textarea style="resize: none;" maxlength=<?php echo ($name === "descriproceso" OR $name === "tratamiento")? "100" : "6500"; ?> rews=5 cols=50 name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>"><?php htmlout($valores[$name]); ?></textarea>
+          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
+            <option value=""<?php if(strval($valores[$name]) === "") echo 'selected'?>>Seleccionar</option>
+            <option value="0"<?php if(strval($valores[$name]) === "0") echo 'selected'?>>No</option>
+            <option value="1" <?php if(strval($valores[$name]) === "1") echo 'selected'?>>Sí</option>
+          </select>
+        <?php elseif($name === "descriproceso" OR $name === "proposito" OR $name === "tratamiento" OR $name === "observaciones" OR $name === "estrategia"):?>
+          <br><textarea style="resize: none;" maxlength=<?php echo ($name === "descriproceso" OR $name === "tratamiento")? "100" : "6500"; ?> rews=5 cols=50 name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>"><?php htmlout($valores[$name]); ?></textarea>
         <?php else: ?>
-    		 <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-	    	 <input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>" <?php if(($name === "numedicion" AND $valores['numedicion'] !== "") OR ($name === "responsable" AND $valores['responsable'] !== "")){ ?> disabled <?php } ?>>
-         <?php if(($name === "numedicion" AND $valores['numedicion'] !== "") OR ($name === "responsable" AND $valores['responsable'] !== "")){ ?>
-          <input type="hidden" name="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>">
-         <?php } ?>
+	    	  <input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>" <?php if($name === "numedicion" AND $valores['numedicion'] !== ""){ ?> disabled <?php } ?>>
+          <?php if($name === "numedicion" AND $valores['numedicion'] !== ""){ ?>
+            <input type="hidden" name="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>">
+          <?php } ?>
         <?php endif; ?>
     	</div>
       <br>
@@ -131,6 +131,26 @@
 <script type="text/javascript">
   $(document).ready(function() {
 
+    function listaUso(descarga, uso){
+      $.ajax({
+        type: "POST",
+        url: "uso.php",
+        data: {descargaen: $("#descargaen").val(), descarga: descarga, uso: uso},
+        cache: false,
+        success: function(html){
+          $("#uso").html(html);
+        }
+      });
+    }
+
+    <?php if($valores["descargaen"] !== '0'): ?>
+      listaUso(<?php echo '"'.$valores["descargaen"].'"' ?>, <?php echo '"'.$valores["uso"].'"' ?>);
+    <?php endif; ?>
+
+    $("#descargaen").change(function(){
+      listaUso(<?php echo '"'.$valores["descargaen"].'"' ?>, <?php echo '"'.$valores["uso"].'"' ?>);
+    });
+
    jQuery.validator.addMethod('uncimal', function (value, element, param) {
     return /^\d{1,2}(\.\d{1})$/.test(value);
    }, 'Ingresar 1 decimal.');
@@ -154,7 +174,8 @@
     $("#medsform").validate({
       rules: {
         empresagiro: "required",
-        nom01maximosidfk: "required",
+        descargaen: "required",
+        uso: "required",
         numedicion: {
          required: true,
          digits: true,

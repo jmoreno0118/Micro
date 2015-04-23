@@ -26,10 +26,11 @@
    </form>
    <?php if (isset($maximos)) : ?>
     <table>
-      <tr><th>Identifiación</th></tr>
+      <tr><th>Descarga en</th><th>Uso</th></tr>
       <?php foreach ($maximos as $maximo): ?>
       <tr>
-       <td><?php htmlout($maximo['identificacion']); ?></td>
+       <td><?php htmlout($maximo['descargaen']); ?></td>
+       <td><?php htmlout($maximo['uso']); ?></td>
        <td>
         <form action="" method="post">
          <div>

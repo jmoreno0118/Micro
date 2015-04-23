@@ -36,7 +36,8 @@
     try   
     {
      $sql='INSERT INTO nom01maximostbl SET
-      identificacion=:identificacion,
+      descargaen=:descargaen,
+      uso=:uso,
       GyA=:GyA,
       coliformes=:coliformes,
       ssedimentables=:ssedimentables,
@@ -53,9 +54,12 @@
       niquel=:niquel,
       plomo=:plomo,
       zinc=:zinc,
-      hdehelminto=:hdehelminto';
+      hdehelminto=:hdehelminto,
+      temperatura=:temperatura,
+      mflotante=:mflotante';
      $s=$pdo->prepare($sql);
-     $s->bindValue(':identificacion', $_POST['identificacion']);
+     $s->bindValue(':descargaen', $_POST['descargaen']);
+     $s->bindValue(':uso', $_POST['uso']);
      $s->bindValue(':GyA', $_POST['GyA']);
      $s->bindValue(':coliformes', $_POST['coliformes']);
      $s->bindValue(':ssedimentables', $_POST['ssedimentables']);
@@ -73,6 +77,8 @@
      $s->bindValue(':plomo', $_POST['plomo']);
      $s->bindValue(':zinc', $_POST['zinc']);
      $s->bindValue(':hdehelminto', $_POST['hdehelminto']);
+     $s->bindValue(':temperatura', $_POST['temperatura']);
+     $s->bindValue(':mflotante', $_POST['mflotante']);
      $s->execute();
      $id = $pdo->lastInsertid();
     }
@@ -116,7 +122,8 @@
     try   
     {
      $sql='UPDATE nom01maximostbl SET
-      identificacion=:identificacion,
+      descargaen=:descargaen,
+      uso=:uso,
       GyA=:GyA,
       coliformes=:coliformes,
       ssedimentables=:ssedimentables,
@@ -133,11 +140,14 @@
       niquel=:niquel,
       plomo=:plomo,
       zinc=:zinc,
-      hdehelminto=:hdehelminto
+      hdehelminto=:hdehelminto,
+      temperatura=:temperatura,
+      mflotante=:mflotante
       WHERE id = :id';
      $s=$pdo->prepare($sql);
      $s->bindValue(':id', $_POST['id']);
-     $s->bindValue(':identificacion', $_POST['identificacion']);
+     $s->bindValue(':descargaen', $_POST['descargaen']);
+     $s->bindValue(':uso', $_POST['uso']);
      $s->bindValue(':GyA', $_POST['GyA']);
      $s->bindValue(':coliformes', $_POST['coliformes']);
      $s->bindValue(':ssedimentables', $_POST['ssedimentables']);
@@ -155,11 +165,13 @@
      $s->bindValue(':plomo', $_POST['plomo']);
      $s->bindValue(':zinc', $_POST['zinc']);
      $s->bindValue(':hdehelminto', $_POST['hdehelminto']);
+     $s->bindValue(':temperatura', $_POST['temperatura']);
+     $s->bindValue(':mflotante', $_POST['mflotante']);
      $s->execute();
     }
     catch (PDOException $e)
     {
-     $mensaje='Hubo un error extrayendo los máximos.';
+     $mensaje='Hubo un error extrayendo los máximos.'.$e;
      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
      exit();
     }
@@ -226,12 +238,13 @@
    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
    try   
     {
-     $s=$pdo->prepare('SELECT id, identificacion FROM nom01maximostbl');
+     $s=$pdo->prepare('SELECT id, descargaen, uso FROM nom01maximostbl');
      $s->execute();
      $e = $s->fetchAll();
      foreach ($e as $value) {
       $maximos[] = array("id" => $value['id'],
-                         "identificacion" => $value['identificacion']);
+                         "descargaen" => $value['descargaen'],
+                         "uso" => $value['uso']);
      }
     }
     catch (PDOException $e)
@@ -248,24 +261,27 @@
 /* Función para obtener valores máximos */
 /**************************************************************************************************/
   function editarMaximos($valor, $id){
-   $valores = array("identificacion" => $valor["identificacion"],
+   $valores = array("descargaen" => $valor["descargaen"],
+             "uso" => $valor["uso"],
 			    	 "GyA" => $valor["GyA"],
 			    	 "coliformes" => $valor["coliformes"],
     				 "ssedimentables" => $valor["ssedimentables"],
-                     "ssuspendidos" => $valor["ssuspendidos"],
-                     "dbo" => $valor["dbo"],
-                     "nitrogeno" => $valor["nitrogeno"],
-                     "fosforo" => $valor["fosforo"],
-                     "arsenico" => $valor["arsenico"],
-                     "cadmio" => $valor["cadmio"],
-                     "cianuros" => $valor["cianuros"],
-                     "cobre" => $valor["cobre"],
-                     "cromo" => $valor["cromo"],
-                     "mercurio" => $valor["mercurio"],
-                     "niquel" => $valor["niquel"],
-                     "plomo" =>$valor["plomo"],
-                     "zinc" => $valor["zinc"],
-                     "hdehelminto" => $valor["hdehelminto"]);
+             "ssuspendidos" => $valor["ssuspendidos"],
+             "dbo" => $valor["dbo"],
+             "nitrogeno" => $valor["nitrogeno"],
+             "fosforo" => $valor["fosforo"],
+             "arsenico" => $valor["arsenico"],
+             "cadmio" => $valor["cadmio"],
+             "cianuros" => $valor["cianuros"],
+             "cobre" => $valor["cobre"],
+             "cromo" => $valor["cromo"],
+             "mercurio" => $valor["mercurio"],
+             "niquel" => $valor["niquel"],
+             "plomo" =>$valor["plomo"],
+             "zinc" => $valor["zinc"],
+             "hdehelminto" => $valor["hdehelminto"],
+             "temperatura" => $valor["temperatura"],
+             "mflotante" => $valor["mflotante"]);
     $pestanapag='Editar máximo';
     $titulopagina='Editar un máximo';
     $boton = 'salvar';

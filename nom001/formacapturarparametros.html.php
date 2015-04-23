@@ -10,6 +10,25 @@
    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]--> 
    <link rel="stylesheet" type="text/css" href="/reportes/estilo.css" />
+<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
+<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
+<script type="text/javascript">
+i = 10;
+function agregarIntervalo(nombre, unidades, resultado){
+  $('#adicionales').append('<div>'
+    +(i+1)+': '
+    +'<label for="adicionales['+i+'][nombre]">Nombre del párametro: </label>'
+    +'<input type="text" name="adicionales['+i+'][nombre]" id="adicionales['+i+'][nombre]" value="'+nombre+'"> '
+
+    +'<label for="adicionales['+i+'][unidades]">Unidades: </label>'
+    +'<input type="text" name="adicionales['+i+'][unidades]" id="adicionales['+i+'][unidades]" value="'+unidades+'"> '
+
+    +'<label for="adicionales['+i+'][resultado]">Resultado: </label>'
+    +'<input type="text" name="adicionales['+i+'][resultado]" id="adicionales['+i+'][resultado]" value="'+resultado+'"> '
+    +'</div>');
+  i += 1;
+}
+</script>
 </head>
 <body>
 <div id="contenedor">
@@ -52,7 +71,8 @@
       	</div>
       	<?php endforeach?>
   	  
-  	    <?php for ($i=0; $i<$cantidad-1; $i++) :?>
+  	    <?php $cantidad = ($cantidad === 1)? $cantidad : $cantidad-1;
+        for ($i=0; $i<$cantidad; $i++) :?>
   	    <div>
   	    	<label for="parametros[<?php echo $i; ?>][GyA]">Grasas y Aceites:</label>
     			<input type="text" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>">
@@ -61,20 +81,29 @@
     			<input type="text" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["coliformes"]) : ""; ?>">
   	    </div>
   	  <?php endfor; ?>
-      <fieldset>
+      <fieldset id="adicionales">
        <legend>Adicionales:</legend>
-       <?php for ($i=0; $i<5; $i++) :?>
+       <input type="button" id="agregar" value="Agregar nuevo adicional">
+       <?php for ($i=0; $i<10; $i++): ?>
        <div>
+        <?php echo ($i+1).":"; ?>
         <label for="adicionales[<?php echo $i; ?>][nombre]">Nombre del párametro:</label>
-        <input type="text" name="adicionales[<?php echo $i; ?>][nombre]" id="adicionales<?php echo $i; ?>" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["nombre"]) : ""; ?>">
+        <input type="text" name="adicionales[<?php echo $i; ?>][nombre]" id="adicionales[<?php echo $i; ?>][nombre]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["nombre"]) : ""; ?>">
 
         <label for="adicionales[<?php echo $i; ?>][unidades]">Unidades:</label>
-        <input type="text" name="adicionales[<?php echo $i; ?>][unidades]" id="adicionales<?php echo $i; ?>" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["unidades"]) : ""; ?>">
+        <input type="text" name="adicionales[<?php echo $i; ?>][unidades]" id="adicionales[<?php echo $i; ?>][unidades]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["unidades"]) : ""; ?>">
 
         <label for="adicionales[<?php echo $i; ?>][resultado]">Resultado:</label>
-        <input type="text" name="adicionales[<?php echo $i; ?>][resultado]" id="adicionales<?php echo $i; ?>" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["resultado"]) : ""; ?>">
+        <input type="text" name="adicionales[<?php echo $i; ?>][resultado]" id="adicionales[<?php echo $i; ?>][resultado]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["resultado"]) : ""; ?>">
        </div>
-     <?php endfor; ?>
+       <?php endfor; ?>
+       <?php if(isset($adicionales) AND count($adicionales)>10): ?>
+         <?php for ($i=0; $i<(count($adicionales)-10); $i++): ?>
+           <script type="text/javascript">
+            agregarIntervalo(<?php echo $adicionales[$i+10]["nombre"]; ?>, <?php echo $adicionales[$i+10]["unidades"]; ?>, <?php echo $adicionales[$i+10]["resultado"]; ?>);
+           </script>
+         <?php endfor; ?>
+       <?php endif;?>
     </fieldset>
 	  </fieldset>
 	  <div>
@@ -102,8 +131,6 @@
 </body>
 </html>
 <link rel="stylesheet" href="../includes/jquery-validation-1.13.1/demo/site-demos.css">
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
 <script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
 <script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
 <script type="text/javascript">
@@ -114,6 +141,12 @@
       $(".nits").on("keydown keyup", function() {
           calculateSum();
       });
+
+    $('#agregar').click(function(e){
+        e.preventDefault();
+        agregarIntervalo("", "", "");
+    });
+
   });
 
   function calculateSum() {

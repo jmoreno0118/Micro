@@ -21,33 +21,32 @@
   <div id="cuerpoprincipal">
     <?php //var_dump($_POST); ?>
    <h2><?php htmlout($titulopagina); ?></h2>
+   <?php $formulario = array("hora" => "Hora(hh:mm)",
+                          "flujo" => "Flujo(m3/s) Ej. 1.1234:",
+                          "volumen" => "Volumen(ml):",
+                          "observaciones" => "Observaciones:",
+                          "caracteristicas" => "Caracteristicas: (Max. 350)",
+                          "fechalab" => "Fecha recepción laboratorio(aaaa-mm-dd):",
+                          "horalab" => "Hora recepción laboratorio(hh:mm):");
+    ?>
     <form id="compuestasform" action="?<?php htmlout($accion); ?>" method="post">
-	    <?php for ($i=0; $i<$cantidad; $i++) :?>
-	    <fieldset>
-      <legend>Muestra <?php if($i+1<$cantidad){htmlout($i+1);}else{echo "Compuesta";} ?>:</legend>
-	    <label for="mcompuestas[<?php echo $i; ?>][hora]">Hora(hh:mm):</label>
-			<input type="text" name="mcompuestas[<?php echo $i; ?>][hora]" id="mcompuestas[<?php echo $i; ?>][hora]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["hora"]);} ?>">
+      <?php foreach ($formulario as $key => $value): ?>
+        <fieldset>
+        <legend><?php echo $value; ?>:</legend>
+  	    <?php for ($i=0; $i<$cantidad; $i++) :?>
+          <label for="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]">Muestra <?php if($i+1<$cantidad){htmlout($i+1);}else{echo "Compuesta";} ?>:</label>
+          <?php if($key === "caracteristicas"):?>
+            <br>
+            <textarea style="resize: none;" maxlength=350 rews=5 cols=50 name="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i][$key]);} ?></textarea>
+            <br>
+          <?php else: ?>
+    			   <input type="text" name="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i][$key]);} ?>">
+          <?php endif; ?>
+          <br>
+  	  <?php endfor; ?>
+      </fieldset>
       <br>
-			<label for="mcompuestas[<?php echo $i; ?>][flujo]">Flujo(m3/s) Ej. 1.1234:</label>
-			<input type="text" name="mcompuestas[<?php echo $i; ?>][flujo]" id="mcompuestas[<?php echo $i; ?>][flujo]" value="<?php if(isset($mcompuestas[$i])){htmlout(number_format($mcompuestas[$i]["flujo"] , 4));} ?>">
-      <br>
-      <label for="mcompuestas[<?php echo $i; ?>][volumen]">Volumen(ml):</label>
-      <input type="text" name="mcompuestas[<?php echo $i; ?>][volumen]" id="mcompuestas[<?php echo $i; ?>][volumen]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["volumen"]);} ?>">
-      <br>
-			<label for="mcompuestas[<?php echo $i; ?>][observaciones]">Observaciones:</label>
-      <input type="text" name="mcompuestas[<?php echo $i; ?>][observaciones]" id="mcompuestas[<?php echo $i; ?>][observaciones]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["observaciones"]);} ?>">
-      <br>
-      <label for="mcompuestas[<?php echo $i; ?>][caracteristicas]">Caracteristicas: (Max. 350)</label><br>
-      <textarea style="resize: none;" maxlength=350 rews=5 cols=50 name="mcompuestas[<?php echo $i; ?>][caracteristicas]" id="mcompuestas[<?php echo $i; ?>][caracteristicas]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["caracteristicas"]);} ?></textarea>
-      <br>
-      <label for="mcompuestas[<?php echo $i; ?>][fechalab]">Fecha recepción laboratorio(aaaa-mm-dd):</label>
-      <input type="text" name="mcompuestas[<?php echo $i; ?>][fechalab]" id="mcompuestas[<?php echo $i; ?>][fechalab]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["fechalab"]);} ?>">
-      <br>
-      <label for="mcompuestas[<?php echo $i; ?>][horalab]">Hora recepción laboratorio(hh:mm):</label>
-      <input type="text" name="mcompuestas[<?php echo $i; ?>][horalab]" id="mcompuestas[<?php echo $i; ?>][horalab]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i]["horalab"]);} ?>">
-	    </fieldset>
-      <br>
-	  <?php endfor; ?>
+    <?php endforeach; ?>
 	  <div>
       <?php if(isset($regreso) AND $regreso === 1): ?>
        <input type="hidden" name="regreso" value="1">

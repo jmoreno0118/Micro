@@ -87,10 +87,11 @@
     $accion='';
     $boton = 'guardargenmed';
     $egiro = getEGiro($id);
-    $maximos = getMaximos();
+    $descargaen = getMaximos();
     $responsable = getResponsable($id);
     $valores = array("empresagiro" => $egiro,
-                     "nom01maximosidfk" => "",
+                     "descargaen" => "0",
+                     "uso" => "0",
                      "numedicion" => "",
                      "lugarmuestreo" => "",
                      "descriproceso" => "",
@@ -140,6 +141,13 @@
     $s->bindValue(':empresagiro',$_POST['empresagiro']);
     $s->execute();
 
+    $sql='SELECT id FROM nom01maximostbl WHERE descargaen =:descargaen AND uso=:uso';
+    $s=$pdo->prepare($sql); 
+    $s->bindValue(':descargaen',$_POST['descargaen']);
+    $s->bindValue(':uso',$_POST['uso']);
+    $s->execute();
+    $nom01maximosidfk = $s->fetch();
+
     $sql='INSERT INTO generalesaguatbl SET
      ordenaguaidfk=:id,
      nom01maximosidfk=:nom01maximosidfk,
@@ -156,20 +164,20 @@
      tipomediciones=:tipomediciones,
      proposito=:proposito';
     $s=$pdo->prepare($sql);
-    $s->bindValue(':id',$_POST['id']);
-    $s->bindValue(':nom01maximosidfk',$_POST['nom01maximosidfk']);
-    $s->bindValue(':numedicion',intval($_POST['numedicion']),PDO::PARAM_INT );
-    $s->bindValue(':lugarmuestreo',$_POST['lugarmuestreo']);
-    $s->bindValue(':descriproceso',$_POST['descriproceso']);
-    $s->bindValue(':materiasusadas',$_POST['materiasusadas']);
-    $s->bindValue(':tratamiento',$_POST['tratamiento']);
-    $s->bindValue(':Caracdescarga',$_POST['Caracdescarga']);
-    $s->bindValue(':receptor',$_POST['receptor']);
-    $s->bindValue(':estrategia',$_POST['estrategia']);
-    $s->bindValue(':numuestras',$_POST['numuestras']);
-    $s->bindValue(':observaciones',$_POST['observaciones']);
-    $s->bindValue(':tipomediciones',$_POST['tipomediciones']);
-    $s->bindValue(':proposito',$_POST['proposito']);
+    $s->bindValue(':id', $_POST['id']);
+    $s->bindValue(':nom01maximosidfk', $nom01maximosidfk['id']);
+    $s->bindValue(':numedicion', intval($_POST['numedicion']),PDO::PARAM_INT );
+    $s->bindValue(':lugarmuestreo', $_POST['lugarmuestreo']);
+    $s->bindValue(':descriproceso', $_POST['descriproceso']);
+    $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
+    $s->bindValue(':tratamiento', $_POST['tratamiento']);
+    $s->bindValue(':Caracdescarga', $_POST['Caracdescarga']);
+    $s->bindValue(':receptor', $_POST['receptor']);
+    $s->bindValue(':estrategia', $_POST['estrategia']);
+    $s->bindValue(':numuestras', $_POST['numuestras']);
+    $s->bindValue(':observaciones', $_POST['observaciones']);
+    $s->bindValue(':tipomediciones', $_POST['tipomediciones']);
+    $s->bindValue(':proposito', $_POST['proposito']);
     $s->execute();
     $id=$pdo->lastInsertid();
 
@@ -348,6 +356,13 @@
     $s=$pdo->prepare($sql); 
     $s->bindValue(':id',$_POST['id']);
     $s->execute();
+    $linea = $s->fetch();
+    
+    $sql='SELECT descargaen, uso FROM nom01maximostbl WHERE id=:id';
+    $s=$pdo->prepare($sql); 
+    $s->bindValue(':id', $linea["nom01maximosidfk"]);
+    $s->execute();
+    $nom01maximos = $s->fetch();
    }
    catch (PDOException $e)
    {
@@ -355,11 +370,12 @@
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();
    }
-   $linea = $s->fetch();
-   $maximos = getMaximos();
+   
+   $descargaen = getMaximos();
    $egiro = getEGiro($linea["ordenaguaidfk"]);
    $valores = array("empresagiro" => $egiro,
-                   "nom01maximosidfk" => $linea["nom01maximosidfk"],
+                   "descargaen" => $nom01maximos["descargaen"],
+                   "uso" => $nom01maximos["uso"],
                    "numedicion" => $linea["numedicion"],
                    "lugarmuestreo" => $linea["lugarmuestreo"],
                    "descriproceso" => $linea["descriproceso"],
@@ -805,6 +821,13 @@
      $s->bindValue(':Giro_Empresa',$_POST['empresagiro']);
      $s->execute();
 
+      $sql='SELECT id FROM nom01maximostbl WHERE descargaen =:descargaen AND uso=:uso';
+      $s=$pdo->prepare($sql); 
+      $s->bindValue(':descargaen',$_POST['descargaen']);
+      $s->bindValue(':uso',$_POST['uso']);
+      $s->execute();
+      $nom01maximosidfk = $s->fetch();
+
      $sql='UPDATE generalesaguatbl SET
       nom01maximosidfk=:nom01maximosidfk,
       numedicion=:numedicion,
@@ -822,19 +845,19 @@
       WHERE id=:id';
      $s=$pdo->prepare($sql);
      $s->bindValue(':id',$_POST['id']);
-     $s->bindValue(':nom01maximosidfk',$_POST['nom01maximosidfk']);
-     $s->bindValue(':numedicion',intval($_POST['numedicion']),PDO::PARAM_INT );
-     $s->bindValue(':lugarmuestreo',$_POST['lugarmuestreo']);
-     $s->bindValue(':descriproceso',$_POST['descriproceso']);
-     $s->bindValue(':materiasusadas',$_POST['materiasusadas']);
-     $s->bindValue(':tratamiento',$_POST['tratamiento']);
-     $s->bindValue(':Caracdescarga',$_POST['Caracdescarga']);
-     $s->bindValue(':receptor',$_POST['receptor']);
-     $s->bindValue(':estrategia',$_POST['estrategia']);
-     $s->bindValue(':numuestras',$_POST['numuestras']);
-     $s->bindValue(':observaciones',$_POST['observaciones']);
-     $s->bindValue(':tipomediciones',$_POST['tipomediciones']);
-     $s->bindValue(':proposito',$_POST['proposito']);
+     $s->bindValue(':nom01maximosidfk', $nom01maximosidfk['id']);
+     $s->bindValue(':numedicion', intval($_POST['numedicion']),PDO::PARAM_INT );
+     $s->bindValue(':lugarmuestreo', $_POST['lugarmuestreo']);
+     $s->bindValue(':descriproceso', $_POST['descriproceso']);
+     $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
+     $s->bindValue(':tratamiento', $_POST['tratamiento']);
+     $s->bindValue(':Caracdescarga', $_POST['Caracdescarga']);
+     $s->bindValue(':receptor', $_POST['receptor']);
+     $s->bindValue(':estrategia', $_POST['estrategia']);
+     $s->bindValue(':numuestras', $_POST['numuestras']);
+     $s->bindValue(':observaciones', $_POST['observaciones']);
+     $s->bindValue(':tipomediciones', $_POST['tipomediciones']);
+     $s->bindValue(':proposito', $_POST['proposito']);
      $s->execute();
 
      $sql='UPDATE muestreosaguatbl SET
@@ -898,6 +921,13 @@
         $s=$pdo->prepare($sql); 
         $s->bindValue(':id',$_POST['id']);
         $s->execute();
+        $linea = $s->fetch();
+
+        $sql='SELECT descargaen, uso FROM nom01maximostbl WHERE id=:id';
+        $s=$pdo->prepare($sql); 
+        $s->bindValue(':id', $linea["nom01maximosidfk"]);
+        $s->execute();
+        $nom01maximos = $s->fetch();
        }
        catch (PDOException $e)
        {
@@ -905,11 +935,12 @@
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
         exit();
        }
-       $linea = $s->fetch();
-       $maximos = getMaximos();
+       
+       $descargaen = getMaximos();
        $egiro = getEGiro($linea["ordenaguaidfk"]);
        $valores = array("empresagiro" => $egiro,
-                       "nom01maximosidfk" => $linea["nom01maximosidfk"],
+                       "descargaen" => $nom01maximos["descargaen"],
+                        "uso" => $nom01maximos["uso"],
                        "numedicion" => $linea["numedicion"],
                        "lugarmuestreo" => $linea["lugarmuestreo"],
                        "descriproceso" => $linea["descriproceso"],
@@ -1490,12 +1521,10 @@
    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
    try   
     {
-     $s=$pdo->prepare('SELECT id, identificacion FROM nom01maximostbl');
+     $s=$pdo->prepare('SELECT descargaen FROM nom01maximostbl group by descargaen;');
      $s->execute();
-     $e = $s->fetchAll();
-     foreach ($e as $value) {
-      $maximos[] = array("id" => $value['id'],
-                         "identificacion" => $value['identificacion']);
+     foreach ($s as $value) {
+      $maximos[] = array("descargaen" => $value['descargaen']);
      }
      return $maximos;
     }

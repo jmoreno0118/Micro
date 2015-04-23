@@ -27,7 +27,7 @@
    $s->execute();
    $orden = $s->fetch();
 
-   $sql='SELECT identificacion
+   $sql='SELECT descargaen, uso
 		FROM nom01maximostbl
 		WHERE id = :id';
    $s=$pdo->prepare($sql);

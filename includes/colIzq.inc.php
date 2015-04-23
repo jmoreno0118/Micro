@@ -40,6 +40,12 @@
      <li><a href="usuarios/">Usuarios</a></li>
      <li><a href="ordenes/">OT's</a></li>
      <li><a href="clientes/">clientes</a></li>
+     <li><a href="clientes/">Normas</a>
+     	<ul>
+     		<li><a href="nom001/mnom001">Máximos NOM001</a></li>
+     		<li><a href="nom001/limnom001">Límites NOM001</a></li>
+     	</ul>
+     </li>
     </ul>
    </div> <!-- tabular -->
   </nav>
