@@ -1,6 +1,6 @@
 <?php
  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-  echo 'estoy en generacion de base de datos'; 
+  echo 'estoy en generacion de base de datos de nom001'; 
 //  **** crea muestreos de aguas residuales***
   try
   {
@@ -134,24 +134,27 @@
   {
     $sql='CREATE TABLE IF NOT EXISTS nom01maximostbl (
 		id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-		identificacion VARCHAR(45) NOT NULL,
-	    GyA DECIMAL(3,1) NOT NULL,
-	    coliformes DECIMAL(5,1) NOT NULL,
-	    ssedimentables DECIMAL(2,1) NOT NULL,
-	    ssuspendidos DECIMAL(4,1) NOT NULL,
-	    dbo DECIMAL(4,1) NOT NULL,
-	    nitrogeno DECIMAL(3,1) NOT NULL,
-	    fosforo DECIMAL(3,1) NOT NULL,
-	    arsenico DECIMAL(2,1) NOT NULL,
-	    cadmio DECIMAL(2,1) NOT NULL,
-	    cianuros DECIMAL(2,1) NOT NULL,
-	    cobre DECIMAL(2,1) NOT NULL,
-	    cromo DECIMAL(2,1) NOT NULL,
-	    mercurio DECIMAL(3,2) NOT NULL,
-	    niquel DECIMAL(2,1) NOT NULL,
-	    plomo DECIMAL(2,1) NOT NULL,
-	    zinc DECIMAL(3,1) NOT NULL,
-	    hdehelminto DECIMAL(2,1) NOT NULL)
+		descargaen VARCHAR (45) NOT NULL,
+		uso VARCHAR(45) NOT NULL,
+		temperatura VARCHAR(4) NOT NULL,
+		mflotante VARCHAR(10) NOT NULL,
+	    GyA VARCHAR(10) NOT NULL,
+	    coliformes VARCHAR(10) NOT NULL,
+	    ssedimentables VARCHAR(10) NOT NULL,
+	    ssuspendidos VARCHAR(10) NOT NULL,
+	    dbo VARCHAR(10) NOT NULL,
+	    nitrogeno VARCHAR(10) NOT NULL,
+	    fosforo VARCHAR(10) NOT NULL,
+	    arsenico VARCHAR(10) NOT NULL,
+	    cadmio VARCHAR(10) NOT NULL,
+	    cianuros VARCHAR(10) NOT NULL,
+	    cobre VARCHAR(10) NOT NULL,
+	    cromo VARCHAR(10) NOT NULL,
+	    mercurio VARCHAR(10) NOT NULL,
+	    niquel VARCHAR(10) NOT NULL,
+	    plomo VARCHAR(10) NOT NULL,
+	    zinc VARCHAR(10) NOT NULL,
+	    hdehelminto VARCHAR(10) NOT NULL)
 		DEFAULT CHARACTER SET utf8 ENGINE=InnoDB';
 	$pdo->exec($sql);
   }
@@ -249,5 +252,5 @@
 	include 'error.html.php';
 	exit();
   }
-  echo 'Las bases de datos de nom001 se han generado correctamente';
+  echo 'La generacion de base de datos de nom001 se hizo correctamente'.'<br>'; 
 ?>

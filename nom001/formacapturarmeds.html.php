@@ -10,12 +10,6 @@
    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]--> 
    <link rel="stylesheet" type="text/css" href="/reportes/estilo.css" />
-   <style type="text/css">
-    label.error {
-    //color:red;
-    //font-weight: bold;
-    }
-</style>
 </head>
 <body>
 <div id="contenedor">

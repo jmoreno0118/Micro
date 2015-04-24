@@ -71,14 +71,13 @@ function agregarIntervalo(nombre, unidades, resultado){
       	</div>
       	<?php endforeach?>
   	  
-  	    <?php $cantidad = ($cantidad === 1)? $cantidad : $cantidad-1;
-        for ($i=0; $i<$cantidad; $i++) :?>
+  	    <?php for ($i=0; $i<$cantidad; $i++) :?>
   	    <div>
   	    	<label for="parametros[<?php echo $i; ?>][GyA]">Grasas y Aceites:</label>
-    			<input type="text" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>">
+    			<input type="text" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>">
 
     			<label for="parametros[<?php echo $i; ?>][coliformes]">Coliformes Fecales:</label>
-    			<input type="text" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["coliformes"]) : ""; ?>">
+    			<input type="text" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["coliformes"]) : ""; ?>">
   	    </div>
   	  <?php endfor; ?>
       <fieldset id="adicionales">
@@ -137,6 +136,39 @@ function agregarIntervalo(nombre, unidades, resultado){
   $(document).ready(function() {
       //this calculates values automatically 
       calculateSum();
+
+      <?php if(!isset($parametros)): ?>
+        $("#fechareporte").on("keydown keyup", function() {
+          $.ajax({
+            type: "POST",
+            url: "limites.php",
+            data: {fecha: $("#fechareporte").val()},
+            cache: false,
+            dataType: 'json',
+            success: function(html){
+              if(html !== false){
+                console.log(html);
+                $(".GyA").val(parseInt(html['GyA']));
+                $(".coliformes").val("<"+parseInt(html['coliformes']));
+                $("#ssedimentables").val("<"+html['ssedimentables']);
+                $("#ssuspendidos").val("<"+html['ssuspendidos']);
+                $("#dbo").val("<"+html['dbo']);
+                $("#fosforo").val("<"+html['fosforo']);
+                $("#arsenico").val("<"+html['arsenico']);
+                $("#cadmio").val("<"+html['cadmio']);
+                $("#cianuros").val("<"+html['cianuros']);
+                $("#cobre").val("<"+html['cobre']);
+                $("#cromo").val("<"+html['cromo']);
+                $("#mercurio").val("<"+html['mercurio']);
+                $("#niquel").val("<"+html['niquel']);
+                $("#plomo").val("<"+html['plomo']);
+                $("#zinc").val("<"+html['zinc']);
+                $("#hdehelminto").val("<"+html['hdehelminto']);
+              }
+            }
+          });
+        });
+      <?php endif; ?>
 
       $(".nits").on("keydown keyup", function() {
           calculateSum();

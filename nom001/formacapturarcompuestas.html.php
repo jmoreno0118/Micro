@@ -34,11 +34,17 @@
         <fieldset>
         <legend><?php echo $value; ?>:</legend>
   	    <?php for ($i=0; $i<$cantidad; $i++) :?>
-          <label for="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]">Muestra <?php if($i+1<$cantidad){htmlout($i+1);}else{echo "Compuesta";} ?>:</label>
-          <?php if($key === "caracteristicas"):?>
+          <label for="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]">Muestra <?php htmlout($i+1); ?>:</label>
+          <?php if($key === "caracteristicas" OR $key === "observaciones"): ?>
             <br>
             <textarea style="resize: none;" maxlength=350 rews=5 cols=50 name="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i][$key]);} ?></textarea>
+            <br><br>
+            <?php if($i+1 === $cantidad): ?>
+            <label for="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]">Muestra Compuesta:</label>
             <br>
+            <textarea style="resize: none;" maxlength=350 rews=5 cols=50 name="mcompuestas[<?php echo $i+1; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i+1; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i+1][$key]);} ?></textarea>
+            <br>
+            <?php endif; ?>
           <?php else: ?>
     			   <input type="text" name="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i][$key]);} ?>">
           <?php endif; ?>
@@ -106,7 +112,8 @@
         digits: true
       },
       'mcompuestas[$i][observaciones]':{
-       required: true
+       required: true,
+       maxlength: 350
       },
       'mcompuestas[$i][caracteristicas]':{
        required: true,
@@ -119,8 +126,17 @@
       'mcompuestas[$i][horalab]':{
         required: true,
         hora: true
-      }";
-       echo ($i<$cantidad-1)? "," : "";
+      },";
+       if($i+1 === $cantidad):
+       echo "'mcompuestas[".($i+1)."][observaciones]':{
+         required: true,
+         maxlength: 350
+        },
+        'mcompuestas[".($i+1)."][caracteristicas]':{
+         required: true,
+         maxlength: 350
+        }";
+       endif;
        endfor; ?>
       },
       success: "valid"

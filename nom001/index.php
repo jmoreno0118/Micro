@@ -224,9 +224,9 @@
    }
    $cantidad = 1;
    if($_POST['tipomediciones'] === '8'){
-    $cantidad = 5;
+    $cantidad = 4;
    }else if($_POST['tipomediciones'] === '16' || $_POST['tipomediciones'] === '24'){
-    $cantidad = 7;
+    $cantidad = 6;
    }
    if($cantidad === 1){
     $pestanapag='Agregar parametros';
@@ -496,9 +496,9 @@
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     $cantidad = 1;
     if($_POST['tipomedicion'] === '8'){
-     $cantidad = 5;
+     $cantidad = 4;
     }else if($_POST['tipomedicion'] === '16' || $_POST['tipomedicion'] === '24'){
-     $cantidad = 7;
+     $cantidad = 6;
     }
 
     if(isset($_POST['idparametro'])){
@@ -903,9 +903,9 @@
     }
      $cantidad = 1;
      if($_POST['tipomediciones'] === '8'){
-      $cantidad = 5;
+      $cantidad = 4;
      }else if($_POST['tipomediciones'] === '16' || $_POST['tipomediciones'] === '24'){
-      $cantidad = 7;
+      $cantidad = 6;
      }
    }else{
     $cantidad = intval($_POST['cantidad']);
@@ -1122,8 +1122,6 @@
      $s->execute();
 
      foreach ($_POST["mcompuestas"] as $key => $value) {
-      if($value["hora"] != "" && $value["flujo"] != "" && $value["volumen"] != "" && $value["observaciones"] != "")
-      {
        $sql='INSERT INTO mcompuestastbl SET
          muestreoaguaidfk=:id,
          hora=:hora,
@@ -1133,9 +1131,9 @@
          caracteristicas=:caracteristicas';
        $s=$pdo->prepare($sql);
        $s->bindValue(':id', $muestreo['id']);
-       $s->bindValue(':hora', $value["hora"]);
-       $s->bindValue(':flujo', $value["flujo"]);
-       $s->bindValue(':volumen', $value["volumen"]);
+       $s->bindValue(':hora', (isset($value["hora"]))?$value["hora"]:'');
+       $s->bindValue(':flujo', (isset($value["hora"]))?$value["flujo"]:'');
+       $s->bindValue(':volumen', (isset($value["hora"]))?$value["volumen"]:'');
        $s->bindValue(':observaciones', $value["observaciones"]);
        $s->bindValue(':caracteristicas', $value["caracteristicas"]);
        $s->execute();
@@ -1147,10 +1145,9 @@
          horarecepcion=:horarecepcion';
        $s=$pdo->prepare($sql);
        $s->bindValue(':id', $mcompuesta);
-       $s->bindValue(':fecharecepcion', $value["fechalab"]);
-       $s->bindValue(':horarecepcion', $value["horalab"]);
+       $s->bindValue(':fecharecepcion', (isset($value["hora"]))?$value["fechalab"]:'');
+       $s->bindValue(':horarecepcion', (isset($value["hora"]))?$value["horalab"]:'');
        $s->execute();
-      }
      }
      $pdo->commit();
     }
