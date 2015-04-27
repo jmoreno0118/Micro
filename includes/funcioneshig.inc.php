@@ -8,15 +8,13 @@ function buscaordenes($estudio,$otsproceso='', $ot='' ){
     {$sql='';
 	 //	 falta agragar la planta
 	 $select='SELECT ordenestbl.id, ot, Razon_Social,  Ciudad, clientestbl.Estado';
-	 //	 falta agragar la planta
-	 $select='SELECT ordenestbl.id, ot, Razon_Social,  Ciudad, clientestbl.Estado';
 	 $from=' FROM ordenestbl
 			INNER JOIN clientestbl ON clienteidfk=Numero_Cliente
 			INNER JOIN estudiostbl ON ordenidfk=ordenestbl.id
 			INNER JOIN representantestbl ON representantestbl.id=ordenestbl.representanteidfk
 			INNER JOIN usuarioreptbl ON usuarioreptbl.representanteidfk = representantestbl.id
 			INNER JOIN usuariostbl ON usuariostbl.id = usuarioreptbl.usuarioidfk';
-	 $where=' WHERE estudiostbl.nombre='.$estudio.' AND usuariostbl.usuario=:usuario';
+	 $where=' WHERE estudiostbl.nombre="'.$estudio.'" AND usuariostbl.usuario=:usuario';
 	 if ($otsproceso)
 	 {
 	   $where .=' AND fechafin IS NULL';

@@ -43,11 +43,11 @@
 if((isset($_POST['accion']) and $_POST['accion']=='Ver OT'))
  {
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-    $datos=ordendatos($_POST['id']);
+  $datos=ordendatos($_POST['id']);
 	$informes=ordenestudios($_POST['id']);
 	if (!isset($datos) or !isset($informes))
 	  { exit(); }
-	include include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/formas/'.'muestraot.html.php';
+	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/formas/'.'muestraot.html.php';
 	exit();
  }	
 /* *** Ver reconocimientos iniciales de una orden de trabajo *** */
@@ -73,8 +73,8 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
 }
 /* *** Acción por defualt, llevar a búsqueda de ordenes ***** */
 /* ********************************************************** */
-   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-  $estudio='"Vibraciones mano-brazo"';
+  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+  $estudio='Vibraciones mano-brazo';
   $otsproceso=TRUE;
   $tablatitulo='Ordenes de vibraciones en proceso';
   $mensaje='no hay ordenes abiertas de vibraciones';
