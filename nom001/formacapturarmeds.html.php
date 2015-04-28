@@ -90,12 +90,14 @@
             <option value="1" <?php if(strval($valores[$name]) === "1") echo 'selected'?>>Sí</option>
           </select>
         <?php elseif($name === "descriproceso" OR $name === "proposito" OR $name === "tratamiento" OR $name === "observaciones" OR $name === "estrategia"):?>
-          <br><textarea style="resize: none;" maxlength=<?php echo ($name === "descriproceso" OR $name === "tratamiento")? "100" : "6500"; ?> rews=5 cols=50 name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>"><?php htmlout($valores[$name]); ?></textarea>
+          <br><textarea style="resize: none;" maxlength=<?php echo ($name === "descriproceso" OR $name === "tratamiento")? "100" : "6500"; ?> rows=5 cols=50 name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>"><?php htmlout($valores[$name]); ?></textarea>
         <?php else: ?>
-	    	  <input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>" <?php if($name === "numedicion" AND $valores['numedicion'] !== ""){ ?> disabled <?php } ?>>
-          <?php if($name === "numedicion" AND $valores['numedicion'] !== ""){ ?>
+	    	  <input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>"
+          <?php if($name === "numedicion" AND $valores['numedicion'] !== ""): ?> disabled>
             <input type="hidden" name="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>">
-          <?php } ?>
+          <?php else: ?>
+          >
+          <?php endif; ?>
         <?php endif; ?>
     	</div>
       <br>
