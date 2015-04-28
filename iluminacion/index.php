@@ -94,7 +94,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
   $estudio='Iluminacion';
   $otsproceso=TRUE;
   $tablatitulo='Ordenes de iluminacion en proceso';
-  $mensaje='no hay ordenes abiertas de vibraciones';
+  $mensaje='no hay ordenes abiertas de iluminacion';
   $ordenes=buscaordenes($estudio,$otsproceso,'');
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/formas/'.'formabuscaordeneshig.html.php';
   exit();

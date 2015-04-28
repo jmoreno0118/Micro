@@ -21,16 +21,36 @@
   if (isset($_GET['nuevopunto']))
   {
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try   
+    {
+      $sql='SELECT * FROM puntostbl
+            INNER JOIN puntorecilumtbl ON puntostbl.id=puntorecilumtbl.puntoidfk
+            WHERE puntorecilumtbl.recilumidfk = :id
+            ORDER BY id DESC limit 1';
+      $s=$pdo->prepare($sql); 
+      $s->bindValue(':id', $_SESSION['idrci']);
+      $s->execute();
+
+      $punto = $s->fetch();
+    }
+    catch (PDOException $e) 
+    {
+      $mensaje='Hubo un error extrayendo la información del punto.';
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
+    }
     $valores = array("nomedicion" => "",
-                     "fecha" => "",
-                     "departamento" => "",
-                     "area" => "",
+                     "fecha" => $punto['fecha'],
+                     "departamento" => $punto['departamento'],
+                     "area" => $punto['area'],
                      "ubicacion" => "",
                      "identificacion" => "",
                      "observaciones" => "",
-                     "nirm" => "");
+                     "nirm" => "",
+                     "luminometro" => $punto['equiposidfk']);
     formularioPuntos('Agrega Punto', 'Agregar un nuevo punto', 'guardarpunto', $_SESSION['idrci'], "", $valores);	 
-  } 
+  }
+
 /*******************************************************************/
 /* ********* Guardar inf. y mediciones de un punto nuevo ********* */
 /*******************************************************************/
@@ -85,10 +105,10 @@
           $s=$pdo->prepare($sql);
           $s->bindValue(':puntoidfk', $puntosid);
           $s->bindValue(':hora', $value["hora"]);
-          $s->bindValue(':e1pared', $value["e1pared"]);
-          $s->bindValue(':e2pared', $value["e2pared"]);
           $s->bindValue(':e1plano', $value["e1plano"]);
           $s->bindValue(':e2plano', $value["e2plano"]);
+          $s->bindValue(':e1pared', trim($value["e1pared"]));
+          $s->bindValue(':e2pared', trim($value["e2pared"]));
           $s->execute();
         }
       }
@@ -102,17 +122,19 @@
      exit();
     }
     $valores = array("nomedicion" => "",
-                     "fecha" => "",
+                     "fecha" => $_POST['fecha'],
                      "departamento" => $_POST['departamento'],
                      "area" => $_POST['area'],
                      "ubicacion" => "",
                      "identificacion" => "",
                      "observaciones" => "",
-                     "nirm" => "");
+                     "nirm" => "",
+                     "luminometro" => $_POST['luminometro']);
     $idrci=$_POST['idrci'];
     $id="";
     formularioPuntos('Agrega Punto', 'Agregar un nuevo punto', 'guardarpunto', $idrci, $id, $valores);
   }
+
 /********************************************************/
 /* ********** Editar un punto de vibraciones ********** */
 /********************************************************/
@@ -131,10 +153,10 @@
 
       $punto = $s->fetch();
 
-      $sql='SELECT medsilumtbl.hora, medsilumtbl.e1pared, medsilumtbl.e2pared, medsilumtbl.e1plano, medsilumtbl.e2plano
+      $sql="SELECT DATE_FORMAT(medsilumtbl.hora, '%H:%i') as 'hora', medsilumtbl.e1pared, medsilumtbl.e2pared, medsilumtbl.e1plano, medsilumtbl.e2plano
             FROM medsilumtbl
             INNER JOIN puntostbl ON medsilumtbl.puntoidfk = puntostbl.id
-            WHERE puntostbl.id = :id';
+            WHERE puntostbl.id = :id";
       $s=$pdo->prepare($sql); 
       $s->bindValue(':id',$_POST['id']);
       $s->execute();
@@ -226,10 +248,10 @@
           $s=$pdo->prepare($sql);
           $s->bindValue(':puntoidfk', $_POST['id']);
           $s->bindValue(':hora', $value["hora"]);
-          $s->bindValue(':e1pared', $value["e1pared"]);
-          $s->bindValue(':e2pared', $value["e2pared"]);
           $s->bindValue(':e1plano', $value["e1plano"]);
           $s->bindValue(':e2plano', $value["e2plano"]);
+          $s->bindValue(':e1pared', trim($value["e1pared"]));
+          $s->bindValue(':e2pared', trim($value["e2pared"]));
           $s->execute();
         }
       }
@@ -276,6 +298,7 @@
                     "nirm" => '');
     verPuntos($_POST['id']);
   }
+
 /**************************************************************************************************/
 /* Borrar un punto de un reconocimiento inicial de una orden de trabajo */
 /**************************************************************************************************/
@@ -356,6 +379,7 @@
   $puntos=verpuntos($idrci);
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/formas/formapuntos.html.php';
   exit();
+
 /**********************************************************************/
 /* ****** Función para ver puntos de un reconocimiento inicial ****** */
 /* ****************************************************************** */

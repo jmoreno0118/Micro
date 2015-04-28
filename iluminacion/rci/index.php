@@ -449,7 +449,189 @@
 	}
 	verRecs($ot);
   }
+/* **************************************************************************
+**  Se continua con el cambio de influencia.                               **
+*****************************************************************************/
+ if(isset($_POST['accion']) and $_POST['accion']=='Continua cambio')
+ {
+   $id = $_POST['id'];
+   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 
+   try
+   {
+    $sql='UPDATE recsilumtbl SET
+          fecha=:fecha,
+		  largo=:largo,
+		  ancho=:ancho,
+		  alto=:alto,
+		  tipolampara=:tipolampara,
+		  potencialamp=:potencialamp,
+		  numlamp=:numlamp,
+		  alturalamp=:alturalamp,
+		  techocolor=:techocolor,
+		  paredcolor=:paredcolor,
+		  pisocolor=:pisocolor,
+		  influencia=:influencia,
+		  percepcion=:percepcion
+		 WHERE id=:id';
+	$s=$pdo->prepare($sql);
+	$s->bindValue(':id',$_POST['id']);
+	$s->bindValue(':fecha',$_POST['fecha']);
+	$s->bindValue(':largo',$_POST['largo']);
+	$s->bindValue(':ancho',$_POST['ancho']);
+	$s->bindValue(':alto',$_POST['alto']);
+	$s->bindValue(':tipolampara',$_POST['tipolampara']);
+ 	$s->bindValue(':potencialamp',$_POST['potencialamp']);
+	$s->bindValue(':numlamp',$_POST['numlamp']);
+	$s->bindValue(':alturalamp',$_POST['alturalamp']);
+	$s->bindValue(':techocolor',$_POST['techocolor']);
+	$s->bindValue(':paredcolor',$_POST['paredcolor']);
+	$s->bindValue(':pisocolor',$_POST['pisocolor']);
+	$s->bindValue(':influencia',$_POST['influencia']);
+	$s->bindValue(':percepcion',$_POST['percepcion']);
+	$s->execute();
+   }
+   catch (PDOException $e)
+   {
+    $mensaje='Hubo un error al tratar de editar el reconocimiento inicial. Favor de intentar nuevamente.';
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+    exit();
+   }
+   try
+   {
+    $sql='UPDATE deptostbl 
+    	 INNER JOIN deptorecilumtbl ON deptostbl.id=deptorecilumtbl.deptoidfk
+    	 SET
+          departamento=:departamento,
+		  area=:area,
+		  descriproceso=:descriproceso
+		 WHERE deptorecilumtbl.recilumidfk=:id';
+	$s=$pdo->prepare($sql);
+	$s->bindValue(':id',$_POST['id']);
+	$s->bindValue(':departamento',$_POST['departamento']);
+	$s->bindValue(':area',$_POST['area']);
+	$s->bindValue(':descriproceso',$_POST['descriproceso']);
+	$s->execute();
+    }
+    catch (PDOException $e)
+    {
+     $mensaje='Hubo un error al tratar de editar el departamento. Favor de intentar nuevamente.';
+     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+     exit();
+    }
+    try
+    {
+     $sql="DELETE descripuestostbl FROM descripuestostbl
+	 	  INNER JOIN deptostbl ON descripuestostbl.deptoidfk = deptostbl.id
+	 	  INNER JOIN deptorecilumtbl ON deptostbl.id = deptorecilumtbl.deptoidfk
+	 	  WHERE deptorecilumtbl.recilumidfk = :id";
+	 $s=$pdo->prepare($sql);
+	 $s->bindValue(':id',$_POST['id']);
+	 $s->execute();
+    }
+    catch (PDOException $e)
+    {
+     $mensaje='Hubo un error al tratar de eliminar los puestos. Favor de intentar nuevamente.';
+     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+     exit();
+    }
+    try
+    {
+     $sql="SELECT deptostbl.id FROM deptostbl 
+	 INNER JOIN deptorecilumtbl ON deptostbl.id = deptorecilumtbl.deptoidfk WHERE deptorecilumtbl.recilumidfk = :id";
+	 $s=$pdo->prepare($sql);
+	 $s->bindValue(':id',$_POST['id']);
+	 $s->execute();
+	 $resultado=$s->fetch();
+     foreach ($_POST["descpuestos"] as $key => $value) {
+      if($value["puesto"] != "" && $value["numtrabajadores"] != "" && $value["actividades"]!="")
+      {
+	   $sql='INSERT INTO descripuestostbl SET
+	         deptoidfk=:deptoidfk,
+			 puesto=:puesto,
+			 numtrabajadores=:numtrabajadores,
+			 actividades=:actividades';
+	   $s=$pdo->prepare($sql);
+	   $s->bindValue(':deptoidfk', $resultado["id"]);
+	   $s->bindValue(':puesto', $value["puesto"]);
+	   $s->bindValue(':numtrabajadores', $value["numtrabajadores"]);
+	   $s->bindValue(':actividades', $value["actividades"]);
+	   $s->execute();
+      }
+     }
+    }
+    catch (PDOException $e)
+    {
+     $mensaje='Hubo un error al tratar de agregar los puestos. Favor de intentar nuevamente.';
+     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+     exit();
+    }
+	try
+    {
+	$pdo->beginTransaction(); 
+     $sql='SELECT puntoidfk FROM puntorecilumtbl
+	 WHERE recilumidfk = :id';
+	 $s=$pdo->prepare($sql);
+	 $s->bindValue(':id',$_POST['id']);
+	 $s->execute();
+	 $resultado=array();
+	 foreach ($s as $linea)
+	  {
+		$sql='DELETE FROM medsilumtbl WHERE puntoidfk=:puntoid
+			ORDER BY id DESC LIMIT 2';
+		$s=$pdo->prepare($sql);
+		$s->bindValue(':puntoid',$linea['puntoidfk']);
+		$s->execute();
+	 }		
+	$pdo->commit();
+	}
+	catch (PDOException $e)
+	{
+     $pdo->rollback();
+	 $mensaje='Hubo un error al seleccionar las mediciones que se borrarán. '.$e;
+     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+     exit();	
+	}
+   $idot=$_POST['idot'];
+   verRecs($idot);
+   exit();
+ }
+/* *****************************************************************************
+**  Se cancela cambio de influencia.                                          **
+*******************************************************************************/
+ if(isset($_POST['accion']) and $_POST['accion']=='Cancela cambio')
+ {
+   $pestanapag='Editar Reconocimiento Inicial';
+   $titulopagina='Editar reconocimiento inicial';
+   $accion='';
+   $boton = 'salvarci';
+   $puestos=array();
+   $id = $_POST['id'];
+   $idot=$_POST['idot'];
+   foreach($_POST['descpuestos'] as $linea){
+   	$puestos[] = array("puesto" => $linea["puesto"],
+   					   "numtrabajadores" => $linea["numtrabajadores"],
+   					    "actividades" => $linea["actividades"]);
+   }
+   $valores = array("fecha" => $_POST["fecha"],
+					"departamento" => $_POST["departamento"],
+					"area" => $_POST["area"],
+					"descriproceso" => $_POST["descriproceso"],
+					"largo" => $_POST["largo"],
+					"ancho" => $_POST["ancho"],
+					"alto" => $_POST["alto"],
+					"tipolampara" => $_POST["tipolampara"],
+					"potencialamp" => $_POST["potencialamp"],
+					"numlamp" => $_POST["numlamp"],
+					"alturalamp" => $_POST["alturalamp"],
+					"techocolor" => $_POST["techocolor"],
+					"paredcolor" => $_POST["paredcolor"],
+					"pisocolor" => $_POST["pisocolor"],
+					"influencia" => 1,
+					"percepcion" => $_POST["percepcion"]);
+   include 'formacapturarci.html.php';
+   exit();
+ }
 /* ************** Ir a la opcion de puntos ********************* */
 /* ************************************************************* */
   if((isset($_POST['accion']) and $_POST['accion']=='puntos'))
@@ -533,4 +715,32 @@ function ininuevorci(){
    include 'formarci.html.php';
    exit();
   }
+
+function desglosapost($post="")
+{ 
+  global $campos, $contenidos, $puestos, $numtrabajadores, $actividades;
+  $campos=array();
+  $contenidos=array();
+  $puestos=array();
+  $numtrabajadores=array();
+  $actividades=array();
+  foreach ($post as $campo=>$contenido)
+  {
+    if ($campo<>'descpuestos' and $campo<>'accion' and $campo<>'boton')
+	{
+	  $campos[]=$campo;
+	  $contenidos[]=$contenido;
+	}
+  }
+  foreach ($post['descpuestos'] as $descrip)
+  {
+	 if ($descrip['puesto']!="")
+	 {
+       $puestos[]=$descrip['puesto'];
+	   $numtrabajadores[]=$descrip['numtrabajadores'];
+	   $actividades[]=$descrip['actividades'];
+	 }
+	 else{ break; } 
+  }
+}
 ?>
