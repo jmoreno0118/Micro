@@ -22,14 +22,35 @@
     <?php //var_dump($_POST); ?>
    <h2><?php htmlout($titulopagina); ?></h2>
    <?php $formulario = array("hora" => "Hora(hh:mm)",
-                          "flujo" => "Flujo(m3/s) Ej. 1.1234:",
-                          "volumen" => "Volumen(ml):",
-                          "observaciones" => "Observaciones:",
-                          "caracteristicas" => "Caracteristicas: (Max. 350)",
-                          "fechalab" => "Fecha recepción laboratorio(aaaa-mm-dd):",
-                          "horalab" => "Hora recepción laboratorio(hh:mm):");
+                            "flujo" => "Flujo(m3/s) Ej. 1.1234",
+                            "volumen" => "Volumen(ml)",
+                            "observaciones" => "Observaciones",
+                            "caracteristicas" => "Caracteristicas: (Max. 350)",
+                            "fechalab" => "Fecha recepción laboratorio(aaaa-mm-dd)",
+                            "horalab" => "Hora recepción laboratorio(hh:mm)");
+
+      $arquitectura = array("mcompuestas" => array("variables" => 'hora,flujo,volumen,observaciones,caracteristicas,fechalab,horalab',
+                                              "tipo" => 2),
+                            "id" => array("variables" => "id",
+                                          "tipo" => 0),
+                            "regreso" => array("variables" => "id",
+                                                "tipo" => 0,
+                                                "valor" => 2),
+                            "cantidad" => array("variables" => "cantidad",
+                                                "tipo" => 0)
+                            );
+
+      $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+      $host     = $_SERVER['HTTP_HOST'];
+      $script   = $_SERVER['SCRIPT_NAME'];
+      $params   = $_SERVER['QUERY_STRING'];
+      $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
     ?>
     <form id="compuestasform" action="?<?php htmlout($accion); ?>" method="post">
+      <input type="hidden" name="post" value='<?php echo json_encode($_POST); ?>'>
+      <input type="hidden" name="url" value="<?php echo $currentUrl; ?>">
+      <input type="hidden" name="arquitectura" value='<?php echo json_encode($arquitectura); ?>'>
+
       <?php foreach ($formulario as $key => $value): ?>
         <fieldset>
         <legend><?php echo $value; ?>:</legend>
@@ -37,12 +58,12 @@
           <label for="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]">Muestra <?php htmlout($i+1); ?>:</label>
           <?php if($key === "caracteristicas" OR $key === "observaciones"): ?>
             <br>
-            <textarea style="resize: none;" maxlength=350 rews=5 cols=50 name="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i][$key]);} ?></textarea>
+            <textarea style="resize: none;" maxlength=350 rows=5 cols=50 name="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i][$key]);} ?></textarea>
             <br><br>
             <?php if($i+1 === $cantidad): ?>
             <label for="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]">Muestra Compuesta:</label>
             <br>
-            <textarea style="resize: none;" maxlength=350 rews=5 cols=50 name="mcompuestas[<?php echo $i+1; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i+1; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i+1][$key]);} ?></textarea>
+            <textarea style="resize: none;" maxlength=350 rows=5 cols=50 name="mcompuestas[<?php echo $i+1; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i+1; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i+1][$key]);} ?></textarea>
             <br>
             <?php endif; ?>
           <?php else: ?>
@@ -95,7 +116,7 @@
     return /^(\S\/\F|\d{1,2}\.\d{1,10})$/.test(value); 
    }, 'Ingresar de 1 a 10 decimales.');
 
-    $("#compuestasform").validate({
+    /*$("#compuestasform").validate({
       rules: {
        <?php for ($i=0; $i<$cantidad; $i++) :
        echo "
@@ -140,5 +161,5 @@
        endfor; ?>
       },
       success: "valid"
-    });
+    });*/
   });</script>

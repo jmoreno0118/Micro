@@ -28,7 +28,7 @@
              							"Lugar del muestreo (5.0)" => "lugarmuestreo",
              							"Descripción del proceso (Max. 100)" => "descriproceso",
                           "Tipo de medición" => "tipomediciones",
-                          "Proósito (6.0)" => "proposito",
+                          "Propósito (6.0)" => "proposito",
              							"Materias primas usadas (8.0)" => "materiasusadas",
              							"Tratamiento del agua antes de la descarga (9.0) (Max. 100)" => "tratamiento",
              							"Características de la descarga (10.0)" => "Caracdescarga",
@@ -49,13 +49,28 @@
                           "Turbiedad visual" => "turbiedad",
                           "Grasas y Aceite visual" => "GyAvisual",
                           "Burbujas y espuma" => "burbujas");
+
+      $arquitectura = array("valores" => array("variables" => 'empresagiro,descargaen,uso,numedicion,lugarmuestreo,descriproceso,tipomediciones,proposito,materiasusadas,tratamiento,Caracdescarga,receptor,estrategia,numuestras,observaciones,fechamuestreo,identificacion,temperatura,caltermometro,pH,conductividad,responsable,mflotante,olor,color,turbiedad,GyAvisual,burbujas',
+                                              "tipo" => 1),
+                            "id" => array("variables" => "id",
+                                          "tipo" => 0));
+
+      $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+      $host     = $_SERVER['HTTP_HOST'];
+      $script   = $_SERVER['SCRIPT_NAME'];
+      $params   = $_SERVER['QUERY_STRING'];
+      $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
    ?>
     <form id="medsform" name="medsform" action="?" method="post">
+      <input type="hidden" name="post" value='<?php echo json_encode($_POST); ?>'>
+      <input type="hidden" name="url" value="<?php echo $currentUrl; ?>">
+      <input type="hidden" name="arquitectura" value='<?php echo json_encode($arquitectura); ?>'>
+
     	<?php foreach($formulario as $label => $name): ?>
     	<div>
         <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
         <?php if($name === "tipomediciones"):?>
-          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" <?php if($valores['tipomediciones'] !== ""){ ?> disabled <?php } ?>>
+          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" <?php if($valores['tipomediciones'] !== "" AND !isset($new)){ ?> disabled <?php } ?>>
             <option value="">Seleccionar</option>
             <option value="1" <?php if($valores["tipomediciones"] === '1') echo 'selected'?>>Puntual</option>
             <option value="8" <?php if($valores["tipomediciones"] === '8') echo 'selected'?>>8 horas</option>
@@ -79,21 +94,21 @@
           </select>
         <?php elseif($name === "mflotante"):?>
           <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-            <option value=""<?php if(strval($valores["mflotante"]) === "") echo 'selected'?>>Seleccionar</option>
-            <option value="0"<?php if(strval($valores["mflotante"]) === "0") echo 'selected'?>>Ausente</option>
+            <option value="" <?php if(strval($valores["mflotante"]) === "") echo 'selected'?>>Seleccionar</option>
+            <option value="0" <?php if(strval($valores["mflotante"]) === "0") echo 'selected'?>>Ausente</option>
             <option value="1" <?php if(strval($valores["mflotante"]) === "1") echo 'selected'?>>Presente</option>
           </select> 
         <?php elseif($name === "olor" OR $name === "color" OR $name === "turbiedad" OR $name === "GyAvisual" OR $name === "burbujas"):?>
           <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-            <option value=""<?php if(strval($valores[$name]) === "") echo 'selected'?>>Seleccionar</option>
-            <option value="0"<?php if(strval($valores[$name]) === "0") echo 'selected'?>>No</option>
+            <option value="" <?php if(strval($valores[$name]) === "") echo 'selected'?>>Seleccionar</option>
+            <option value="0" <?php if(strval($valores[$name]) === "0") echo 'selected'?>>No</option>
             <option value="1" <?php if(strval($valores[$name]) === "1") echo 'selected'?>>Sí</option>
           </select>
         <?php elseif($name === "descriproceso" OR $name === "proposito" OR $name === "tratamiento" OR $name === "observaciones" OR $name === "estrategia"):?>
           <br><textarea style="resize: none;" maxlength=<?php echo ($name === "descriproceso" OR $name === "tratamiento")? "100" : "6500"; ?> rows=5 cols=50 name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>"><?php htmlout($valores[$name]); ?></textarea>
         <?php else: ?>
 	    	  <input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>"
-          <?php if($name === "numedicion" AND $valores['numedicion'] !== ""): ?> disabled>
+          <?php if($name === "numedicion" AND $valores['numedicion'] !== "" AND !isset($new)): ?> disabled>
             <input type="hidden" name="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>">
           <?php else: ?>
           >
@@ -118,7 +133,7 @@
   </div>  <!-- footer -->
   </div> <!-- contenedor -->
 </body>
-</html>
+
 <link rel="stylesheet" href="../includes/jquery-validation-1.13.1/demo/site-demos.css">
 <script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
 <script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
@@ -167,7 +182,7 @@
     return /^\d{1,2}$/.test(value);
    }, 'Sólo se aceptan 2 digitos.');
 
-    $("#medsform").validate({
+    /*$("#medsform").validate({
       rules: {
         empresagiro: "required",
         descargaen: "required",
@@ -263,6 +278,8 @@
                        form.submit(); 
                       return false; // prevent normal form posting
                     }
-    });
+    });*/
   });
-  </script>
+</script>
+
+</html>
