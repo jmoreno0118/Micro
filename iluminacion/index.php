@@ -58,11 +58,9 @@ if((isset($_POST['accion']) and $_POST['accion']=='Ver OT'))
 
   if((isset($_POST['accion']) and $_POST['accion']=='verci'))
   {
-    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     $_SESSION['idot']=$_POST['id'];
     $_SESSION['quien']='Iluminacion';
-	$idot=$_POST['id'];
-	header('Location: http://'.$_SERVER['HTTP_HOST'].str_replace('?','',$_SERVER['REQUEST_URI']).'rci');
+  	header('Location: http://'.$_SERVER['HTTP_HOST'].str_replace('?','',$_SERVER['REQUEST_URI']).'rci');
     exit();
   }
 
@@ -84,7 +82,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Planos')
   $_SESSION['quien']='iluminacion';
   //$parent = dirname($_SERVER['SERVER_ADDR']);
   header('Location: http://'.$_SERVER['HTTP_HOST'].str_replace('?','',$_SERVER['REQUEST_URI']).'planos');
-  exit();  
+  exit();
 }
 
 /**************************************************************************************************/

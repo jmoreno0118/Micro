@@ -78,7 +78,7 @@
     	  </div> 
       </form>
       <p><a href="?volverci&amp;idot=<?php htmlout($idot); ?>">Regresa a los reconocimientos iniciales de la orden</a></p>
-      <p><a href="../iluminacion">Regresa a la búsqueda de ordenes</a></p>
+      <p><a href="..">Regresa a la búsqueda de ordenes</a></p>
     </div>  <!-- cuerpoprincipal -->
     <div id="footer">
       <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>

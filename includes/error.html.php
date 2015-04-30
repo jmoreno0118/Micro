@@ -28,17 +28,22 @@
     <form action="<?php htmlout($_POST['url']); ?>" method="post">
       <?php 
       foreach (json_decode($_POST['arquitectura'], TRUE) as $nombrevariable => $estructura) {
-        if($estructura['tipo'] === 0){
+        if($estructura['tipo'] === 0)
+        {
           $valor = isset($estructura['valor']) ? $estructura['valor'] : $_POST[$estructura['variables']];
           echo '<input type="hidden" name="'.$nombrevariable.'" value="'.$valor.'">';
-        }elseif($estructura['tipo'] === 1){
+        }
+        elseif($estructura['tipo'] === 1)
+        {
           $inputs = explode(',', $estructura['variables']);
           $valores = array();
           foreach ($inputs as $variable) {
             $valores[$variable] =  isset($_POST[$variable])? $_POST[$variable] : "0";
           }
           echo '<input type="hidden" name="'.$nombrevariable.'" value=\''.json_encode($valores).'\'>';
-        }elseif($estructura['tipo'] === 2){
+        }
+        elseif($estructura['tipo'] === 2)
+        {
           $inputs = explode(',', $estructura['variables']);
           $valores = array();
           foreach ($_POST[$nombrevariable] as $key => $valor) {
