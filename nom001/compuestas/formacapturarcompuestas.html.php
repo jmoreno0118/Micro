@@ -97,11 +97,11 @@
   </div> <!-- contenedor -->
 </body>
 </html>
-<link rel="stylesheet" href="../includes/jquery-validation-1.13.1/demo/site-demos.css">
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
+<link rel="stylesheet" href="../../includes/jquery-validation-1.13.1/demo/site-demos.css">
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
 <script type="text/javascript">
   $(document).ready(function() {
    jQuery.validator.addMethod('hora', function (value, element, param) {
@@ -116,7 +116,7 @@
     return /^(\S\/\F|\d{1,2}\.\d{1,10})$/.test(value); 
    }, 'Ingresar de 1 a 10 decimales.');
 
-    /*$("#compuestasform").validate({
+    $("#compuestasform").validate({
       rules: {
        <?php for ($i=0; $i<$cantidad; $i++) :
        echo "
@@ -161,5 +161,5 @@
        endfor; ?>
       },
       success: "valid"
-    });*/
+    });
   });</script>

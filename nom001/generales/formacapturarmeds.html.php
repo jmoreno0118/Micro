@@ -120,7 +120,7 @@
 	  <div>
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
-	    <p><a href="../nom001">Regresa al búsqueda de ordenes</a></p>
+	    <p><a href="..">Regresa al búsqueda de ordenes</a></p>
 	  </div> 
 	</form>
   <form action="" method="post">
@@ -134,11 +134,11 @@
   </div> <!-- contenedor -->
 </body>
 
-<link rel="stylesheet" href="../includes/jquery-validation-1.13.1/demo/site-demos.css">
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
+<link rel="stylesheet" href="../../includes/jquery-validation-1.13.1/demo/site-demos.css">
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
 <script type="text/javascript">
   $(document).ready(function() {
 
@@ -182,7 +182,7 @@
     return /^\d{1,2}$/.test(value);
    }, 'Sólo se aceptan 2 digitos.');
 
-    /*$("#medsform").validate({
+    $("#medsform").validate({
       rules: {
         empresagiro: "required",
         descargaen: "required",
@@ -278,7 +278,7 @@
                        form.submit(); 
                       return false; // prevent normal form posting
                     }
-    });*/
+    });
   });
 </script>
 

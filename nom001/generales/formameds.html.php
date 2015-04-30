@@ -19,7 +19,7 @@
   </header>
   <div id="cuerpoprincipal"> 
    <h2>Mediciones de la OT. <?php htmlout($nombreot['ot']); ?></h2>
-   <p><a href="../nom001">Regresa a búsqueda de ordenes</a></p>
+   <p><a href="..">Regresa a búsqueda de ordenes</a></p>
    <div style="float:left;">
     <form action="?" method="post">
      <input type="hidden" name="id" value="<?php htmlout($ot); ?>">

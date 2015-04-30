@@ -10,8 +10,8 @@
    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]--> 
    <link rel="stylesheet" type="text/css" href="/reportes/estilo.css" />
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
 <script type="text/javascript">
 i = 10;
 function agregarIntervalo(nombre, unidades, resultado){
@@ -84,7 +84,7 @@ function agregarIntervalo(nombre, unidades, resultado){
           $params   = $_SERVER['QUERY_STRING'];
           $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
     ?>
-    <form id="medsform" name="medsform"  action="?<?php htmlout($accion); ?>" method="post">
+    <form id="medsform" name="medsform"  action="" method="post">
       <input type="hidden" name="post" value='<?php echo json_encode($_POST); ?>'>
       <input type="hidden" name="url" value="<?php echo $currentUrl; ?>">
       <input type="hidden" name="arquitectura" value='<?php echo json_encode($arquitectura); ?>'>
@@ -145,8 +145,8 @@ function agregarIntervalo(nombre, unidades, resultado){
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
       <input type="hidden" name="idparametro" value="<?php htmlout($idparametro); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
-	    <p><a href="../nom001">Regresa al búsqueda de ordenes</a></p>
-	  </div> 
+	    <p><a href="..">Regresa al búsqueda de ordenes</a></p>
+	  </div>
 	</form>
   <form action="" method="post">
       <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
@@ -159,9 +159,9 @@ function agregarIntervalo(nombre, unidades, resultado){
   </div> <!-- contenedor -->
 </body>
 </html>
-<link rel="stylesheet" href="../includes/jquery-validation-1.13.1/demo/site-demos.css">
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
-<script type="text/javascript" src="../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
+<link rel="stylesheet" href="../../includes/jquery-validation-1.13.1/demo/site-demos.css">
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
 <script type="text/javascript">
   $(document).ready(function() {
       //this calculates values automatically 
@@ -248,7 +248,7 @@ function agregarIntervalo(nombre, unidades, resultado){
     return /^(\< *3|\> *2400|\d*)$/.test(value);
    }, 'Sólo valores enteros o ">2400" o "<3"');
 
-    /*$("#medsform").validate({
+    $("#medsform").validate({
       rules: {
         fechareporte: {
          required: true,
@@ -340,5 +340,5 @@ function agregarIntervalo(nombre, unidades, resultado){
        endfor; ?>
       },
       success: "valid",
-    });*/
+    });
   });</script>
