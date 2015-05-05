@@ -20,7 +20,7 @@
 /**************************************************************************************************/
 /* Ver mediciones de una orden de trabajo */
 /**************************************************************************************************/
-	if(isset($_POST['accion']) and $_POST['accion']=='volvermed' || $_POST['accion']=='no guardar parametros' || $_POST['accion']=='Cancelar borrar medicion')
+	if(isset($_POST['accion']) and $_POST['accion']=='volvermed' || $_POST['accion']=='Cancelar borrar medicion')
 	{
 		verMeds($_POST['ot']);
 	}
@@ -34,123 +34,126 @@
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();*/
 
-   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-   if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    $mcompuestas = "";
+    if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
     $cantidad = intval($_POST['cantidad']);
     $id = $_POST['id'];
     $mcompuestas = json_decode($_POST['mcompuestas'], TRUE);
-   }else{
-     try
-     {
-      $pdo->beginTransaction();
+    }else{
+      try
+      {
+        $pdo->beginTransaction();
 
-      $sql='UPDATE clientestbl SET
-            Giro_Empresa=:empresagiro
-            WHERE Numero_Cliente = (SELECT clienteidfk
-                FROM ordenestbl
-                WHERE id = :id)';
-      $s=$pdo->prepare($sql);
-      $s->bindValue(':id',$_POST['id']);
-      $s->bindValue(':empresagiro',$_POST['empresagiro']);
-      $s->execute();
+        $sql='UPDATE clientestbl SET
+              Giro_Empresa=:empresagiro
+              WHERE Numero_Cliente = (SELECT clienteidfk
+                                      FROM ordenestbl
+                                      WHERE id = :id)';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id',$_POST['id']);
+        $s->bindValue(':empresagiro',$_POST['empresagiro']);
+        $s->execute();
 
-      $sql='SELECT id FROM nom01maximostbl WHERE descargaen =:descargaen AND uso=:uso';
-      $s=$pdo->prepare($sql); 
-      $s->bindValue(':descargaen', isset($_POST['descargaen'])? $_POST['descargaen'] : "");
-      $s->bindValue(':uso', isset($_POST['uso'])? $_POST['uso'] : "");
-      $s->execute();
-      $nom01maximosidfk = $s->fetch();
+        $sql='SELECT id FROM nom01maximostbl WHERE descargaen =:descargaen AND uso=:uso';
+        $s=$pdo->prepare($sql); 
+        $s->bindValue(':descargaen', isset($_POST['descargaen'])? $_POST['descargaen'] : "");
+        $s->bindValue(':uso', isset($_POST['uso'])? $_POST['uso'] : "");
+        $s->execute();
+        $nom01maximosidfk = $s->fetch();
 
-      $sql='INSERT INTO generalesaguatbl SET
-       ordenaguaidfk=:id,
-       nom01maximosidfk=:nom01maximosidfk,
-       numedicion=:numedicion,
-       lugarmuestreo=:lugarmuestreo,
-       descriproceso=:descriproceso,
-       materiasusadas=:materiasusadas,
-       tratamiento=:tratamiento,
-       Caracdescarga=:Caracdescarga,
-       receptor=:receptor,
-       estrategia=:estrategia,
-       numuestras=:numuestras,
-       observaciones=:observaciones,
-       tipomediciones=:tipomediciones,
-       proposito=:proposito';
-      $s=$pdo->prepare($sql);
-      $s->bindValue(':id', $_POST['id']);
-      $s->bindValue(':nom01maximosidfk', $nom01maximosidfk['id']);
-      $s->bindValue(':numedicion', intval($_POST['numedicion']),PDO::PARAM_INT );
-      $s->bindValue(':lugarmuestreo', $_POST['lugarmuestreo']);
-      $s->bindValue(':descriproceso', $_POST['descriproceso']);
-      $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
-      $s->bindValue(':tratamiento', $_POST['tratamiento']);
-      $s->bindValue(':Caracdescarga', $_POST['Caracdescarga']);
-      $s->bindValue(':receptor', $_POST['receptor']);
-      $s->bindValue(':estrategia', $_POST['estrategia']);
-      $s->bindValue(':numuestras', $_POST['numuestras']);
-      $s->bindValue(':observaciones', $_POST['observaciones']);
-      $s->bindValue(':tipomediciones', $_POST['tipomediciones']);
-      $s->bindValue(':proposito', $_POST['proposito']);
-      $s->execute();
-      $id=$pdo->lastInsertid();
+        $sql='INSERT INTO generalesaguatbl SET
+              ordenaguaidfk=:id,
+              nom01maximosidfk=:nom01maximosidfk,
+              numedicion=:numedicion,
+              lugarmuestreo=:lugarmuestreo,
+              descriproceso=:descriproceso,
+              materiasusadas=:materiasusadas,
+              tratamiento=:tratamiento,
+              Caracdescarga=:Caracdescarga,
+              receptor=:receptor,
+              estrategia=:estrategia,
+              numuestras=:numuestras,
+              observaciones=:observaciones,
+              tipomediciones=:tipomediciones,
+              proposito=:proposito';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $_POST['id']);
+        $s->bindValue(':nom01maximosidfk', $nom01maximosidfk['id']);
+        $s->bindValue(':numedicion', intval($_POST['numedicion']),PDO::PARAM_INT );
+        $s->bindValue(':lugarmuestreo', $_POST['lugarmuestreo']);
+        $s->bindValue(':descriproceso', $_POST['descriproceso']);
+        $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
+        $s->bindValue(':tratamiento', $_POST['tratamiento']);
+        $s->bindValue(':Caracdescarga', $_POST['Caracdescarga']);
+        $s->bindValue(':receptor', $_POST['receptor']);
+        $s->bindValue(':estrategia', $_POST['estrategia']);
+        $s->bindValue(':numuestras', $_POST['numuestras']);
+        $s->bindValue(':observaciones', $_POST['observaciones']);
+        $s->bindValue(':tipomediciones', $_POST['tipomediciones']);
+        $s->bindValue(':proposito', $_POST['proposito']);
+        $s->execute();
+        $id=$pdo->lastInsertid();
 
-      $sql='INSERT INTO muestreosaguatbl SET
-       generalaguaidfk=:generalaguaidfk,
-       fechamuestreo=:fechamuestreo,
-       identificacion=:identificacion,
-       temperatura=:temperatura,
-       caltermometro=:caltermometro,
-       pH=:pH,
-       conductividad=:conductividad,
-       responsable=:responsable,
-       mflotante=:mflotante,
-       olor=:olor,
-       color=:color,
-       turbiedad=:turbiedad,
-       GyAvisual=:GyAvisual,
-       burbujas=:burbujas';
-      $s=$pdo->prepare($sql);
-      $s->bindValue(':generalaguaidfk',$id);
-      $s->bindValue(':fechamuestreo',$_POST['fechamuestreo']);
-      $s->bindValue(':identificacion',$_POST['identificacion']);
-      $s->bindValue(':temperatura',$_POST['temperatura']);
-      $s->bindValue(':caltermometro',$_POST['caltermometro']);
-      $s->bindValue(':pH',$_POST['pH']);
-      $s->bindValue(':conductividad',$_POST['conductividad']);
-      $s->bindValue(':responsable',$_POST['responsable']);
-      $s->bindValue(':mflotante',$_POST['mflotante']);
-      $s->bindValue(':olor',$_POST['olor']);
-      $s->bindValue(':color',$_POST['color']);
-      $s->bindValue(':turbiedad',$_POST['turbiedad']);
-      $s->bindValue(':GyAvisual',$_POST['GyAvisual']);
-      $s->bindValue(':burbujas',$_POST['burbujas']);
-      $s->execute();
+        $sql='INSERT INTO muestreosaguatbl SET
+              generalaguaidfk=:generalaguaidfk,
+              fechamuestreo=:fechamuestreo,
+              identificacion=:identificacion,
+              temperatura=:temperatura,
+              caltermometro=:caltermometro,
+              pH=:pH,
+              conductividad=:conductividad,
+              responsable=:responsable,
+              mflotante=:mflotante,
+              olor=:olor,
+              color=:color,
+              turbiedad=:turbiedad,
+              GyAvisual=:GyAvisual,
+              burbujas=:burbujas';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':generalaguaidfk',$id);
+        $s->bindValue(':fechamuestreo',$_POST['fechamuestreo']);
+        $s->bindValue(':identificacion',$_POST['identificacion']);
+        $s->bindValue(':temperatura',$_POST['temperatura']);
+        $s->bindValue(':caltermometro',$_POST['caltermometro']);
+        $s->bindValue(':pH',$_POST['pH']);
+        $s->bindValue(':conductividad',$_POST['conductividad']);
+        $s->bindValue(':responsable',$_POST['responsable']);
+        $s->bindValue(':mflotante',$_POST['mflotante']);
+        $s->bindValue(':olor',$_POST['olor']);
+        $s->bindValue(':color',$_POST['color']);
+        $s->bindValue(':turbiedad',$_POST['turbiedad']);
+        $s->bindValue(':GyAvisual',$_POST['GyAvisual']);
+        $s->bindValue(':burbujas',$_POST['burbujas']);
+        $s->execute();
 
-      $pdo->commit();
-     }
-     catch (PDOException $e)
-     {
+        $pdo->commit();
+      }
+      catch (PDOException $e)
+      {
       $pdo->rollback();
       $mensaje='Hubo un error al tratar de insertar la medicion. Favor de intentar nuevamente.'.$e;
       include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
       exit();
-     }
-     $cantidad = 1;
-     if($_POST['tipomediciones'] === '8'){
-      $cantidad = 4;
-     }else if($_POST['tipomediciones'] === '16' || $_POST['tipomediciones'] === '24'){
-      $cantidad = 6;
-     }
-   }
-   if($cantidad === 1){
-    formularioParametros($_POST['id'], $cantidad, "", "", "", "", 'guardar nuevos parametros', 1);
-   }
-   $pestanapag='Agregar muestras compuestas';
-   $titulopagina='Agregar muestras compuestas';
-   $accion='';
-   $boton = 'guardarmcomp';
-   include 'formacapturarcompuestas.html.php';
-   exit();
+      }
+      $cantidad = 1;
+      if($_POST['tipomediciones'] === '8'){
+        $cantidad = 4;
+      }else if($_POST['tipomediciones'] === '16' || $_POST['tipomediciones'] === '24'){
+        $cantidad = 6;
+      }
+    }
+    $_SESSION['accion'] = 'guardargenmed';
+    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+    $host     = $_SERVER['HTTP_HOST'];
+    $script   = $_SERVER['SCRIPT_NAME'];
+    $params   = $_SERVER['QUERY_STRING'];
+    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
+    $_SESSION['url'] = $currentUrl;
+    if($cantidad === 1){
+      formularioParametros($id, $cantidad, "", "", "", "", 1);
+    }
+    formularioMediciones($id, $cantidad, $mcompuestas);
   }
 
 /**************************************************************************************************/
@@ -161,16 +164,13 @@
 		$id = $_POST['id'];
 		$pestanapag = 'Agrega medicón';
 		$titulopagina = 'Agregar una nueva medición';
-		$accion ='';
 		$boton = 'guardargenmed';
-		$egiro = getEGiro($id);
 		$descargaen = getMaximos();
-		$responsable = getResponsable($id);
 		if(isset($_POST['valores'])){
 			$new = "";
 			$valores = json_decode($_POST['valores'],TRUE);
 		}else{
-			$valores = array("empresagiro" => $egiro,
+			$valores = array("empresagiro" => getEGiro($id),
 				             "descargaen" => "0",
 				             "uso" => "0",
 				             "numedicion" => "",
@@ -191,7 +191,7 @@
 				             "caltermometro" => "",
 				             "pH" => "",
 				             "conductividad" => "",
-				             "responsable" => $responsable,
+				             "responsable" => getResponsable($id),
 				             "mflotante" => "",
 				             "olor" => "",
 				             "color" => "",
@@ -209,35 +209,31 @@
   if((isset($_POST['accion']) and $_POST['accion']=='editarmed') OR (isset($_POST['accion']) and $_POST['accion'] == 'volvercmeds'))
   {
 	$id = $_POST['id'];
-	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-	try
-	{
-		$sql='SELECT * FROM generalesaguatbl
-		INNER JOIN muestreosaguatbl ON generalesaguatbl.id=muestreosaguatbl.generalaguaidfk
-		WHERE generalesaguatbl.id = :id';
-		$s=$pdo->prepare($sql); 
-		$s->bindValue(':id',$_POST['id']);
-		$s->execute();
-		$linea = $s->fetch();
+  if(isset($_POST['valores'])){
+    $valores = json_decode($_POST['valores'],TRUE);
+  }else{
+  	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+  	try
+  	{
+  		$sql='SELECT * FROM generalesaguatbl
+  		INNER JOIN muestreosaguatbl ON generalesaguatbl.id=muestreosaguatbl.generalaguaidfk
+  		WHERE generalesaguatbl.id = :id';
+  		$s=$pdo->prepare($sql); 
+  		$s->bindValue(':id',$_POST['id']);
+  		$s->execute();
+  		$linea = $s->fetch();
 
-		$sql='SELECT descargaen, uso FROM nom01maximostbl WHERE id=:id';
-		$s=$pdo->prepare($sql); 
-		$s->bindValue(':id', $linea["nom01maximosidfk"]);
-		$s->execute();
-		$nom01maximos = $s->fetch();
-	}catch (PDOException $e){
-		$mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
-		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-		exit();
-	}
-
-	$descargaen = getMaximos();
-	$egiro = getEGiro($linea["ordenaguaidfk"]);
-	if(isset($_POST['valores'])){
-		$new = "";
-		$valores = json_decode($_POST['valores'],TRUE);
-	}else{
-		$valores = array("empresagiro" => $egiro,
+  		$sql='SELECT descargaen, uso FROM nom01maximostbl WHERE id=:id';
+  		$s=$pdo->prepare($sql); 
+  		$s->bindValue(':id', $linea["nom01maximosidfk"]);
+  		$s->execute();
+  		$nom01maximos = $s->fetch();
+  	}catch (PDOException $e){
+  		$mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
+  		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+  		exit();
+  	}
+		$valores = array("empresagiro" => getEGiro($linea["ordenaguaidfk"]),
 			           "descargaen" => $nom01maximos["descargaen"],
 			           "uso" => $nom01maximos["uso"],
 			           "numedicion" => $linea["numedicion"],
@@ -266,9 +262,9 @@
 			           "GyAvisual" => $linea["GyAvisual"],
 			           "burbujas" => $linea["burbujas"]);
 	}
+  $descargaen = getMaximos();
 	$pestanapag='Editar medicion';
 	$titulopagina='Editar medicion';
-	$accion='';
 	$boton = 'salvarmed';
 	$regreso = 1;
 	include 'formacapturarmeds.html.php';
@@ -357,6 +353,13 @@
     /*$mensaje='Error Forzado 1.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();*/
+    $_SESSION['accion'] = 'salvarmed';
+    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+    $host     = $_SERVER['HTTP_HOST'];
+    $script   = $_SERVER['SCRIPT_NAME'];
+    $params   = $_SERVER['QUERY_STRING'];
+    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
+    $_SESSION['url'] = $currentUrl;
 
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     $id = $_POST['id'];
@@ -368,8 +371,8 @@
         $sql='UPDATE clientestbl SET
               Giro_Empresa=:Giro_Empresa
               WHERE Numero_Cliente = (SELECT clienteidfk
-                  FROM ordenestbl
-                  WHERE id = :id)';
+                                      FROM ordenestbl
+                                      WHERE id = :id)';
         $s=$pdo->prepare($sql);
         $s->bindValue(':id',$_SESSION['OT']);
         $s->bindValue(':Giro_Empresa',$_POST['empresagiro']);
@@ -400,7 +403,7 @@
         $s=$pdo->prepare($sql);
         $s->bindValue(':id',$_POST['id']);
         $s->bindValue(':nom01maximosidfk', $nom01maximosidfk['id']);
-        $s->bindValue(':numedicion', intval($_POST['numedicion']),PDO::PARAM_INT );
+        $s->bindValue(':numedicion', intval($_POST['numedicion']), PDO::PARAM_INT );
         $s->bindValue(':lugarmuestreo', $_POST['lugarmuestreo']);
         $s->bindValue(':descriproceso', $_POST['descriproceso']);
         $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
@@ -430,20 +433,20 @@
               burbujas=:burbujas
               WHERE generalaguaidfk=:generalaguaidfk';
         $s=$pdo->prepare($sql);
-        $s->bindValue(':generalaguaidfk',$id);
-        $s->bindValue(':fechamuestreo',$_POST['fechamuestreo']);
-        $s->bindValue(':identificacion',$_POST['identificacion']);
-        $s->bindValue(':temperatura',$_POST['temperatura']);
-        $s->bindValue(':caltermometro',$_POST['caltermometro']);
-        $s->bindValue(':pH',$_POST['pH']);
-        $s->bindValue(':conductividad',$_POST['conductividad']);
-        $s->bindValue(':responsable',$_POST['responsable']);
-        $s->bindValue(':mflotante',$_POST['mflotante']);
-        $s->bindValue(':olor',$_POST['olor']);
-        $s->bindValue(':color',$_POST['color']);
-        $s->bindValue(':turbiedad',$_POST['turbiedad']);
-        $s->bindValue(':GyAvisual',$_POST['GyAvisual']);
-        $s->bindValue(':burbujas',$_POST['burbujas']);
+        $s->bindValue(':generalaguaidfk', $id);
+        $s->bindValue(':fechamuestreo', $_POST['fechamuestreo']);
+        $s->bindValue(':identificacion', $_POST['identificacion']);
+        $s->bindValue(':temperatura', $_POST['temperatura']);
+        $s->bindValue(':caltermometro', $_POST['caltermometro']);
+        $s->bindValue(':pH', $_POST['pH']);
+        $s->bindValue(':conductividad', $_POST['conductividad']);
+        $s->bindValue(':responsable', $_POST['responsable']);
+        $s->bindValue(':mflotante', $_POST['mflotante']);
+        $s->bindValue(':olor', $_POST['olor']);
+        $s->bindValue(':color', $_POST['color']);
+        $s->bindValue(':turbiedad', $_POST['turbiedad']);
+        $s->bindValue(':GyAvisual', $_POST['GyAvisual']);
+        $s->bindValue(':burbujas', $_POST['burbujas']);
         $s->execute();
 
         $pdo->commit();
@@ -526,66 +529,18 @@
       } //cierre de if($_POST['accion'] == 'volvercoms')
 
       if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-        formularioParametros($_POST['id'], intval($_POST['cantidad']), json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['idparametro'],$_POST['boton'], 1);
+        formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'], TRUE), json_decode($_POST['parametros'], TRUE), json_decode($_POST['adicionales'], TRUE), 1);
       }
-
-      try{
-        $sql='SELECT * FROM parametrostbl
-              WHERE muestreoaguaidfk = (SELECT id 
-                                        FROM muestreosaguatbl
-                                        WHERE generalaguaidfk = :id)';
-        $s=$pdo->prepare($sql); 
-        $s->bindValue(':id',$_POST['id']);
-        $s->execute();
-		if($param1 = $s->fetch()){
-			formularioParametros($_POST['id'], $cantidad, $valores, $parametros, $adicionales, $param1['id'],'salvar parametros', 1, $param1);
-		}else{
-			formularioParametros($_POST['id'], $cantidad, "", "", "", "",'guardar nuevos parametros', 1);
-		}
-      }catch (PDOException $e){
-        $mensaje='Hubo un error extrayendo la información de parametros.';
-        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-        exit();
-      }
+      formularioParametros($_POST['id'], $cantidad, "", "", "", "", 1);
     }else{ //cierre de if($cantidad === 1)
       if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
         $mcompuestas = json_decode($_POST['mcompuestas'], TRUE);
+        formularioMediciones($id, $cantidad, $mcompuestas, 1);
       }else{
-        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-        try   
-        {
-          $sql="SELECT DATE_FORMAT(mcompuestastbl.hora, '%H:%i') as 'hora', mcompuestastbl.flujo, mcompuestastbl.volumen, mcompuestastbl.observaciones,
-                  mcompuestastbl.caracteristicas, laboratoriotbl.fecharecepcion, DATE_FORMAT(laboratoriotbl.horarecepcion, '%H:%i') as 'horarecepcion'
-                FROM laboratoriotbl
-                INNER JOIN mcompuestastbl ON laboratoriotbl.mcompuestaidfk = mcompuestastbl.id
-                INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.id
-                WHERE muestreosaguatbl.generalaguaidfk = :id";
-          $s=$pdo->prepare($sql);
-          $s->bindValue(':id',$_POST['id']);
-          $s->execute();
-          foreach($s as $linea){
-            $mcompuestas[] = array("hora" => $linea["hora"],
-                                   "flujo" => $linea["flujo"],
-                                   "volumen" => $linea["volumen"],
-                                   "observaciones" => $linea["observaciones"],
-                                   "caracteristicas" => $linea["caracteristicas"],
-                                   "fechalab" => $linea["fecharecepcion"],
-                                   "horalab" => $linea["horarecepcion"]);
-          }
-        }catch (PDOException $e){
-          $mensaje='Hubo un error extrayendo la información de muestras compuestas.';
-          include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-          exit();
-        }
+        formularioMediciones($id, $cantidad, "", 1);
       }
-      $pestanapag='Editar muestras compuestas';
-      $titulopagina='Editar muestras compuestas';
-      $accion='';
-      $boton = 'salvarmcomp';
-      $regreso = 1;
-      include 'formacapturarcompuestas.html.php';
-      exit();
     }
+    exit();
   }
 
 /**************************************************************************************************/
@@ -593,36 +548,30 @@
 /**************************************************************************************************/
   if (isset($_POST['accion']) and $_POST['accion']=='parametros')
   {
-    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-    if(isset($_POST['regreso'])){
-		formularioParametros($_POST['id'], intval($_POST['cantidad']), json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['idparametro'],$_POST['boton']);
+    $_SESSION['accion'] = 'parametros';
+    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+    $host     = $_SERVER['HTTP_HOST'];
+    $script   = $_SERVER['SCRIPT_NAME'];
+    $params   = $_SERVER['QUERY_STRING'];
+    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
+    $_SESSION['url'] = $currentUrl;
+
+    if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
+		  formularioParametros($_POST['id'], $_POST['cantidad'], $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['regreso']);
     }else{
-		$cantidad = 1;
-		if($_POST['tipomedicion'] === '8'){
-			$cantidad = 4;
-		}else if($_POST['tipomedicion'] === '16' || $_POST['tipomedicion'] === '24'){
-			$cantidad = 6;
-		}
+  		$cantidad = 1;
+  		if($_POST['tipomedicion'] === '8'){
+  			$cantidad = 4;
+  		}else if($_POST['tipomedicion'] === '16' || $_POST['tipomedicion'] === '24'){
+  			$cantidad = 6;
+  		}
     }
     if(isset($_POST['idparametro']) AND $_POST['idparametro'] !== ""){
-		try   
-		{
-			$sql='SELECT * FROM parametrostbl WHERE id = :id';
-			$s=$pdo->prepare($sql); 
-			$s->bindValue(':id',$_POST['idparametro']);
-			$s->execute();
-			$param1 = $s->fetch();
-		}
-		catch (PDOException $e)
-		{
-			$mensaje='Hubo un error extrayendo la información de parametros.';
-			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-			exit();
-		}
-		formularioParametros($_POST['id'], $cantidad, "", "", "", $_POST['idparametro'],'salvar parametros', "", $param1);
+		  formularioParametros($_POST['id'], $cantidad, $_POST['idparametro']);
     }else{
-      	formularioParametros($_POST['id'], $cantidad, "", "", "", "",'guardar nuevos parametros');
+      formularioParametros($_POST['id'], $cantidad);
     }
+    exit();
   }
 
 /**************************************************************************************************/
@@ -726,39 +675,39 @@ verMeds($_SESSION['ot']);
 /* Función para obtener valores máximos */
 /**************************************************************************************************/
   function getMaximos(){
-	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-	try{
-		$s=$pdo->prepare('SELECT descargaen FROM nom01maximostbl group by descargaen;');
-		$s->execute();
-		foreach ($s as $value) {
-			$maximos[] = array("descargaen" => $value['descargaen']);
-		}
-		return $maximos;
-	}catch (PDOException $e){
-		return FALSE;
-	}
+  	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+  	try{
+  		$s=$pdo->prepare('SELECT descargaen FROM nom01maximostbl group by descargaen;');
+  		$s->execute();
+  		foreach ($s as $value) {
+  			$maximos[] = array("descargaen" => $value['descargaen']);
+  		}
+  		return $maximos;
+  	}catch (PDOException $e){
+  		return FALSE;
+  	}
   }
 
 /**************************************************************************************************/
 /* Función para obtener el giro de la empresa */
 /**************************************************************************************************/
   function getEGiro($ot){
-	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-	try   
-	{
-		$sql='SELECT Giro_Empresa
-			FROM clientestbl
-			WHERE Numero_Cliente = (SELECT clienteidfk
-									FROM ordenestbl
-									WHERE id = :id)';
-		$s=$pdo->prepare($sql); 
-		$s->bindValue(':id',$ot);
-		$s->execute();
-		$e = $s->fetch();
-		return $e['Giro_Empresa'];
-	}catch (PDOException $e){
-		return "";
-	}
+  	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+  	try   
+  	{
+  		$sql='SELECT Giro_Empresa
+  			FROM clientestbl
+  			WHERE Numero_Cliente = (SELECT clienteidfk
+  									FROM ordenestbl
+  									WHERE id = :id)';
+  		$s=$pdo->prepare($sql); 
+  		$s->bindValue(':id',$ot);
+  		$s->execute();
+  		$e = $s->fetch();
+  		return $e['Giro_Empresa'];
+  	}catch (PDOException $e){
+  		return "";
+  	}
   }
 
 /**************************************************************************************************/

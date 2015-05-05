@@ -21,6 +21,7 @@
   <div id="cuerpoprincipal">
    <h2><?php htmlout($titulopagina); ?></h2>
    <?php
+   var_dump($mcompuestas)
    		$formulario = array("Giro de la empresa" => "empresagiro",
                           "Descarga en" => "descargaen",
                           "Uso" => "uso",
@@ -54,17 +55,11 @@
                                               "tipo" => 1),
                             "id" => array("variables" => "id",
                                           "tipo" => 0));
-
-      $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
-      $host     = $_SERVER['HTTP_HOST'];
-      $script   = $_SERVER['SCRIPT_NAME'];
-      $params   = $_SERVER['QUERY_STRING'];
-      $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
    ?>
-    <form id="medsform" name="medsform" action="?" method="post">
-      <input type="hidden" name="post" value='<?php echo json_encode($_POST); ?>'>
-      <input type="hidden" name="url" value="<?php echo $currentUrl; ?>">
-      <input type="hidden" name="arquitectura" value='<?php echo json_encode($arquitectura); ?>'>
+    <form id="medsform" name="medsform" action="" method="post">
+      <input type="hidden" name="post" value='<?php htmlout(json_encode($_POST)); ?>'>
+      <input type="hidden" name="url" value="<?php htmlout($_SESSION['url']); ?>">
+      <input type="hidden" name="arquitectura" value='<?php htmlout(json_encode($arquitectura)); ?>'>
 
     	<?php foreach($formulario as $label => $name): ?>
     	<div>
@@ -81,9 +76,9 @@
           <?php } ?>
         <?php elseif($name === "descargaen"):?>
           <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-            <option value="" disabled <?php if($valores["descargaen"] === '0') echo 'selected'?>>--Selecciona Descarga en--</option>
+            <option value="" disabled <?php if(strval($valores["descargaen"]) === '0') echo 'selected'?>>--Selecciona Descarga en--</option>
             <?php foreach ($descargaen as $value): ?>
-              <option value="<?php htmlout($value['descargaen']); ?>">
+              <option value="<?php htmlout($value['descargaen']); ?>" <?php if($valores["descargaen"] === $value['descargaen']) echo 'selected'?>>
                 <?php htmlout($value['descargaen']); ?>
               </option>
             <?php endforeach; ?>

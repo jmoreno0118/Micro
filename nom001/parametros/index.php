@@ -20,7 +20,7 @@
 /**************************************************************************************************/
 /* Guardar nuevos parametros de una medicion de una orden de trabajo */
 /**************************************************************************************************/
-	if (isset($_POST['accion']) and $_POST['accion']=='guardar nuevos parametros')
+	if(isset($_POST['accion']) and $_POST['accion']=='guardar nuevos parametros')
 	{
 		/*$mensaje='Error Forzado 3.';
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
@@ -44,6 +44,7 @@
 		try
 		{
 			$pdo->beginTransaction();
+
 			$sql='INSERT INTO parametrostbl SET
 			muestreoaguaidfk=:id,
 			ssedimentables=:ssedimentables,
@@ -128,27 +129,28 @@
 		try
 		{
 			$pdo->beginTransaction();
+
 			$sql='UPDATE parametrostbl SET
-			ssedimentables=:ssedimentables,
-			ssuspendidos=:ssuspendidos,
-			dbo=:dbo,
-			nkjedahl=:nkjedahl,
-			nitritos=:nitritos,
-			nitratos=:nitratos,
-			nitrogeno=:nitrogeno,
-			fosforo=:fosforo,
-			arsenico=:arsenico,
-			cadmio=:cadmio,
-			cianuros=:cianuros,
-			cobre=:cobre,
-			cromo=:cromo,
-			mercurio=:mercurio,
-			niquel=:niquel,
-			plomo=:plomo,
-			zinc=:zinc,
-			hdehelminto=:hdehelminto,
-			fechareporte=:fechareporte
-			WHERE id = :id';
+				ssedimentables=:ssedimentables,
+				ssuspendidos=:ssuspendidos,
+				dbo=:dbo,
+				nkjedahl=:nkjedahl,
+				nitritos=:nitritos,
+				nitratos=:nitratos,
+				nitrogeno=:nitrogeno,
+				fosforo=:fosforo,
+				arsenico=:arsenico,
+				cadmio=:cadmio,
+				cianuros=:cianuros,
+				cobre=:cobre,
+				cromo=:cromo,
+				mercurio=:mercurio,
+				niquel=:niquel,
+				plomo=:plomo,
+				zinc=:zinc,
+				hdehelminto=:hdehelminto,
+				fechareporte=:fechareporte
+				WHERE id = :id';
 			$s=$pdo->prepare($sql);
 			$s->bindValue(':id', $_POST['idparametro']);
 			$s->bindValue(':ssedimentables', $_POST['ssedimentables']);
@@ -173,7 +175,7 @@
 			$s->execute();
 
 			$sql="DELETE FROM parametros2tbl
-			WHERE parametroidfk = :id";
+				WHERE parametroidfk = :id";
 			$s=$pdo->prepare($sql);
 			$s->bindValue(':id',$_POST['idparametro']);
 			$s->execute();
@@ -181,7 +183,7 @@
 			insertParametros2($_POST["parametros"], $_POST['idparametro']);
 
 			$sql="DELETE FROM adicionalestbl
-			WHERE parametroidfk = :id";
+				WHERE parametroidfk = :id";
 			$s=$pdo->prepare($sql);
 			$s->bindValue(':id',$_POST['idparametro']);
 			$s->execute();
@@ -202,14 +204,13 @@
 /**************************************************************************************************/
 /* Acción default */
 /**************************************************************************************************/
+	//var_dump($_SESSION['parametros']);
 	$id = $_SESSION['parametros']['id'];
 	$cantidad = $_SESSION['parametros']['cantidad'];
 	$valores = $_SESSION['parametros']['valores'];
 	$parametros = $_SESSION['parametros']['parametros'];
 	$adicionales = $_SESSION['parametros']['adicionales'];
-	$idparametros = $_SESSION['parametros']['idparametros'];
-	$titulopagina = $_SESSION['parametros']['titulopagina'];
-	$pestanapag = $_SESSION['parametros']['pestanapag'];
+	$idparametro = $_SESSION['parametros']['idparametro'];
 	$boton = $_SESSION['parametros']['boton'];
 	$regreso = $_SESSION['parametros']['regreso'];
 	$pestanapag = $_SESSION['parametros']['pestanapag'];
@@ -222,15 +223,15 @@
 /* Función para insertar adicionales */
 /**************************************************************************************************/
 function insertAdicionales($adicionales, $idparametro){
-	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+	global $pdo;
 	try{
 		foreach ($adicionales as $key => $value) {
 			if($value["nombre"] != "" && $value["unidades"] != "" && $value["resultado"] != ""){
 				$sql='INSERT INTO adicionalestbl SET
-				parametroidfk=:id,
-				nombre=:nombre,
-				unidades=:unidades,
-				resultado=:resultado';
+					parametroidfk=:id,
+					nombre=:nombre,
+					unidades=:unidades,
+					resultado=:resultado';
 				$s=$pdo->prepare($sql);
 				$s->bindValue(':id', $idparametro);
 				$s->bindValue(':nombre', $value["nombre"]);
@@ -240,7 +241,6 @@ function insertAdicionales($adicionales, $idparametro){
 			}
 		}
 	}catch (PDOException $e){
-		$pdo->rollback();
 		$mensaje='Hubo un error al tratar de insertar los adicionales. Favor de intentar nuevamente.';
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();
@@ -251,14 +251,14 @@ function insertAdicionales($adicionales, $idparametro){
 /* Función para insertar GyA y coliformes */
 /**************************************************************************************************/
 function insertParametros2($parametros, $idparametro){
-	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+	global $pdo;
 	try{
 		foreach ($parametros as $key => $value) {
 			if($value["GyA"] != "" && $value["coliformes"] != ""){
 				$sql='INSERT INTO parametros2tbl SET
-				parametroidfk=:id,
-				GyA=:GyA,
-				coliformes=:coliformes';
+					parametroidfk=:id,
+					GyA=:GyA,
+					coliformes=:coliformes';
 				$s=$pdo->prepare($sql);
 				$s->bindValue(':id', $idparametro);
 				$s->bindValue(':GyA', $value["GyA"]);
@@ -267,7 +267,6 @@ function insertParametros2($parametros, $idparametro){
 			}
 		}
 	}catch (PDOException $e){
-		$pdo->rollback();
 		$mensaje='Hubo un error al tratar de insertar GyA y coliformes. Favor de intentar nuevamente.';
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();

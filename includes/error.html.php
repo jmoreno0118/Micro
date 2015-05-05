@@ -44,16 +44,16 @@
         }
         elseif($estructura['tipo'] === 2)
         {
-          $inputs = explode(',', $estructura['variables']);
           $valores = array();
           foreach ($_POST[$nombrevariable] as $key => $valor) {
-            $valores[$key] = $valor;
+              $valores[$key] = $valor;
           }
           echo '<input type="hidden" name="'.$nombrevariable.'" value=\''.json_encode($valores).'\'>';
         }
       }
       $post = json_decode($_POST['post'], TRUE);
-      echo '<input type="hidden" name="accion" value=\''.$post['accion'].'\'>';
+      $accion = isset($post['accion']) ? $post['accion'] : $_SESSION['accion'];
+      echo '<input type="hidden" name="accion" value=\''.$accion.'\'>';
       ?>
       <input type="submit" value="Regresar">
     </form>

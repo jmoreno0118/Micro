@@ -39,16 +39,10 @@
                             "cantidad" => array("variables" => "cantidad",
                                                 "tipo" => 0)
                             );
-
-      $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
-      $host     = $_SERVER['HTTP_HOST'];
-      $script   = $_SERVER['SCRIPT_NAME'];
-      $params   = $_SERVER['QUERY_STRING'];
-      $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
     ?>
-    <form id="compuestasform" action="?<?php htmlout($accion); ?>" method="post">
+    <form id="compuestasform" action="" method="post">
       <input type="hidden" name="post" value='<?php echo json_encode($_POST); ?>'>
-      <input type="hidden" name="url" value="<?php echo $currentUrl; ?>">
+      <input type="hidden" name="url" value="<?php htmlout($_SESSION['url']); ?>">
       <input type="hidden" name="arquitectura" value='<?php echo json_encode($arquitectura); ?>'>
 
       <?php foreach ($formulario as $key => $value): ?>
@@ -74,18 +68,22 @@
       </fieldset>
       <br>
     <?php endforeach; ?>
-	  <div>
+
       <?php if(isset($regreso) AND $regreso === 1): ?>
        <input type="hidden" name="regreso" value="1">
        <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
-       <input type="submit" name="accion" value="volvercmeds">
       <?php endif;?>
       <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>"> 
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
-	    <p><a href="../nom001">Regresa al búsqueda de ordenes</a></p>
-	  </div> 
 	</form>
+  <br>
+  <form action="<?php htmlout($_SESSION['url']); ?>" method="post">
+    <input type="hidden" name="regreso" value="1">
+    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
+    <input type="submit" name="accion" value="volvercmeds">
+  </form>
+  <p><a href="../nom001">Regresa al búsqueda de ordenes</a></p>
   <form action="" method="post">
       <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
       <input type="submit" name="accion" value="volvermed">

@@ -78,15 +78,10 @@ function agregarIntervalo(nombre, unidades, resultado){
                                                   "tipo" => 0)
                                 );
 
-          $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
-          $host     = $_SERVER['HTTP_HOST'];
-          $script   = $_SERVER['SCRIPT_NAME'];
-          $params   = $_SERVER['QUERY_STRING'];
-          $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
     ?>
     <form id="medsform" name="medsform"  action="" method="post">
       <input type="hidden" name="post" value='<?php echo json_encode($_POST); ?>'>
-      <input type="hidden" name="url" value="<?php echo $currentUrl; ?>">
+      <input type="hidden" name="url" value="<?php htmlout($_SESSION['url']); ?>">
       <input type="hidden" name="arquitectura" value='<?php echo json_encode($arquitectura); ?>'>
       <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
 
@@ -95,7 +90,7 @@ function agregarIntervalo(nombre, unidades, resultado){
       	<?php foreach($formulario as $label => $name): ?>
       	<div>
       		<label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-  	    	<input type="text" <?php if($name==="nitritos" || $name==="nitratos" || $name==="nkjedahl"){?>class="nits"<?php } ?> name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php if(isset($valores)){htmlout($valores[$name]);} ?>" <?php if($name==="nitrogeno") echo "disabled"; ?>>
+  	    	<input type="text" <?php if($name==="nitritos" || $name==="nitratos" || $name==="nkjedahl"){?>class="nits"<?php } ?> name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php if($valores !== ""){htmlout($valores[$name]);} ?>" <?php if($name==="nitrogeno") echo "disabled"; ?>>
           <?php if($name==="nitrogeno"){ ?> 
             <input type="hidden" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
           <?php } ?>
@@ -140,14 +135,22 @@ function agregarIntervalo(nombre, unidades, resultado){
       <?php if(isset($regreso) AND $regreso === 1): ?>
        <input type="hidden" name="regreso" value="1">
        <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
-       <input type="submit" name="accion" value="volvercoms">
       <?php endif;?>
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
       <input type="hidden" name="idparametro" value="<?php htmlout($idparametro); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
-	    <p><a href="..">Regresa al búsqueda de ordenes</a></p>
 	  </div>
 	</form>
+  <?php if(isset($regreso) AND $regreso === 1): ?>
+    <br>
+    <form action="<?php htmlout($_SESSION['url']); ?>" method="post">
+      <input type="hidden" name="regreso" value="1">
+      <input type="hidden" name="id" value="<?php htmlout($id); ?>">
+      <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
+      <input type="submit" name="accion" value="volvercoms">
+    </form>
+  <?php endif;?>
+  <p><a href="..">Regresa al búsqueda de ordenes</a></p>
   <form action="" method="post">
       <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
       <input type="submit" name="accion" value="no guardar parametros">

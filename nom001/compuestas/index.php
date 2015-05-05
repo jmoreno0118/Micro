@@ -17,7 +17,7 @@
  }
  limpiasession();
 
- /**************************************************************************************************/
+/**************************************************************************************************/
 /* Guardar nuevas muestras compuestas de una orden de trabajo */
 /**************************************************************************************************/
 	if(isset($_POST['accion']) and $_POST['accion']=='guardarmcomp')
@@ -26,12 +26,13 @@
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();*/
 
+		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 		if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-			formularioParametros($_POST['id'], intval($_POST['cantidad']), json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['idparametro'],$_POST['boton']);
+			formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE));
 		}else{
-			insertMediciones($_POST["mcompuestas"], $muestreo['id']);
+			insertMediciones($_POST["mcompuestas"], $_POST['id']);
 
-			formularioParametros($_POST['id'], $_POST['cantidad'], "", "", "", "", 'guardar nuevos parametros', 1);
+			formularioParametros($_POST['id'], $_POST['cantidad'], "", "", "", "", 1);
 			exit();
 		}
 	}
@@ -49,7 +50,7 @@
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 
 		if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-			formularioParametros($_POST['id'], intval($_POST['cantidad']), json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['idparametro'],$_POST['boton'], 1);
+			formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), 1);
 		}
 		try
 		{
@@ -85,33 +86,37 @@
 			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 			exit();
 		}
-		$cantidad = $_POST['cantidad'];
-		try
-		{
-			$sql='SELECT * FROM parametrostbl
-				WHERE muestreoaguaidfk = (SELECT id 
-				      FROM muestreosaguatbl
-				      WHERE generalaguaidfk = :id)';
-			$s=$pdo->prepare($sql); 
-			$s->bindValue(':id',$_POST['id']);
-			$s->execute();
-		}catch (PDOException $e){
-			$mensaje='Hubo un error extrayendo la información de parametros.';
-			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-			exit();
-		}
-		if($param1 = $s->fetch()){
-			formularioParametros($_POST['id'], $cantidad, $valores, $parametros, $adicionales, $param1['id'], 'salvar parametros', 1, $param1);
-		}else{
-			formularioParametros($_POST['id'], $cantidad, "", "", "", "", 'guardar nuevos parametros', 1);
-		}
+		formularioParametros($_POST['id'], $_POST['cantidad'], "", "", "", "", 1);
 	}
+
+/**************************************************************************************************/
+/* Ver mediciones de una orden de trabajo */
+/**************************************************************************************************/
+	if(isset($_POST['accion']) and $_POST['accion']=='volvermed')
+	{
+		header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/generales');
+		exit();
+	}
+
+/**************************************************************************************************/
+/* Acción default */
+/**************************************************************************************************/
+	$id = $_SESSION['mediciones']['id'];
+	$mcompuestas = $_SESSION['mediciones']['mcompuestas'];
+	$cantidad = $_SESSION['mediciones']['cantidad'];
+	$boton = $_SESSION['mediciones']['boton'];
+	$regreso = $_SESSION['mediciones']['regreso'];
+	$pestanapag = $_SESSION['mediciones']['pestanapag'];
+	$titulopagina = $_SESSION['mediciones']['titulopagina'];
+	//unset($_SESSION['mediciones']);
+	include 'formacapturarcompuestas.html.php';
+	exit();
 
 /**************************************************************************************************/
 /* Función para insertar GyA y coliformes */
 /**************************************************************************************************/
 function insertMediciones($mcompuestas, $muestreoid){
-	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+	global $pdo;
 	try{
 		foreach ($mcompuestas as $key => $value) {
 	        $sql='INSERT INTO mcompuestastbl SET

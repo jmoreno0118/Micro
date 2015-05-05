@@ -14,8 +14,8 @@
 			echo '<option '.$selected.' disabled value="0">--Selecciona uso--</option>';
 			if(count($uso) > 0){
 		 		foreach ($uso as $key => $value) {
-		 			$selected = ($_POST['descargaen'] === $_POST['descarge'] && $_POST['uso'] === strval($value['uso'])) ? 'selected' : '';
-					echo '<option value="'.$value['uso'].'"'.$selected.'>'.$value['uso'].'</option>';
+		 			$selected = ($_POST['descargaen'] === $_POST['descarga'] && $_POST['uso'] === strval($value['uso'])) ? 'selected' : '';
+					echo '<option value="'.$value['uso'].'" '.$selected.'>'.$value['uso'].'</option>';
 				}
 			}
 		}
