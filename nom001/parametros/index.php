@@ -20,7 +20,7 @@
 /**************************************************************************************************/
 /* Guardar nuevos parametros de una medicion de una orden de trabajo */
 /**************************************************************************************************/
-	if(isset($_POST['accion']) and $_POST['accion']=='guardar nuevos parametros')
+	if(isset($_POST['accion']) and $_POST['accion']=='guardar parametros')
 	{
 		/*$mensaje='Error Forzado 3.';
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';

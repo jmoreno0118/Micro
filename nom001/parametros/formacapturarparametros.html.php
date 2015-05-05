@@ -147,14 +147,12 @@ function agregarIntervalo(nombre, unidades, resultado){
       <input type="hidden" name="regreso" value="1">
       <input type="hidden" name="id" value="<?php htmlout($id); ?>">
       <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
-      <input type="submit" name="accion" value="volvercoms">
+      <input type="hidden" name="coms" value="">
+      <input type="submit" name="accion" value="volver">
     </form>
   <?php endif;?>
+  <p><a href="../generales">No guardar parametros</a></p>
   <p><a href="..">Regresa al búsqueda de ordenes</a></p>
-  <form action="" method="post">
-      <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
-      <input type="submit" name="accion" value="no guardar parametros">
-  </form>
   </div>  <!-- cuerpoprincipal -->
   <div id="footer">
     <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>

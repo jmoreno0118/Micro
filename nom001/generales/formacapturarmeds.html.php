@@ -21,7 +21,6 @@
   <div id="cuerpoprincipal">
    <h2><?php htmlout($titulopagina); ?></h2>
    <?php
-   var_dump($mcompuestas)
    		$formulario = array("Giro de la empresa" => "empresagiro",
                           "Descarga en" => "descargaen",
                           "Uso" => "uso",
@@ -56,7 +55,7 @@
                             "id" => array("variables" => "id",
                                           "tipo" => 0));
    ?>
-    <form id="medsform" name="medsform" action="" method="post">
+    <form id="medsform" name="medsform" action="?" method="post">
       <input type="hidden" name="post" value='<?php htmlout(json_encode($_POST)); ?>'>
       <input type="hidden" name="url" value="<?php htmlout($_SESSION['url']); ?>">
       <input type="hidden" name="arquitectura" value='<?php htmlout(json_encode($arquitectura)); ?>'>
@@ -115,13 +114,10 @@
 	  <div>
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
+      <p><a href="../generales">Volver a mediciones</a></p>
 	    <p><a href="..">Regresa al búsqueda de ordenes</a></p>
 	  </div> 
 	</form>
-  <form action="" method="post">
-      <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
-      <input type="submit" name="accion" value="volvermed">
-  </form>
   </div>  <!-- cuerpoprincipal -->
   <div id="footer">
     <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>

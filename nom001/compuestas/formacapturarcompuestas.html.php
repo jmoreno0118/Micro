@@ -81,13 +81,11 @@
   <form action="<?php htmlout($_SESSION['url']); ?>" method="post">
     <input type="hidden" name="regreso" value="1">
     <input type="hidden" name="id" value="<?php htmlout($id); ?>">
-    <input type="submit" name="accion" value="volvercmeds">
+    <input type="hidden" name="meds" value="">
+    <input type="submit" name="accion" value="volver">
   </form>
   <p><a href="../nom001">Regresa al búsqueda de ordenes</a></p>
-  <form action="" method="post">
-      <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
-      <input type="submit" name="accion" value="volvermed">
-  </form>
+  <p><a href="../generales">Volver a mediciones</a></p>
   </div>  <!-- cuerpoprincipal -->
   <div id="footer">
     <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>

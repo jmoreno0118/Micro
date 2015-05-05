@@ -20,7 +20,7 @@
 /**************************************************************************************************/
 /* Guardar nuevas muestras compuestas de una orden de trabajo */
 /**************************************************************************************************/
-	if(isset($_POST['accion']) and $_POST['accion']=='guardarmcomp')
+	if(isset($_POST['accion']) and $_POST['accion']=='guardar')
 	{
 		/*$mensaje='Error Forzado 2.';
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
@@ -40,7 +40,7 @@
 /**************************************************************************************************/
 /* Guardar la edicion de muestras compuestas de una medicion de una orden de trabajo */
 /**************************************************************************************************/
-	if(isset($_POST['accion']) and $_POST['accion']=='salvarmcomp')
+	if(isset($_POST['accion']) and $_POST['accion']=='salvar')
 	{
 		/*$mensaje='Error Forzado 2.';
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
@@ -92,7 +92,7 @@
 /**************************************************************************************************/
 /* Ver mediciones de una orden de trabajo */
 /**************************************************************************************************/
-	if(isset($_POST['accion']) and $_POST['accion']=='volvermed')
+	if(isset($_POST['accion']) and $_POST['accion']=='volver a mediciones')
 	{
 		header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/generales');
 		exit();
@@ -129,8 +129,8 @@ function insertMediciones($mcompuestas, $muestreoid){
 	        $s=$pdo->prepare($sql);
 	        $s->bindValue(':id', $muestreoid);
 	        $s->bindValue(':hora', (isset($value["hora"])) ? $value["hora"] : '');
-	        $s->bindValue(':flujo', (isset($value["hora"])) ? $value["flujo"] : '');
-	        $s->bindValue(':volumen', (isset($value["hora"])) ? $value["volumen"] : '');
+	        $s->bindValue(':flujo', (isset($value["flujo"])) ? $value["flujo"] : '');
+	        $s->bindValue(':volumen', (isset($value["volumen"])) ? $value["volumen"] : 0);
 	        $s->bindValue(':observaciones', $value["observaciones"]);
 	        $s->bindValue(':caracteristicas', $value["caracteristicas"]);
 	        $s->execute();
@@ -142,13 +142,13 @@ function insertMediciones($mcompuestas, $muestreoid){
 							horarecepcion=:horarecepcion';
 	        $s=$pdo->prepare($sql);
 	        $s->bindValue(':id', $mcompuesta);
-	        $s->bindValue(':fecharecepcion', (isset($value["hora"])) ? $value["fechalab"] : '');
-	        $s->bindValue(':horarecepcion', (isset($value["hora"])) ? $value["horalab"] : '');
+	        $s->bindValue(':fecharecepcion', (isset($value["fechalab"])) ? $value["fechalab"] : '0000-00-00');
+	        $s->bindValue(':horarecepcion', (isset($value["horalab"])) ? $value["horalab"] : '00:00');
 	        $s->execute();
       	}
 	}catch (PDOException $e){
 		$pdo->rollback();
-		$mensaje='Hubo un error al tratar de insertar GyA y coliformes. Favor de intentar nuevamente.';
+		$mensaje='Hubo un error al tratar de insertar GyA y coliformes. Favor de intentar nuevamente.'.$e;
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();
 	}

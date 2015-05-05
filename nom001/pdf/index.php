@@ -1086,7 +1086,7 @@
             $pdf->SetFontSizes(array(9,9));
             $pdf->carobsRow(array(utf8_decode('Toma '. ($i+1) .' ('.$mcompuestas[$i]['hora'].')'),array(utf8_decode($mcompuestas[$i]['observaciones']),utf8_decode($mcompuestas[$i]['caracteristicas']))));
         }
-        $pdf->carobsRow(array(utf8_decode('Toma Compuesta('.$mcompuestas[$cantidad]['hora'].')'),array(utf8_decode($mcompuestas[$cantidad]['observaciones']),utf8_decode($mcompuestas[$cantidad]['caracteristicas']))));
+        $pdf->carobsRow(array(utf8_decode('Toma Compuesta'),array(utf8_decode($mcompuestas[$cantidad]['observaciones']),utf8_decode($mcompuestas[$cantidad]['caracteristicas']))));
     }
 
 /**************************************************************************************************/

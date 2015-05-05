@@ -82,7 +82,7 @@ function formularioParametros($id = "", $cantidad = "", $idparametro = "", $valo
 			}else{
 				$pestanapag='Agregar Parametros';
 				$titulopagina='Agregar Parametros';
-				$boton = 'guardar nuevos parametros';
+				$boton = 'guardar parametros';
 			}
 		}catch (PDOException $e){
 			$mensaje='Hubo un error extrayendo la información de parametros.';
@@ -111,7 +111,7 @@ function formularioParametros($id = "", $cantidad = "", $idparametro = "", $valo
 function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regreso = ""){
 	$pestanapag='Editar muestras compuestas';
 	$titulopagina='Editar muestras compuestas';
-	$boton = "salvarmcomp";
+	$boton = "salvar";
 
 	if($mcompuestas === ""){
 		try
@@ -144,7 +144,7 @@ function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regr
 	    }else{
 	    	$pestanapag='Agregar muestras compuestas';
 			$titulopagina='Agregar muestras compuestas';
-	    	$boton = "guardarmcomp";
+	    	$boton = "guardar";
 	    }
 	}
 	$_SESSION['mediciones'] = array('id' => $id,

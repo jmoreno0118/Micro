@@ -20,15 +20,10 @@
   <div id="cuerpoprincipal"> 
    <h2>Mediciones de la OT. <?php htmlout($nombreot['ot']); ?></h2>
    <p><a href="..">Regresa a búsqueda de ordenes</a></p>
-   <div style="float:left;">
-    <form action="?" method="post">
-     <input type="hidden" name="id" value="<?php htmlout($ot); ?>">
-     <input type="submit" name="accion" value="capturarmed">
-    </form>
-   </div>
+   <p><a href="?accion=capturar">capturar nueva medicion</a></p>
    
    <div style="float:right;">
-    <form action="pdf/index.php" method="post" target="_blank">
+    <form action="../pdf/index.php" method="post" target="_blank">
      <input type="hidden" name="ot" value="<?php htmlout($nombreot['ot']); ?>">
      <input type="submit" name="accion" value="informe">
     </form>
@@ -36,7 +31,7 @@
    </div>
 
    <div style="float:right;">
-    <form action="preliminar/index.php" method="post" target="_blank">
+    <form action="../preliminar/index.php" method="post" target="_blank">
      <input type="hidden" name="ot" value="<?php htmlout($nombreot['ot']); ?>">
      <input type="submit" name="accion" value="preliminar">
     </form>
@@ -54,8 +49,8 @@
          <div>
           <form action="" method="post" style="float:left;">
             <input type="hidden" name="id" value="<?php echo $medagua['id']; ?>">
-            <input type="submit" name="accion" value="editarmed">
-            <input type="submit" name="accion" value="borrarmed">
+            <input type="submit" name="accion" value="editar">
+            <input type="submit" name="accion" value="borrar">
             <input type="hidden" name="tipomedicion" value="<?php echo $medagua['tipomediciones']; ?>">
             <?php if($medagua['parametros'] !== ""): ?><input type="hidden" name="idparametro" value="<?php echo $medagua['parametros']; ?>"><?php endif; ?>
             <input type="submit" name="accion" value="parametros">

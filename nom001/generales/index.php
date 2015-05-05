@@ -18,17 +18,9 @@
  limpiasession();
 
 /**************************************************************************************************/
-/* Ver mediciones de una orden de trabajo */
-/**************************************************************************************************/
-	if(isset($_POST['accion']) and $_POST['accion']=='volvermed' || $_POST['accion']=='Cancelar borrar medicion')
-	{
-		verMeds($_POST['ot']);
-	}
-
-/**************************************************************************************************/
 /* Guardar una nueva medición de una orden de trabajo */
 /**************************************************************************************************/
-  if(isset($_POST['accion']) and $_POST['accion']=='guardargenmed')
+  if(isset($_POST['accion']) and $_POST['accion']=='guardar')
   {
     /*$mensaje='Error Forzado 1.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
@@ -143,7 +135,7 @@
         $cantidad = 6;
       }
     }
-    $_SESSION['accion'] = 'guardargenmed';
+    $_SESSION['accion'] = 'guardar';
     $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
     $host     = $_SERVER['HTTP_HOST'];
     $script   = $_SERVER['SCRIPT_NAME'];
@@ -159,12 +151,12 @@
 /**************************************************************************************************/
 /* Agregar una nueva medicion a una orden de trabajo */
 /**************************************************************************************************/
-	if (isset($_POST['accion']) and $_POST['accion']=='capturarmed')
+	if (isset($_GET['accion']) and $_GET['accion']=='capturar')
 	{
-		$id = $_POST['id'];
+		$id = $_SESSION['ot'];
 		$pestanapag = 'Agrega medicón';
 		$titulopagina = 'Agregar una nueva medición';
-		$boton = 'guardargenmed';
+		$boton = 'guardar';
 		$descargaen = getMaximos();
 		if(isset($_POST['valores'])){
 			$new = "";
@@ -206,7 +198,7 @@
 /**************************************************************************************************/
 /* Editar reconocimiento inicial de una orden de trabajo */
 /**************************************************************************************************/
-  if((isset($_POST['accion']) and $_POST['accion']=='editarmed') OR (isset($_POST['accion']) and $_POST['accion'] == 'volvercmeds'))
+  if((isset($_POST['accion']) and $_POST['accion']=='editar') OR (isset($_POST['accion']) AND $_POST['accion'] == 'volver' AND isset($_POST['meds'])))
   {
 	$id = $_POST['id'];
   if(isset($_POST['valores'])){
@@ -265,7 +257,7 @@
   $descargaen = getMaximos();
 	$pestanapag='Editar medicion';
 	$titulopagina='Editar medicion';
-	$boton = 'salvarmed';
+	$boton = 'salvar';
 	$regreso = 1;
 	include 'formacapturarmeds.html.php';
 	exit();
@@ -274,7 +266,7 @@
 /**************************************************************************************************/
 /* Borrar una medición de una orden de trabajo */
 /**************************************************************************************************/
-  if (isset($_POST['accion']) and $_POST['accion']=='borrarmed')
+  if (isset($_POST['accion']) and $_POST['accion']=='borrar')
   {
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php'; 
 	try
@@ -348,12 +340,12 @@
 /**************************************************************************************************/
 /* Guardar la edición de una orden de trabajo */
 /**************************************************************************************************/
-  if((isset($_POST['accion']) AND $_POST['accion'] == 'salvarmed') OR (isset($_POST['accion']) and $_POST['accion'] == 'volvercoms'))
+  if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['accion']) AND $_POST['accion'] == 'volver' AND isset($_POST['coms'])))
   {
     /*$mensaje='Error Forzado 1.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();*/
-    $_SESSION['accion'] = 'salvarmed';
+    $_SESSION['accion'] = 'salvar';
     $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
     $host     = $_SERVER['HTTP_HOST'];
     $script   = $_SERVER['SCRIPT_NAME'];
@@ -466,7 +458,7 @@
       $cantidad = intval($_POST['cantidad']);
     }
     if($cantidad === 1){
-      if($_POST['accion'] == 'volvercoms'){
+      if($_POST['accion'] == 'volver' AND isset($_POST['coms'])){
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
         try
         {
@@ -522,7 +514,7 @@
         $pestanapag='Editar medicion';
         $titulopagina='Editar medicion';
         $accion='';
-        $boton = 'salvarmed';
+        $boton = 'salvar';
         $regreso = 1;
         include 'formacapturarmeds.html.php';
         exit();
