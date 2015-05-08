@@ -23,7 +23,7 @@
    <p>formacapturapuntos</p>
    <?php
    		$formulario = array("Número de medición" => "nomedicion",
-             							"Fecha" => "fecha",
+             							"Fecha (aaaa-mm-dd)" => "fecha",
              							"Departamento" => "departamento",
              							"Área" => "area",
              							"Ubicación" => "ubicacion",
@@ -164,8 +164,7 @@
            required: true
         },
         observaciones: {
-           required: true,
-           digits: true
+           required: true
         },
         nirm: {
           required: true

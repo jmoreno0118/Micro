@@ -466,20 +466,20 @@
   function otderecsilum($id="")
   {
     global $pdo;
-  try   
-  {
-   $sql='SELECT ot FROM ordenestbl
-      INNER JOIN recsilumtbl on ordenidfk=ordenestbl.id
-       WHERE recsilumtbl.id = :id';
-   $s=$pdo->prepare($sql); 
-   $s->bindValue(':id', $id);
-     $s->execute();
+    try   
+    {
+      $sql='SELECT ot FROM ordenestbl
+            INNER JOIN recsilumtbl on ordenidfk=ordenestbl.id
+            WHERE recsilumtbl.id = :id';
+      $s=$pdo->prepare($sql); 
+      $s->bindValue(':id', $id);
+      $s->execute();
     }
     catch (PDOException $e)
     {
-     $mensaje='Hubo un error extrayendo el numero de OT.';
-   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-   exit();
+      $mensaje='Hubo un error extrayendo el numero de OT.';
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
     }
     $resultado = $s->fetch();
     return $resultado['ot']; 
@@ -491,18 +491,18 @@
   function idotdeidrci($idrci="")
   {
     global $pdo;
-  try   
-  {
-   $sql='SELECT ordenidfk FROM recsilumtbl WHERE  id= :id';
-   $s=$pdo->prepare($sql); 
-   $s->bindValue(':id', $idrci);
-     $s->execute();
+    try   
+    {
+      $sql='SELECT ordenidfk FROM recsilumtbl WHERE  id= :id';
+      $s=$pdo->prepare($sql); 
+      $s->bindValue(':id', $idrci);
+      $s->execute();
     }
     catch (PDOException $e)
     {
-     $mensaje='Hubo un error extrayendo informacion de la orden.';
-   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-   exit();
+      $mensaje='Hubo un error extrayendo informacion de la orden.';
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
     }
     $resultado = $s->fetch();
     return $resultado['ordenidfk']; 
@@ -514,20 +514,20 @@
   function idrecdepuntos($id="")
   {
     global $pdo;
-  try   
-  {
-   $sql='SELECT recilumidfk FROM puntorecilumtbl
+    try   
+    {
+      $sql='SELECT recilumidfk FROM puntorecilumtbl
       INNER JOIN puntostbl ON puntostbl.id=puntorecilumtbl.puntoidfk
-        WHERE puntostbl.id = :id';
-   $s=$pdo->prepare($sql); 
-   $s->bindValue(':id', $id);
-     $s->execute();
+      WHERE puntostbl.id = :id';
+      $s=$pdo->prepare($sql); 
+      $s->bindValue(':id', $id);
+      $s->execute();
     }
     catch (PDOException $e)
     {
-     $mensaje='Hubo un error extrayendo informacion del reconocimiento.'.$e;
-   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-   exit();
+      $mensaje='Hubo un error extrayendo informacion del reconocimiento.'.$e;
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
     }
     $resultado = $s->fetch();
     return $resultado['recilumidfk']; 

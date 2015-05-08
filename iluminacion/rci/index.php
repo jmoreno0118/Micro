@@ -14,6 +14,7 @@
   include '../accesonegado.html.php';
   exit();
  }
+
 /* ************************************************************************* */
 /* ****** Capturar reconocimientos iniciales de una orden de trabajo ******* */
 /* ************************************************************************* */
@@ -24,6 +25,7 @@
   	include 'formacapturarci.html.php';
   	exit();
   }
+
 /* ************************************************************************* */
 /* ******** Guarda reconocimiento inicial de una orden de trabajo ********** */
 /* ************************************************************************* */
@@ -48,7 +50,8 @@
 			 paredcolor=:paredcolor,
 			 pisocolor=:pisocolor,
 			 influencia=:influencia,
-			 percepcion=:percepcion';
+			 percepcion=:percepcion,
+			 mantenimiento=:mantenimiento';
 		$s=$pdo->prepare($sql);
 		$s->bindValue(':ordenid',$idot);
 		$s->bindValue(':fecha',$_POST['fecha']);
@@ -64,6 +67,7 @@
 		$s->bindValue(':pisocolor',$_POST['pisocolor']);
 		$s->bindValue(':influencia',$_POST['influencia']);
 		$s->bindValue(':percepcion',$_POST['percepcion']);
+		$s->bindValue(':mantenimiento',$_POST['mantenimiento']);
 		$s->execute();
 		$rcid=$pdo->lastInsertId();
 
@@ -130,7 +134,8 @@
 					"paredcolor" => "",
 					"pisocolor" => "",
 					"influencia" => "",
-					"percepcion" => "");
+					"percepcion" => "",
+					"mantenimiento" => "");
 	include 'formacapturarci.html.php';
 	exit();
   }
@@ -173,7 +178,8 @@
 					"paredcolor" => $linea["paredcolor"],
 					"pisocolor" => $linea["pisocolor"],
 					"influencia" => $linea["influencia"],
-					"percepcion" => $linea["percepcion"]);
+					"percepcion" => $linea["percepcion"],
+					"mantenimiento" => $linea["mantenimiento"]);
 		$idot=$linea["ordenidfk"];
 	}
 	try   
@@ -259,7 +265,8 @@
 			paredcolor=:paredcolor,
 			pisocolor=:pisocolor,
 			influencia=:influencia,
-			percepcion=:percepcion
+			percepcion=:percepcion,
+			mantenimiento=:mantenimiento
 			WHERE id=:id';
 		$s=$pdo->prepare($sql);
 		$s->bindValue(':id',$_POST['id']);
@@ -276,6 +283,7 @@
 		$s->bindValue(':pisocolor',$_POST['pisocolor']);
 		$s->bindValue(':influencia',$_POST['influencia']);
 		$s->bindValue(':percepcion',$_POST['percepcion']);
+		$s->bindValue(':mantenimiento',$_POST['mantenimiento']);
 		$s->execute();
 	}
 	catch (PDOException $e)
@@ -357,6 +365,7 @@
 	verRecs($idot);
 	exit();
   }
+
 /******************************************************************/
 /* ** Borrar un reconocimiento inicial de una orden de trabajo ** */
 /******************************************************************/
@@ -400,6 +409,7 @@
 		exit();
 	  }
 	}
+
 /***********************************************************************/
 /******** Confirmación de borrado de un reconocimiento inicial *********/
 /***********************************************************************/
@@ -449,6 +459,7 @@
 	}
 	verRecs($ot);
   }
+
 /* **************************************************************************
 **  Se continua con el cambio de influencia.                               **
 *****************************************************************************/
@@ -472,7 +483,8 @@
 		  paredcolor=:paredcolor,
 		  pisocolor=:pisocolor,
 		  influencia=:influencia,
-		  percepcion=:percepcion
+		  percepcion=:percepcion,
+		  mantenimiento=:mantenimiento
 		 WHERE id=:id';
 	$s=$pdo->prepare($sql);
 	$s->bindValue(':id',$_POST['id']);
@@ -489,6 +501,7 @@
 	$s->bindValue(':pisocolor',$_POST['pisocolor']);
 	$s->bindValue(':influencia',$_POST['influencia']);
 	$s->bindValue(':percepcion',$_POST['percepcion']);
+	$s->bindValue(':mantenimiento',$_POST['mantenimiento']);
 	$s->execute();
    }
    catch (PDOException $e)
@@ -596,6 +609,7 @@
    verRecs($idot);
    exit();
  }
+
 /* *****************************************************************************
 **  Se cancela cambio de influencia.                                          **
 *******************************************************************************/
@@ -628,10 +642,13 @@
 					"paredcolor" => $_POST["paredcolor"],
 					"pisocolor" => $_POST["pisocolor"],
 					"influencia" => 1,
-					"percepcion" => $_POST["percepcion"]);
+					"percepcion" => $_POST["percepcion"],
+					"mantenimiento" => $_POST["mantenimiento"]);
    include 'formacapturarci.html.php';
    exit();
  }
+ 
+/* ************************************************************* */
 /* ************** Ir a la opcion de puntos ********************* */
 /* ************************************************************* */
   if((isset($_POST['accion']) and $_POST['accion']=='puntos'))
@@ -640,7 +657,9 @@
 	header('Location: http://'.$_SERVER['HTTP_HOST'].str_replace('?','',$_SERVER['REQUEST_URI']).'puntos');
     exit();
   }
-/* *********** accion de inicio **************** */
+
+/* ********************************************* */
+/* ***********  accion default  **************** */
 /* ********************************************* */
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
   if(isset($_SESSION['idot']) and isset($_SESSION['quien']) and $_SESSION['quien']=='Iluminacion'){
@@ -656,8 +675,10 @@
   $recsini=verRecs($idot);
   include 'formarci.html.php';
    exit();
+
 /* ******************************************************* */
 /* ***Funcion para inicializar un reconocimiento nuevo.*** */
+/* ******************************************************* */
 function ininuevorci(){
   global $pestanapag, $titulopagina, $accion, $boton, $valores;
   	$pestanapag='Agrega Reconocimiento Inicial';
@@ -679,8 +700,10 @@ function ininuevorci(){
 					"paredcolor" => "",
 					"pisocolor" => "",
 					"influencia" => "",
-					"percepcion" => "");
+					"percepcion" => "",
+					"mantenimiento" => "");
 }
+
 /**************************************************************************************************/
 /* Función para ver reconocimientos iniciales de una orden de trabajo */
 /**************************************************************************************************/
@@ -707,8 +730,10 @@ function ininuevorci(){
 
    foreach ($s as $linea)
    {
-    $recsini[]=array('id'=>$linea['id'],'departamento'=>$linea[				'departamento'],
-				 'area'=>$linea['area'],'descriproceso'=>$linea['descriproceso']);
+    $recsini[]=array('id'=>$linea['id'],
+					'departamento'=>$linea['departamento'],
+					'area'=>$linea['area'],
+					'descriproceso'=>$linea['descriproceso']);
    }
    $idot=$id;
    $ot=otdeordenes($id);

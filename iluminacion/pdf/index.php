@@ -222,10 +222,10 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                     $c=(count($this->nfontsize) === 1) ? $this->nfontsize[0] : $this->nfontsize[$i];
                     $this->SetFont('Arial', $b, $c);
                 }
-                $nb=max($nb,$this->NbLines($this->widths[$i],$data[$i]));
+                $nb=max($nb,$this->NbLines($this->widths[$i], $data[$i]));
 
                 //Se guarda la altura de cada texto
-                $sh[]=$this->NbLines($this->widths[$i],$data[$i]);
+                $sh[]=$this->NbLines($this->widths[$i], $data[$i]);
             }
             $h=5*$nb;
             //Issue a page break first if needed
@@ -244,6 +244,67 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                 }else{
                     $this->SetFillColor(255, 255, 255);
                 }
+                $w=$this->widths[$i];
+                $a=isset($this->aligns[$i]) ? $this->aligns[$i] : 'L';
+                //Save the current position
+                $x=$this->GetX();
+                $y=$this->GetY();
+                //Draw the border
+                $this->Rect($x, $y, $w, $h, 'DF');
+
+                //Número de renglones de separación arriba y abajo, se resta la altura
+                //total menos la altura del texto, se divide entre dos (obtener altura de
+                //arriba y de abajo) y esto entre 5 para obtener el número de renglones
+                //según la altura del renglón, y así anexar dichos renglones extra al texto
+                $nr = (($h-($sh[$i]*5))/2)/5;
+                for ($j=0; $j < $nr; $j++){ 
+                    $data[$i]="\n".$data[$i]."\n";
+                }
+                
+                //Print the text
+                $this->MultiCell($w,5,$data[$i],0,$a, $fill);
+                //Put the position to the right of the cell
+                $this->SetXY($x+$w,$y);
+            }
+            //Go to the next line
+            $this->Ln($h);
+        }
+
+        function RowColor2($data, $fill=false)
+        {
+            //Calculate the height of the row
+            $nb=0;
+            $sh=array();
+
+            for($i=0;$i<count($data);$i++){
+                if(count($this->nfonts) > 0 AND count($this->nfontsize) > 0){
+                    $b=(count($this->nfonts) === 1) ? $this->nfonts[0] : $this->nfonts[$i];
+                    $c=(count($this->nfontsize) === 1) ? $this->nfontsize[0] : $this->nfontsize[$i];
+                    $this->SetFont('Arial', $b, $c);
+                }
+                $nb=max($nb,$this->NbLines($this->widths[$i],$data[$i]));
+
+                //Se guarda la altura de cada texto
+                $sh[]=$this->NbLines($this->widths[$i],$data[$i]);
+            }
+            $h=5*$nb;
+            //Issue a page break first if needed
+            $this->CheckPageBreak($h);
+            //Draw the cells of the row
+            for($i=0;$i<count($data);$i++)
+            {
+                if($i === 1){
+                    $fill = true;
+                    $valor = explode(' ± ', $data[$i]);
+                    if(intval($valor[0]) >= $data[$i+1]){
+                        $this->SetFillColor(0, 255, 0);
+                    }else{
+                        $this->SetFillColor(255, 0, 0);
+                    }
+                }else{
+                    $this->SetFillColor(255, 255, 255);
+                }
+
                 $w=$this->widths[$i];
                 $a=isset($this->aligns[$i]) ? $this->aligns[$i] : 'L';
                 //Save the current position
@@ -473,15 +534,140 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
             $this->SetTextColor(0);
         }
 
+        var $angle=0;
+
+        function Rotate($angle,$x=-1,$y=-1)
+        {
+            if($x==-1)
+                $x=$this->x;
+            if($y==-1)
+                $y=$this->y;
+            if($this->angle!=0)
+                $this->_out('Q');
+            $this->angle=$angle;
+            if($angle!=0)
+            {
+                $angle*=M_PI/180;
+                $c=cos($angle);
+                $s=sin($angle);
+                $cx=$x*$this->k;
+                $cy=($this->h-$y)*$this->k;
+                $this->_out(sprintf('q %.5F %.5F %.5F %.5F %.2F %.2F cm 1 0 0 1 %.2F %.2F cm',$c,$s,-$s,$c,$cx,$cy,-$cx,-$cy));
+            }
+        }
+
     }
 
     $pdf = new PDF();
     $pdf->SetDrawColor(0);
 
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try   
+    {
+        $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.signatario, ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion
+                FROM  ordenestbl
+                INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk';
+        if(isset($_GET['ot']) AND isset($_GET['id'])){
+            $where=' WHERE estudiostbl.nombre="Iluminacion" AND ordenestbl.ot = :ot AND ordenestbl.id = :id';
+            $s=$pdo->prepare($sql.$where);
+            $s->bindValue(':ot', $_GET['ot']);
+            $s->bindValue(':id', $_GET['id']);
+            $s->execute();
+            $orden = $s->fetch();
+        }else{
+            $where=' WHERE estudiostbl.nombre="Iluminacion" AND ordenestbl.ot = :ot';
+            $s=$pdo->prepare($sql.$where);
+            $s->bindValue(':ot', /*$_POST['ot']*/ 'LO002');
+            $s->execute();
+            $orden = $s->fetch();
+        }
+
+        $sql='SELECT puntostbl.*, puntorecilumtbl.*, equipostbl.marca, equipostbl.modelo, equipostbl.serie, equipostbl.correccion
+            FROM  puntostbl
+            INNER JOIN puntorecilumtbl ON puntostbl.id = puntorecilumtbl.puntoidfk
+            INNER JOIN recsilumtbl ON puntorecilumtbl.recilumidfk = recsilumtbl.id
+            INNER JOIN ordenestbl ON recsilumtbl.ordenidfk = ordenestbl.id
+            INNER JOIN equipostbl ON puntorecilumtbl.equiposidfk = equipostbl.id
+            WHERE ordenestbl.ot = :ot';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':ot', 'LO002');
+        $s->execute();
+        $puntos = $s->fetchAll();
+
+        //echo "<pre>";
+        //var_dump($orden);
+        //echo "<br><br>";
+
+        if($orden['plantaidfk'] !== NULL){
+            $sql='SELECT plantastbl.razonsocial, plantastbl.calle, plantastbl.colonia, plantastbl.ciudad, 
+                    plantastbl.estado, plantastbl.cp, plantastbl.planta
+                FROM plantastbl
+                WHERE plantastbl.id = :id';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':id', $orden['plantaidfk']);
+            $s->execute();
+            $resultado = $s->fetch();
+
+            $cliente = array('Razon_Social' => $resultado['razonsocial'],
+                            'Calle_Numero' => $resultado['calle'],
+                            'Colonia' => $resultado['colonia'],
+                            'Ciudad' => $resultado['ciudad'],
+                            'Estado' => $resultado['estado'],
+                            'Planta' => $resultado['planta']);
+        }else{
+            $sql='SELECT clientestbl.Razon_Social, clientestbl.Calle_Numero, clientestbl.Colonia, clientestbl.Ciudad, 
+                    clientestbl.Estado, clientestbl.Giro_Empresa, clientestbl.Codigo_Postal
+                FROM clientestbl
+                WHERE clientestbl.Numero_Cliente = :id';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':id', $orden['clienteidfk']);
+            $s->execute();
+            $cliente = $s->fetch();
+        }
+
+        //var_dump($cliente);
+        //echo "<br><br>";
+
+        $sql='SELECT *, deptostbl.id AS "deptoid"
+            FROM recsilumtbl
+            INNER JOIN deptorecilumtbl ON recsilumtbl.id = deptorecilumtbl.recilumidfk
+            INNER JOIN deptostbl ON deptorecilumtbl.deptoidfk = deptostbl.id
+            WHERE ordenidfk = :id';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $orden['id']);
+        $s->execute();
+        $recinis = $s->fetchAll();
+
+        //var_dump($recini);
+        //echo "<br><br>";
+
+        foreach ($recinis as $key => $value) {
+            $sql='SELECT * FROM descripuestostbl
+                WHERE deptoidfk = :id';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':id', $value['deptoid']);
+            $s->execute();
+            $puestos[] = $s->fetchAll();
+
+        //var_dump($puestos);
+        //echo "<br><br>";
+        }
+        //echo "</pre>";
+        
+    }
+    catch (PDOException $e)
+    {
+        /*$mensaje='Error al tratar de obtener información de la orden.'.$e;
+        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+        exit();*/
+    }
+
+
 
 /**************************************************************************************************/
 /********************************************* Hoja 0 *********************************************/
 /**************************************************************************************************/
+foreach ($recinis as $key => $recini) {
     $pdf->AddPage();
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.2);
@@ -504,55 +690,55 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->Cell(25, 5, utf8_decode('Fecha'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(30, 5, utf8_decode('2013-02-20'), 1, 0, 'C', true);
+    $pdf->Cell(30, 5, utf8_decode($recini['fecha']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(20, 5, utf8_decode('OT No.'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(20, 5, utf8_decode('092'), 1, 0, 'C', true);
+    $pdf->Cell(20, 5, utf8_decode($orden['ot']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(20, 5, utf8_decode('Hoja'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(15, 5, utf8_decode('3'), 1, 0, 'C', true);
+    $pdf->Cell(15, 5, utf8_decode(($key+1)), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(20, 5, utf8_decode('De'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(15, 5, utf8_decode('3'), 1, 1, 'C', true);
+    $pdf->Cell(15, 5, utf8_decode(count($recinis)), 1, 1, 'C', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Compañía'), 1, 0, 'L', true);
 
     blanco($pdf, 8 ,'B');
-    $pdf->Cell(0, 6, utf8_decode('BARNICES Y RESINAS S.A. DE C.V.'), 1, 1, 'L', true);
+    $pdf->Cell(0, 6, utf8_decode($cliente['Razon_Social']), 1, 1, 'L', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Planta'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('ECATEPEC'), 1, 0, 'L', true);
+    $pdf->Cell(39.5, 6, utf8_decode(isset($cliente['Planta']) ? $cliente['Planta'] : ''), 1, 0, 'L', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Lugar'), 1, 0, 'L', true);
 
-    blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('Ecatepec, Edo. de México'), 1, 1, 'L', true);
+    blanco($pdf, 6);
+    $pdf->Cell(39.5, 6, utf8_decode($cliente['Ciudad'].' '.$cliente['Estado']), 1, 1, 'L', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Departamento'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('Producción'), 1, 0, 'L', true);
+    $pdf->Cell(39.5, 6, utf8_decode($recini['departamento']), 1, 0, 'L', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Area'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('Taller de Mantenimiento'), 1, 1, 'L', true);
+    $pdf->Cell(39.5, 6, utf8_decode($recini['area']), 1, 1, 'L', true);
 
     azul($pdf);
     $pdf->Cell(0, 6, utf8_decode('Descripción de las instalaciones'), 0, 1, 'C', true);
@@ -561,37 +747,37 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->Cell(30, 6, utf8_decode('Largo (mt)'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(25, 6, utf8_decode('8'), 1, 0, 'C', true);
+    $pdf->Cell(25, 6, utf8_decode($recini['largo']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(30, 6, utf8_decode('Ancho (mt)'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(25, 6, utf8_decode('4'), 1, 0, 'C', true);
+    $pdf->Cell(25, 6, utf8_decode($recini['ancho']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(30, 6, utf8_decode('Alto (mt)'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(25, 6, utf8_decode('6'), 1, 1, 'C', true);
+    $pdf->Cell(25, 6, utf8_decode($recini['alto']), 1, 1, 'C', true);
 
     gris($pdf);
     $pdf->Cell(30, 6, utf8_decode('Color de techo'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(25, 6, utf8_decode('Gris'), 1, 0, 'C', true);
+    $pdf->Cell(25, 6, utf8_decode($recini['techocolor']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(30, 6, utf8_decode('Color de paredes'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(25, 6, utf8_decode('Blanco'), 1, 0, 'C', true);
+    $pdf->Cell(25, 6, utf8_decode($recini['paredcolor']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(30, 6, utf8_decode('Color de piso'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(25, 6, utf8_decode('Gris'), 1, 1, 'C', true);
+    $pdf->Cell(25, 6, utf8_decode($recini['pisocolor']), 1, 1, 'C', true);
 
     azul($pdf);
     $pdf->Cell(0, 6, utf8_decode('Descripción de las lámparas'), 0, 1, 'C', true);
@@ -600,37 +786,37 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->Cell(43, 6, utf8_decode('Tipo de lámparas'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('Fluorescentes'), 1, 0, 'C', true);
+    $pdf->Cell(39.5, 6, utf8_decode($recini['tipolampara']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Potencia de las lámparas'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('50 Watts'), 1, 1, 'C', true);
+    $pdf->Cell(39.5, 6, utf8_decode($recini['potencialamp']), 1, 1, 'C', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('No de lámparas'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('3'), 1, 0, 'C', true);
+    $pdf->Cell(39.5, 6, utf8_decode($recini['numlamp']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Altura (mt)'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('4'), 1, 1, 'C', true);
+    $pdf->Cell(39.5, 6, utf8_decode($recini['alturalamp']), 1, 1, 'C', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Programa de mantenimiento'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('Preventivo y correctivo'), 1, 0, 'C', true);
+    $pdf->Cell(39.5, 6, utf8_decode($recini['mantenimiento']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(43, 6, utf8_decode('Tipo de Iluminación'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode('Natural y artificial'), 1, 1, 'C', true);
+    $pdf->Cell(39.5, 6, utf8_decode(($recini['influencia'] === 0) ? 'Natural y artificial' : 'Artificial'), 1, 1, 'C', true);
 
     azul($pdf);
     $pdf->Cell(0, 6, utf8_decode('Descripción de los puestos de trabajo'), 0, 1, 'C', true);
@@ -647,29 +833,24 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->SetFonts(array('', '', ''));
     $pdf->SetFontSizes(array(9));
     $pdf->SetAligns(array('C', 'C', 'C'));
-    $pdf->Row(array(utf8_decode('Jefe de mantenimiento eléctrico'),
-                    utf8_decode('1'),
-                    utf8_decode('Programa de mantenimientos eléctricos requeridos por las áreas')));
 
-    $pdf->Row(array(utf8_decode('Jefe de mantenimiento mecánico'),
-                    utf8_decode('1'),
-                    utf8_decode('Programa de mantenimientos mecánicos programados en las áreas de producción')));
-
-    $pdf->Row(array(utf8_decode('Operador de mantenimiento'),
-                    utf8_decode('1'),
-                    utf8_decode('Apoyo en actividades de mantenimiento')));
+    foreach ($puestos[$key] as $key => $puesto) {
+        $pdf->Row(array(utf8_decode($puesto['puesto']),
+                    utf8_decode($puesto['numtrabajadores']),
+                    utf8_decode($puesto['actividades'])));
+    }
 
     azul($pdf);
     $pdf->Cell(0, 6, utf8_decode('Descripción general del proceso de producción en el departamento'), 0, 1, 'C', true);
 
     blanco($pdf, 9);
-    $pdf->MultiCell(0, 7, utf8_decode('Se realiza el mantenimiento en áreas de producción y planta en general'), 1, 'C', true);
+    $pdf->MultiCell(0, 7, utf8_decode($recini['descriproceso']), 1, 'C', true);
 
     azul($pdf);
     $pdf->Cell(0, 6, utf8_decode('Percepción de las condiciones de iluminación por parte del trabajador'), 0, 1, 'C', true);
 
     blanco($pdf, 9);
-    $pdf->MultiCell(0, 7, utf8_decode('Se considera que la iluminación es adecuada'), 1, 'C', true);
+    $pdf->MultiCell(0, 7, utf8_decode($recini['percepcion']), 1, 'C', true);
 
     $pdf->Ln(5);
     $pdf->Cell(60, 6, utf8_decode('Nombre y firma del reponsable'), 0, 1, 'C');
@@ -682,219 +863,225 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->Cell(45, 5, '', 0, 1, 'C');
 
     $pdf->SetFont('Arial', 'B', 8);
-    $pdf->Cell(60, 4, utf8_decode('T.S.U. Omar Amador Arellano'), 0, 1, 'C');
+    $pdf->Cell(60, 4, utf8_decode($orden['signatario']), 0, 1, 'C');
     $pdf->Cell(60, 4, utf8_decode('Signatario Autorizado'), 0, 0, 'C');
-
+}
 /**************************************************************************************************/
 /********************************************* Hoja 1 *********************************************/
 /**************************************************************************************************/
+    foreach($puntos as $punto){
+        $deptos[] = $punto['departamento'];
+    }
+    $deptos = array_unique($deptos);
+
+    $verde = array();
+    $rojo = array();
+    $verde1 = array(0, 0, 0);
+    $rojo1 = array(0, 0, 0);
+    $listado = array();
+    $i = 0;
+    foreach ($deptos as $numdepto => $depto) {
+        foreach ($puntos as $numpunto => $punto) {
+            if($punto['departamento'] === $depto){
+                try   
+                {
+                    $sql="SELECT *, DATE_FORMAT(hora, '%H:%i') as 'hora' FROM medsilumtbl
+                        WHERE puntoidfk = :id";
+                    $s=$pdo->prepare($sql);
+                    $s->bindValue(':id', $punto['id']);
+                    $s->execute();
+                    $mediciones = $s->fetchAll();
+
+                    $listado[$i] = array('medicion' => $punto['medicion'],
+                                        'fecha' => $punto['fecha'],
+                                        'area' => $punto['area'],
+                                        'ubicacion' => $punto['ubicacion'],
+                                        'identificacion' => $punto['identificacion'],
+                                        'departamento' => $punto['departamento'],
+                                        '0' => array('ni' => '--- ± ---',
+                                                    'nimr' => $punto['nirm'],
+                                                    'reflexpared' => 'No Aplica',
+                                                    'reflexplano' => 'No Aplica'),
+                                        '1' => array('ni' => '--- ± ---',
+                                                    'nimr' => $punto['nirm'],
+                                                    'reflexpared' => 'No Aplica',
+                                                    'reflexplano' => 'No Aplica'),
+                                        '2' => array('ni' => '--- ± ---',
+                                                    'nimr' => $punto['nirm'],
+                                                    'reflexpared' => 'No Aplica',
+                                                    'reflexplano' => 'No Aplica'),
+                                        );
+
+                    $correccion = json_decode($punto['correccion'], TRUE);
+                    //var_dump($correccion);
+                    foreach ($mediciones as $key => $medicion) {
+                        foreach ($correccion as $num => $rango) {
+                            if($num < count($correccion)-1){
+                                if($medicion['e2plano'] >= $correccion[$num]['Rango'] AND $medicion['e2plano'] < $correccion[$num+1]['Rango']){
+                                    $factor1 = $correccion[$num]['Correccion1'];
+                                    $factor2 = $correccion[$num]['Correccion2'];
+                                    break;
+                                }
+                            }elseif($num === count($correccion)-1){
+                                $factor1 = $rango['Correccion1'];
+                                $factor2 = $rango['Correccion2'];
+                                break;
+                            }
+                        }
+
+                        $medplanocorregida = (intval($medicion['e2plano']) !== 0) ? round(floatval($medicion['e2plano']) * floatval($factor1) + floatval($factor2)) : '---';
+
+                        $incertidumbreplano = ($medplanocorregida !== '---') ? round($medplanocorregida * 0.107632, 0) : '---';
+
+                        $reflexplano = (intval($medicion['e1plano']) !== 0) ? (round(floatval($medicion['e1plano']) * floatval($factor1) + floatval($factor2)) / $medplanocorregida) * 100 : 'No Aplica';
+
+                        $medparedcorregida = (intval($medicion['e2pared']) !== 0) ? round(floatval($medicion['e2pared']) * floatval($factor1) + floatval($factor2)) : '---';
+                        $incertidumbrepared = ($medparedcorregida !== '---') ? round($medparedcorregida * 0.107632, 0) : '---';
+
+                        $reflexpared = (intval($medicion['e1pared']) !== 0) ?  (round(floatval($medicion['e1pared']) * floatval($factor1) + floatval($factor2)) / $medparedcorregida) * 100 : 'No Aplica';
+
+                        $listado[$i][$key]['ni'] = $medplanocorregida.' ± '.$incertidumbreplano;
+                        $listado[$i][$key]['reflexpared'] = $reflexpared;
+                        $listado[$i][$key]['reflexplano'] = $reflexplano;
+
+                        $verde[$numpunto][$key] = 0;
+                        $rojo[$numpunto][$key] = 0;
+                        if($medplanocorregida >= $punto['nirm']){
+                            $verde[$numpunto][$key]++;
+                            $verde1[$key]++;
+                        }else{
+                            $rojo[$numpunto][$key]++;
+                            $rojo1[$key]++;
+                        }
+                    }
+                }catch (PDOException $e){
+                    /*$mensaje='Error al tratar de obtener información de la orden.'.$e;
+                    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+                    exit();*/
+                }
+
+                $i++;
+            }
+        }
+    }
+
+    echo '<pre>';
+    /*var_dump($verde);
+    echo '<br>';
+    var_dump($rojo);*/
+    var_dump($verde1);
+    echo '<br>';
+    var_dump($rojo1);
+    echo '</pre>';
+
     $pdf->AddPage('L');
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
+    //$pdf->Rotate(90, 150, 145);
+
+    $pdf->Ln(20.5);
+
+    headerTablaListado1($pdf);
+
+    azul($pdf);
+    $pdf->Cell(20, 6, utf8_decode('Compañía'), 1, 0, 'L', true);
+
+    gris($pdf, 'B', 8);
+    $pdf->Cell(120, 6, utf8_decode($cliente['Razon_Social']), 1, 1, 'L', true);
+
+    azul($pdf);
+    $pdf->Cell(20, 6, utf8_decode('Planta'), 1, 0, 'L', true);
+
+    gris($pdf, 'B', 8);
+    $pdf->Cell(120, 6, utf8_decode(isset($cliente['Planta']) ? $cliente['Planta'] : ''), 1, 1, 'L', true);
+
+    azul($pdf);
+    $pdf->Cell(20, 6, utf8_decode('Lugar'), 1, 0, 'L', true);
+
+    $x=$pdf->GetX();
+    $y=$pdf->GetY();
+
+    gris($pdf, 'B', 8);
+    $pdf->Cell(120, 6, utf8_decode($cliente['Ciudad'].' '.$cliente['Estado']), 1, 1, 'L', true);
+    $pdf->Ln(2);
+
+    $pdf->SetXY($x,$y+4);
     $pdf->SetFont('Arial', 'B', 7);
-    $pdf->Cell(0, 3, utf8_decode('AIR-F-2'), 0, 1, 'R');
-    $pdf->Ln(2);
+    $pdf->Cell(205, 3, utf8_decode('AIR-F-2'), 0, 1, 'R');
 
-    $pdf->SetFont('Arial', 'B', 9);
-    $pdf->SetTextColor(0, 51, 105);
-    $pdf->Cell(0, 3, utf8_decode('LISTADO DE RESULTADOS'), 0, 1, 'C');
-    $pdf->Ln(2);
-    $pdf->Cell(0, 3, utf8_decode('EVALUACION DE LOS NIVELES DE ILUMINACION'), 0, 1, 'C');
-    $pdf->Ln(2);
+    headerTablaListado2($pdf);
 
-    azul($pdf);
-    $pdf->Cell(30, 6, utf8_decode('Compañía'), 1, 0, 'L', true);
+    $j = 0;
+    $pag = 0;
+    foreach ($listado as $key => $value) {
+        if( ( ($j === 15 OR $j === 16) AND $pag === 0) OR ( ($j % 20 === 0 OR $j % 21 === 0) AND $pag === 1) ){
+            $pdf->AddPage('L');
+            $pdf->SetMargins(20, 0, 25);
+            $pdf->SetLineWidth(.1);
 
-    gris($pdf, 'B');
-    $pdf->Cell(70, 6, utf8_decode('BARNICES Y RESINAS S.A. DE C.V.'), 1, 1, 'L', true);
+            //$pdf->Rotate(90, 150, 145);
 
-    azul($pdf);
-    $pdf->Cell(30, 6, utf8_decode('Planta'), 1, 0, 'L', true);
+            $pdf->Ln(20.5);
 
-    gris($pdf, 'B');
-    $pdf->Cell(70, 6, utf8_decode('ECATEPEC'), 1, 1, 'L', true);
+            headerTablaListado1($pdf);
+            headerTablaListado2($pdf);
+            $pag = 1;
+            $j = 1;
+        }
+        if( ( ($j !== 15 AND $j !== 16) AND $pag === 0) OR ( ($j % 20 !== 0 AND $j % 21 !== 0) AND $pag === 1) ){
+            if($key !== 0 AND $value['departamento'] === $listado[$key-1]['departamento']){
+                medListado($pdf, $value);
+                $j++;
+            }else{
+                deptoListado($pdf, $value);
+                $j++;
 
-    azul($pdf);
-    $pdf->Cell(30, 6, utf8_decode('Lugar'), 1, 0, 'L', true);
+                medListado($pdf, $value);
+                $j++;
+            }
 
-    gris($pdf, 'B');
-    $pdf->Cell(70, 6, utf8_decode('Ecatepec, Edo. de México'), 1, 1, 'L', true);
-    $pdf->Ln(2);
+            if( ( ($j === 15 OR $j === 16) AND $pag === 0) OR ($key === (count($listado)-1)) ){
+                $pdf->Ln(1);
 
+                blanco($pdf, 6, 'B');
+                $pdf->Cell(20, 3, utf8_decode('No. Med:'), 0, 0, 'R', true);
+                blanco($pdf, 6, '');
+                $pdf->Cell(70, 3, utf8_decode('Número de medición'), 0, 1, 'L', true);
 
-    gris($pdf, 'B');
-    $x=$pdf->GetX();
-    $y=$pdf->GetY();
-    $pdf->MultiCell(10, 8.5, utf8_decode('No. Med'), 1, 'C', true);
-    $pdf->SetXY($x+10,$y);
-    $pdf->Cell(16, 17, utf8_decode('Fecha'), 1, 0, 'C', true);
-    $pdf->Cell(20, 17, utf8_decode('Área'), 1, 0, 'C', true);
-    $pdf->Cell(23, 17, utf8_decode('Ubicación'), 1, 0, 'C', true);
-    $pdf->Cell(27, 17, utf8_decode('Identificación'), 1, 0, 'C', true);
+                blanco($pdf, 6, 'B');
+                $pdf->Cell(20, 3, utf8_decode('N.I. (lux):'), 0, 0, 'R', true);
+                blanco($pdf, 6, '');
+                $pdf->Cell(70, 3, utf8_decode('Nivel de Iluminación en el punto (lux)'), 0, 1, 'L', true);
 
-    $x=$pdf->GetX();
-    $y=$pdf->GetY();
-    $pdf->SetWidths(array(52,13,10,14,15));
-    $pdf->SetAligns(array('C'));
-    $pdf->SetFonts(array('B'));
-    $pdf->SetFontSizes(array(6));
-    $pdf->carobsRow(array(utf8_decode('Resultados 1er Ciclo de Medición'),
-                        array(utf8_decode('N.I. (Lux)'),
-                            utf8_decode('NIMR (lux)'),
-                              utf8_decode('Reflexión paredes (60%)'),
-                              utf8_decode('Reflexión plano de trabajo (50%)')
-                            )
-                        )
-                    );
+                blanco($pdf, 6, 'B');
+                $pdf->Cell(20, 3, utf8_decode('N.I.M.R. (lux):'), 0, 0, 'R', true);
+                blanco($pdf, 6, '');
+                $pdf->Cell(70, 3, utf8_decode('Nivel de Iluminación Mínimo Recomendado (lux)'), 0, 1, 'L', true);
 
-    $pdf->SetXY($x+52,$y);
-    $x=$pdf->GetX();
-    $y=$pdf->GetY();
-    $pdf->carobsRow(array(utf8_decode('Resultados 2do Ciclo de Medición'),
-                        array(utf8_decode('N.I. (Lux)'),
-                              utf8_decode('NIMR (lux)'),
-                              utf8_decode('Reflexión paredes (60%)'),
-                              utf8_decode('Reflexión plano de trabajo (50%)')
-                            )
-                        )
-                    );
+                blanco($pdf, 6, 'B');
+                $pdf->Cell(20, 3, utf8_decode('F.R:'), 0, 0, 'R', true);
+                blanco($pdf, 6, '');
+                $pdf->Cell(70, 3, utf8_decode('Factor de Reflexión (%)'), 0, 1, 'L', true);
 
-    $pdf->SetXY($x+52,$y);
-    $pdf->carobsRow(array(utf8_decode('Resultados 3er Ciclo de Medición'),
-                        array(utf8_decode('N.I. (Lux)'),
-                              utf8_decode('NIMR (lux)'),
-                              utf8_decode('Reflexión paredes (60%)'),
-                              utf8_decode('Reflexión plano de trabajo (50%)')
-                            )
-                        )
-                    );
-    $pdf->Ln(12);
+                blanco($pdf, 6, 'B');
+                $pdf->Cell(20, 3, utf8_decode('F.R.M.'), 0, 0, 'R', true);
+                blanco($pdf, 6, '');
+                $pdf->Cell(70, 3, utf8_decode('Factor de Reflexión Máximo (%)'), 0, 1, 'L', true);
 
-    blanco($pdf, 8, 'B');
-    $pdf->Cell(0, 5, utf8_decode('Departamento: Producción'), 1, 1, 'C', true);
-
-    $pdf->SetWidths(array(10,16,20,23,27,13,10,14,15,13,10,14,15,13,10,14,15));
-    $pdf->SetFonts(array(''));
-    $pdf->SetFontSizes(array(6));
-    $pdf->SetAligns(array('C'));
-
-    for ($i=0; $i <6 ; $i++) { 
-        $pdf->RowColor(array(utf8_decode($i+1),
-                    utf8_decode('2013-02-20'),
-                    utf8_decode('Descarga'),
-                    utf8_decode('Descarga'),
-                    utf8_decode('Pasillo entre R2 y R-5'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('99 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica')
-                )
-            );
+                $y=$pdf->GetY();
+                if($pag === 0){
+                    $pdf->Image("../../img/semaforo 5.png", 20, 160, 70, 17);
+                }else{
+                    $pdf->Image("../../img/semaforo 5.png", 20, $y+2, 70, 17);
+                }
+            }
+        }
     }
-
-    $pdf->Cell(0, 5, utf8_decode('Departamento: Mantenimiento'), 1, 1, 'C', true);
-    $pdf->RowColor(array(utf8_decode('7'),
-                    utf8_decode('2013-02-20'),
-                    utf8_decode('Descarga'),
-                    utf8_decode('Descarga'),
-                    utf8_decode('Pasillo entre R2 y R-5'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica')
-                )
-            );
-
-    $pdf->Cell(0, 5, utf8_decode('Departamento: Oficinas'), 1, 1, 'C', true);
-    $pdf->RowColor(array(utf8_decode('8'),
-                    utf8_decode('2013-02-20'),
-                    utf8_decode('Descarga'),
-                    utf8_decode('Descarga'),
-                    utf8_decode('Pasillo entre R2 y R-5'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica')
-                )
-            );
-
-    $pdf->RowColor(array(utf8_decode('9'),
-                    utf8_decode('2013-02-20'),
-                    utf8_decode('Descarga'),
-                    utf8_decode('Descarga'),
-                    utf8_decode('Pasillo entre R2 y R-5'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('168 ± 20'),
-                    utf8_decode('100'),
-                    utf8_decode('No Aplica'),
-                    utf8_decode('No Aplica')
-                )
-            );
-    $pdf->Ln(1);
-
-    blanco($pdf, 6, 'B');
-    $pdf->Cell(20, 3, utf8_decode('No. Med:'), 0, 0, 'R', true);
-    blanco($pdf, 6, '');
-    $pdf->Cell(70, 3, utf8_decode('Número de medición'), 0, 1, 'L', true);
-
-    blanco($pdf, 6, 'B');
-    $pdf->Cell(20, 3, utf8_decode('N.I. (lux):'), 0, 0, 'R', true);
-    blanco($pdf, 6, '');
-    $pdf->Cell(70, 3, utf8_decode('Nivel de Iluminación en el punto (lux)'), 0, 1, 'L', true);
-
-    blanco($pdf, 6, 'B');
-    $pdf->Cell(20, 3, utf8_decode('N.I.M.R. (lux):'), 0, 0, 'R', true);
-    blanco($pdf, 6, '');
-    $pdf->Cell(70, 3, utf8_decode('Nivel de Iluminación Mínimo Recomendado (lux)'), 0, 1, 'L', true);
-
-    blanco($pdf, 6, 'B');
-    $pdf->Cell(20, 3, utf8_decode('F.R:'), 0, 0, 'R', true);
-    blanco($pdf, 6, '');
-    $pdf->Cell(70, 3, utf8_decode('Factor de Reflexión (%)'), 0, 1, 'L', true);
-
-    blanco($pdf, 6, 'B');
-    $pdf->Cell(20, 3, utf8_decode('F.R.M.'), 0, 0, 'R', true);
-    blanco($pdf, 6, '');
-    $pdf->Cell(70, 3, utf8_decode('Factor de Reflexión Máximo (%)'), 0, 1, 'L', true);
-
-    $pdf->Image("../../img/semaforo 5.png", 20, 170, 70, 17);
 
     $data = array(6,3);
     $labels = array("Valores\ndentro de\nnorma\n(%.1f%%)",
-                "Valores\nfuera de\nnorma\n(%.1f%%)");
+                    "Valores\nfuera de\nnorma\n(%.1f%%)");
      
     $graph = new PieGraph(310,200);
     $graph->SetShadow();
@@ -920,7 +1107,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $graph->Stroke($nombreImagen);
 
     //Aqui agrego la imagen que acabo de crear con jpgraph
-    $pdf->Image($nombreImagen, 110, 156, 55, 45);
+    $pdf->Image($nombreImagen, 90, 142  , 55, 45);
 
     unlink($nombreImagen);
 
@@ -952,7 +1139,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $graph->Stroke($nombreImagen);
 
     //Aqui agrego la imagen que acabo de crear con jpgraph
-    $pdf->Image($nombreImagen, 165, 156, 55, 45);
+    $pdf->Image($nombreImagen, 145, 142, 55, 45);
 
     unlink($nombreImagen);
 
@@ -984,13 +1171,36 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $graph->Stroke($nombreImagen);
 
     //Aqui agrego la imagen que acabo de crear con jpgraph
-    $pdf->Image($nombreImagen, 220, 156, 55, 45);
+    $pdf->Image($nombreImagen, 195, 142, 55, 45);
 
     unlink($nombreImagen);
+    $pdf->Rotate(0);
 
 /**************************************************************************************************/
 /********************************************* Hoja 2 *********************************************/
 /**************************************************************************************************/
+foreach ($puntos as $key => $punto) {
+
+    try   
+    {
+        $sql="SELECT *, DATE_FORMAT(hora, '%H:%i') as 'hora' FROM medsilumtbl
+            WHERE puntoidfk = :id";
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $punto['id']);
+        $s->execute();
+        $mediciones = $s->fetchAll();
+
+        /*echo "<pre>";
+        var_dump($mediciones);
+        echo "<br><br>";
+        echo "</pre>";*/
+        
+    }catch (PDOException $e){
+        /*$mensaje='Error al tratar de obtener información de la orden.'.$e;
+        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+        exit();*/
+    }
+
     $pdf->AddPage();
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
@@ -1016,13 +1226,13 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->Cell(30, 6, utf8_decode('Fecha'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(30, 6, utf8_decode('2013-02-20'), 1, 0, 'C', true);
+    $pdf->Cell(30, 6, utf8_decode($punto['fecha']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(20, 6, utf8_decode('O.T.'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(0, 6, utf8_decode('092'), 1, 1, 'C', true);
+    $pdf->Cell(0, 6, utf8_decode($orden['ot']), 1, 1, 'C', true);
 
     blanco($pdf, 8, 'B');
     $pdf->Cell(0, 8, utf8_decode('DATOS DE LA EMPRESA'), 1, 1, 'C', true);
@@ -1031,55 +1241,55 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->Cell(25, 7, utf8_decode('Compañía'), 1, 0, 'L', true);
 
     blanco($pdf, 8 ,'B');
-    $pdf->Cell(0, 7, utf8_decode('BARNICES Y RESINAS S.A. DE C.V.'), 1, 1, 'L', true);
+    $pdf->Cell(0, 7, utf8_decode($cliente['Razon_Social']), 1, 1, 'L', true);
 
     gris($pdf);
     $pdf->Cell(25, 7, utf8_decode('Domicilio'), 1, 0, 'L', true);
 
     blanco($pdf, 7);
-    $pdf->Cell(0, 7, utf8_decode('Calle Acero, Manzana 8, Lote 13, Col. Esfuerzo Nacional, C.P. 55320'), 1, 1, 'L', true);
+    $pdf->Cell(0, 7, utf8_decode($cliente['Calle_Numero'].' '.$cliente['Colonia']), 1, 1, 'L', true);
 
     gris($pdf);
     $pdf->Cell(25, 7, utf8_decode('Representante'), 1, 0, 'L', true);
 
     blanco($pdf, 7);
-    $pdf->Cell(0, 7, utf8_decode('Lic. Moisés Preciado Hop'), 1, 1, 'L', true);
+    $pdf->Cell(0, 7, utf8_decode($orden['atencion']), 1, 1, 'L', true);
 
     gris($pdf);
     $pdf->Cell(25, 7, utf8_decode('Planta'), 1, 0, 'L', true);
 
     blanco($pdf, 7);
-    $pdf->Cell(50, 7, utf8_decode('ECATEPEC'), 1, 0, 'L', true);
+    $pdf->Cell(50, 7, utf8_decode(isset($cliente['Planta']) ? $cliente['Planta'] : ''), 1, 0, 'L', true);
 
     gris($pdf);
     $pdf->Cell(25, 7, utf8_decode('Lugar'), 1, 0, 'L', true);
 
     blanco($pdf, 7);
-    $pdf->Cell(0, 7, utf8_decode('Ecatepec, Estado de México'), 1, 1, 'L', true);
+    $pdf->Cell(0, 7, utf8_decode($cliente['Ciudad'].' '.$cliente['Estado']), 1, 1, 'L', true);
 
     gris($pdf);
     $pdf->Cell(25, 7, utf8_decode('Departamento'), 1, 0, 'L', true);
 
     blanco($pdf, 7);
-    $pdf->Cell(50, 7, utf8_decode('Producción'), 1, 0, 'L', true);
+    $pdf->Cell(50, 7, utf8_decode($punto['departamento']), 1, 0, 'L', true);
 
     gris($pdf);
     $pdf->Cell(25, 7, utf8_decode('Área'), 1, 0, 'L', true);
 
     blanco($pdf, 7);
-    $pdf->Cell(0, 7, utf8_decode('Descarga'), 1, 1, 'L', true);
+    $pdf->Cell(0, 7, utf8_decode($punto['area']), 1, 1, 'L', true);
 
     gris($pdf);
     $pdf->Cell(25, 7, utf8_decode('Identificación'), 1, 0, 'L', true);
 
     blanco($pdf, 7);
-    $pdf->Cell(50, 7, utf8_decode('Pasillo entre R2 y R-5'), 1, 0, 'L', true);
+    $pdf->Cell(50, 7, utf8_decode($punto['identificacion']), 1, 0, 'L', true);
 
     gris($pdf);
     $pdf->Cell(25, 7, utf8_decode('Ubicación'), 1, 0, 'L', true);
 
     blanco($pdf, 7);
-    $pdf->Cell(0, 7, utf8_decode('Descarga'), 1, 1, 'L', true);
+    $pdf->Cell(0, 7, utf8_decode($punto['ubicacion']), 1, 1, 'L', true);
 
     blanco($pdf, 8, 'B');
     $pdf->Cell(0, 8, utf8_decode('DATOS DEL LABORATORIO DE PRUEBAS'), 1, 1, 'C', true);
@@ -1091,7 +1301,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->Cell(60, 8, utf8_decode('Laboratorio del Grupo Microanalisis, S.A. de C.V.'), 1, 0, 'L', true);
 
     gris($pdf);
-    $pdf->Cell(25, 8, utf8_decode('Acred.. EMA'), 1, 0, 'L', true);
+    $pdf->Cell(25, 8, utf8_decode('Acred. EMA'), 1, 0, 'L', true);
 
     blanco($pdf, 8);
     $pdf->MultiCell(0, 3.5, utf8_decode("Al-0102-015/12 \n Vigencia a partir del 2012-08-10"), 1, 'L', true);
@@ -1103,19 +1313,19 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->Cell(25, 7, utf8_decode('Marca'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(30, 7, utf8_decode('TESTO'), 1, 0, 'C', true);
+    $pdf->Cell(30, 7, utf8_decode($punto['marca']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(30, 7, utf8_decode('Modelo'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(30, 7, utf8_decode('545'), 1, 0, 'C', true);
+    $pdf->Cell(30, 7, utf8_decode($punto['modelo']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(20, 7, utf8_decode('No. de Serie'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(0, 7, utf8_decode('01200990/603'), 1, 1, 'C', true);
+    $pdf->Cell(0, 7, utf8_decode($punto['serie']), 1, 1, 'C', true);
     $pdf->Ln(3);
 
     azul($pdf);
@@ -1128,47 +1338,58 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->SetAligns(array('C','C','C','C','C','C'));
 
     $pdf->Row(array(utf8_decode('Hora de medición'),
-                utf8_decode('Nivel de iluminación obtenido (lux)'),
-                utf8_decode('Nivel Ilum. Mín. Recomendado (lux)'),
-                utf8_decode('Factor de Reflexión (%) 50%'),
-                utf8_decode('Nivel de iluminación en pared (lux)'),
-                utf8_decode('Factor de Reflexión pared (%) 60%')
-            )
-        );
+                    utf8_decode('Nivel de iluminación obtenido (lux)'),
+                    utf8_decode('Nivel Ilum. Mín. Recomendado (lux)'),
+                    utf8_decode('Factor de Reflexión (%) 50%'),
+                    utf8_decode('Nivel de iluminación en pared (lux)'),
+                    utf8_decode('Factor de Reflexión pared (%) 60%')
+                )
+            );
 
     blanco($pdf);
     $pdf->SetFontSizes(array(7));
 
-    $pdf->Row(array(utf8_decode('medición'),
-                utf8_decode('Nivel'),
-                utf8_decode('Nivel'),
-                utf8_decode('Factor'),
-                utf8_decode('Nivel'),
-                utf8_decode('Factor')
-            )
-        );
+    $datay1 = array();
+    foreach ($mediciones as $key => $medicion) {
+        $correccion = json_decode($punto['correccion'], TRUE);
+        //var_dump($correccion);
 
-    $pdf->Row(array(utf8_decode('medición'),
-                utf8_decode('Nivel'),
-                utf8_decode('Nivel'),
-                utf8_decode('Factor'),
-                utf8_decode('Nivel'),
-                utf8_decode('Factor')
-            )
-        );
+        foreach ($correccion as $num => $rango) {
+            if($num < count($correccion)-1){
+                if($medicion['e2plano'] >= $correccion[$num]['Rango'] AND $medicion['e2plano'] < $correccion[$num+1]['Rango']){
+                    $factor1 = $correccion[$num]['Correccion1'];
+                    $factor2 = $correccion[$num]['Correccion2'];
+                    break;
+                }
+            }elseif($num === count($correccion)-1){
+                $factor1 = $rango['Correccion1'];
+                $factor2 = $rango['Correccion2'];
+                break;
+            }
+        }
 
-    $pdf->Row(array(utf8_decode('medición'),
-                utf8_decode('Nivel'),
-                utf8_decode('Nivel'),
-                utf8_decode('Factor'),
-                utf8_decode('Nivel'),
-                utf8_decode('Factor')
-            )
-        );
+        $medplanocorregida = (intval($medicion['e2plano']) !== 0) ? round(floatval($medicion['e2plano']) * floatval($factor1) + floatval($factor2)) : '---';
+        $datay1[] = $medplanocorregida;
+        $incertidumbreplano = ($medplanocorregida !== '---') ? round($medplanocorregida * 0.107632, 0) : '---';
+
+        $reflexplano = (intval($medicion['e1plano']) !== 0) ? (round(floatval($medicion['e1plano']) * floatval($factor1) + floatval($factor2)) / $medplanocorregida) * 100 : 'No Aplica';
+
+        $medparedcorregida = (intval($medicion['e2pared']) !== 0) ? round(floatval($medicion['e2pared']) * floatval($factor1) + floatval($factor2)) : '---';
+        $incertidumbrepared = ($medparedcorregida !== '---') ? round($medparedcorregida * 0.107632, 0) : '---';
+
+        $reflexpared = (intval($medicion['e1pared']) !== 0) ?  (round(floatval($medicion['e1pared']) * floatval($factor1) + floatval($factor2)) / $medparedcorregida) * 100 : 'No Aplica';
+        
+        $pdf->RowColor2(array(utf8_decode($medicion['hora']),
+                        utf8_decode($medplanocorregida.' ± '.$incertidumbreplano),
+                        utf8_decode($punto['nirm']),
+                        utf8_decode($reflexplano),
+                        utf8_decode($medparedcorregida.' ± '.$incertidumbrepared),
+                        utf8_decode($reflexpared)
+                    )
+                );
+    }
 
     $pdf->Ln(3);
-
-    $datay1=array(35,160,0);
  
     $graph = new Graph(500,250,'auto');    
     $graph->SetScale("textlin");
@@ -1226,6 +1447,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     $pdf->SetFont('Arial', 'B', 8);
     $pdf->Cell(60, 4, utf8_decode('T.S.U. Omar Amador Arellano'), 0, 1, 'C');
     $pdf->Cell(60, 4, utf8_decode('Signatario Autorizado'), 0, 0, 'C');
+}
 
 /**************************************************************************************************/
 /********************************************* Hoja 3 *********************************************/
@@ -1957,27 +2179,113 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
       $pdf->Ln(7);
     }
 
-function azul($pdf){
-    $pdf->SetFont('Arial', 'B', 9);
-    $pdf->SetFillColor(0, 51, 105);
-    $pdf->SetTextColor(255);
-}
+    function azul($pdf){
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->SetFillColor(0, 51, 105);
+        $pdf->SetTextColor(255);
+    }
 
-function gris($pdf, $fuente='', $size=9){
-    $pdf->SetFont('Arial', $fuente, $size);
-    $pdf->SetFillColor(227, 227, 227);
-    $pdf->SetTextColor(0);
-}
+    function gris($pdf, $fuente='', $size=9){
+        $pdf->SetFont('Arial', $fuente, $size);
+        $pdf->SetFillColor(227, 227, 227);
+        $pdf->SetTextColor(0);
+    }
 
-function blanco($pdf, $size=8, $fuente=''){
-    $pdf->SetFont('Arial', $fuente, $size);
-    $pdf->SetFillColor(255);
-    $pdf->SetTextColor(0);
-}
+    function blanco($pdf, $size=8, $fuente=''){
+        $pdf->SetFont('Arial', $fuente, $size);
+        $pdf->SetFillColor(255);
+        $pdf->SetTextColor(0);
+    }
 
-function inlineBold($pdf, $text){
-    $pdf->SetFont('Arial', 'B');
-    return $pdf->Text(0, 0, $text);
-}
+    function medListado($pdf, $data){
+        $pdf->SetWidths(array(10,13,20,20,27,12,9,12,12,12,9,12,12,12,9,12,12));
+        $pdf->SetFonts(array(''));
+        $pdf->SetFontSizes(array(6));
+        $pdf->SetAligns(array('C'));
+
+        $pdf->RowColor(array($data['medicion'],
+                            $data['fecha'],
+                            utf8_decode($data['departamento']),
+                            utf8_decode($data['area']),
+                            utf8_decode($data['identificacion']),
+                            utf8_decode($data[0]['ni']),
+                            $data[0]['nimr'],
+                            $data[0]['reflexpared'],
+                            $data[0]['reflexplano'],
+                            utf8_decode($data[1]['ni']),
+                            $data[1]['nimr'],
+                            $data[1]['reflexpared'],
+                            $data[1]['reflexplano'],
+                            utf8_decode($data[2]['ni']),
+                            $data[2]['nimr'],
+                            $data[2]['reflexpared'],
+                            $data[2]['reflexplano']
+                        )
+                    );
+    }
+
+    function deptoListado($pdf, $data){
+        blanco($pdf, 8, 'B');
+        $pdf->Cell(225, 5, utf8_decode('Departamento: '.$data['departamento']), 1, 1, 'C', true);
+    }
+
+    function headerTablaListado1($pdf){
+            $pdf->SetFont('Arial', 'B', 9);
+            $pdf->SetTextColor(0, 51, 105);
+            $pdf->Cell(238, 3, utf8_decode('LISTADO DE RESULTADOS'), 0, 1, 'C');
+            $pdf->Ln(2);
+            $pdf->Cell(238, 3, utf8_decode('EVALUACION DE LOS NIVELES DE ILUMINACION'), 0, 1, 'C');
+            $pdf->Ln(2);
+        }
+
+    function headerTablaListado2($pdf){
+            gris($pdf, 'B');
+            $x=$pdf->GetX();
+            $y=$pdf->GetY();
+            $pdf->MultiCell(10, 8.5, utf8_decode('No. Med'), 1, 'C', true);
+            $pdf->SetXY($x+10,$y);
+            $pdf->Cell(13, 17, utf8_decode('Fecha'), 1, 0, 'C', true);
+            $pdf->Cell(20, 17, utf8_decode('Área'), 1, 0, 'C', true);
+            $pdf->Cell(20, 17, utf8_decode('Ubicación'), 1, 0, 'C', true);
+            $pdf->Cell(27, 17, utf8_decode('Identificación'), 1, 0, 'C', true);
+
+            $x=$pdf->GetX();
+            $y=$pdf->GetY();
+            $pdf->SetWidths(array(45,12,9,12,12));
+            $pdf->SetAligns(array('C'));
+            $pdf->SetFonts(array('B'));
+            $pdf->SetFontSizes(array(6));
+            $pdf->carobsRow(array(utf8_decode('Resultados 1er Ciclo de Medición'),
+                                array(utf8_decode('N.I. (Lux)'),
+                                    utf8_decode('NIMR (lux)'),
+                                      utf8_decode('Reflexión paredes (60%)'),
+                                      utf8_decode('Reflexión plano de trabajo (50%)')
+                                    )
+                                )
+                            );
+
+            $pdf->SetXY($x+45,$y);
+            $x=$pdf->GetX();
+            $y=$pdf->GetY();
+            $pdf->carobsRow(array(utf8_decode('Resultados 2do Ciclo de Medición'),
+                                array(utf8_decode('N.I. (Lux)'),
+                                      utf8_decode('NIMR (lux)'),
+                                      utf8_decode('Reflexión paredes (60%)'),
+                                      utf8_decode('Reflexión plano de trabajo (50%)')
+                                    )
+                                )
+                            );
+
+            $pdf->SetXY($x+45,$y);
+            $pdf->carobsRow(array(utf8_decode('Resultados 3er Ciclo de Medición'),
+                                array(utf8_decode('N.I. (Lux)'),
+                                      utf8_decode('NIMR (lux)'),
+                                      utf8_decode('Reflexión paredes (60%)'),
+                                      utf8_decode('Reflexión plano de trabajo (50%)')
+                                    )
+                                )
+                            );
+            $pdf->Ln(12);
+    }
 
     ?>

@@ -20,7 +20,7 @@
       <h2><?php htmlout($titulopagina); ?></h2>
       <p>formacapturarci</p>
       <?php
-        $formulario = array("Fecha" => "fecha",
+        $formulario = array("Fecha (aaaa-mm-dd)" => "fecha",
                							"Departamento" => "departamento",
                							"Área" => "area",
                							"Largo" => "largo",
@@ -33,7 +33,7 @@
                							"Color de Techo" => "techocolor",
                							"Color de Pared" => "paredcolor",
                							"Color de Piso" => "pisocolor",
-               							"Percepción" => "percepcion");
+               							"Percepción de la iluminación" => "percepcion");
       ?>
       <form id="rciform" action="?<?php htmlout($accion); ?>" method="post">
       	<?php foreach($formulario as $label => $name): ?>
@@ -43,6 +43,11 @@
         	</div>
       	<?php endforeach?>
         <div>
+        <div>
+          <label for="mantenimiento">Programa mantenimiento: (max. 250)</label>
+          <br>
+          <textarea style="resize: none;" maxlength=250 rows=5 cols=45 name="mantenimiento" id="mantenimiento"><?php htmlout($valores['mantenimiento']); ?></textarea>
+        </div>
          <label for="influencia">Influencia:</label>
          <select name="influencia" id="influencia">
           <option value=""<?php if($valores["influencia"] === "") echo 'selected'?>>Seleccionar</option>
@@ -155,6 +160,10 @@
           required: true
         },
         descriproceso: {
+         required: true,
+         maxlength: 350
+        },
+        mantenimiento: {
          required: true,
          maxlength: 350
         },
