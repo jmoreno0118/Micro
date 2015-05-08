@@ -22,7 +22,7 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';?>
 	 <form action="" method="get">
      <p>Buscar a una orden por:</p>
      <div>
-      <label for="ot">Num de OT:</label>
+      <label for="ot">Núm de OT:</label>
       <input type="text" name="ot" id="ot">
      </div>
      <div>
@@ -41,9 +41,9 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';?>
       <?php foreach ($ordenes as $orden): ?>
         <tr>
         <td><?php htmlout($orden['ot']); ?></td>
-        <td><?php htmlout($orden['razonsocial'])?></td>
-        <td><?php htmlout($orden['ciudad'])?></td>
-        <td><?php htmlout($orden['estado'])?></td>
+        <td><?php htmlout(htmldecode($orden['razonsocial']))?></td>
+        <td><?php htmlout(htmldecode($orden['ciudad']))?></td>
+        <td><?php htmlout(htmldecode($orden['estado']))?></td>
         <td>
         <form action="?" method="post">
          <div>

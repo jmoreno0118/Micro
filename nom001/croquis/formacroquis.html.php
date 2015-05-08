@@ -44,10 +44,7 @@
 	 </div>
 	<?php endif; ?>
    </fieldset>
-   <form action="" method="post">
-      <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
-      <input type="submit" name="accion" value="volvermed">
-  </form>
+   <p><a href="../generales">Volver a mediciones</a></p>
   
   </div>  <!-- cuerpoprincipal -->
   <div id="footer">

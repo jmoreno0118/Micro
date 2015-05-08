@@ -84,8 +84,8 @@
     <input type="hidden" name="meds" value="">
     <input type="submit" name="accion" value="volver">
   </form>
-  <p><a href="../nom001">Regresa al búsqueda de ordenes</a></p>
   <p><a href="../generales">Volver a mediciones</a></p>
+  <p><a href="../nom001">Regresa al búsqueda de ordenes</a></p>
   </div>  <!-- cuerpoprincipal -->
   <div id="footer">
     <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>

@@ -27,9 +27,9 @@
       <?php foreach ($ordenes as $orden): ?>
 	  <tr>
 	   <td><?php htmlout($orden['ot']); ?></td>
-	   <td><?php htmlout($orden['razonsocial'])?></td>
-	   <td><?php htmlout($orden['ciudad'])?></td>
-	   <td><?php htmlout($orden['estado'])?></td>
+	   <td><?php htmlout(htmldecode($orden['razonsocial']))?></td>
+	   <td><?php htmlout(htmldecode($orden['ciudad']))?></td>
+	   <td><?php htmlout(htmldecode($orden['estado']))?></td>
 	   <td>
 	    <form action="?" method="post">
 	     <div>
