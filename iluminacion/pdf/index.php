@@ -8,6 +8,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
 require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/jpgraph_pie.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/jpgraph_pie3d.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/jpgraph_bar.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/jpgraph_line.php';
 
 /**************************************************************************************************/
 /* Modificaciones al FPDF */
@@ -874,10 +875,8 @@ foreach ($recinis as $key => $recini) {
     }
     $deptos = array_unique($deptos);
 
-    $verde = array();
-    $rojo = array();
-    $verde1 = array(0, 0, 0);
-    $rojo1 = array(0, 0, 0);
+    $verde = array(0, 0, 0);
+    $rojo = array(0, 0, 0);
     $listado = array();
     $i = 0;
     foreach ($deptos as $numdepto => $depto) {
@@ -885,7 +884,8 @@ foreach ($recinis as $key => $recini) {
             if($punto['departamento'] === $depto){
                 try   
                 {
-                    $sql="SELECT *, DATE_FORMAT(hora, '%H:%i') as 'hora' FROM medsilumtbl
+                    $sql="SELECT *, DATE_FORMAT(hora, '%H:%i') as 'hora'
+                        FROM medsilumtbl
                         WHERE puntoidfk = :id";
                     $s=$pdo->prepare($sql);
                     $s->bindValue(':id', $punto['id']);
@@ -913,7 +913,6 @@ foreach ($recinis as $key => $recini) {
                                         );
 
                     $correccion = json_decode($punto['correccion'], TRUE);
-                    //var_dump($correccion);
                     foreach ($mediciones as $key => $medicion) {
                         foreach ($correccion as $num => $rango) {
                             if($num < count($correccion)-1){
@@ -944,14 +943,10 @@ foreach ($recinis as $key => $recini) {
                         $listado[$i][$key]['reflexpared'] = $reflexpared;
                         $listado[$i][$key]['reflexplano'] = $reflexplano;
 
-                        $verde[$numpunto][$key] = 0;
-                        $rojo[$numpunto][$key] = 0;
                         if($medplanocorregida >= $punto['nirm']){
-                            $verde[$numpunto][$key]++;
-                            $verde1[$key]++;
+                            $verde[$key]++;
                         }else{
-                            $rojo[$numpunto][$key]++;
-                            $rojo1[$key]++;
+                            $rojo[$key]++;
                         }
                     }
                 }catch (PDOException $e){
@@ -964,15 +959,6 @@ foreach ($recinis as $key => $recini) {
             }
         }
     }
-
-    echo '<pre>';
-    /*var_dump($verde);
-    echo '<br>';
-    var_dump($rojo);*/
-    var_dump($verde1);
-    echo '<br>';
-    var_dump($rojo1);
-    echo '</pre>';
 
     $pdf->AddPage('L');
     $pdf->SetMargins(20, 0, 25);
@@ -1079,101 +1065,42 @@ foreach ($recinis as $key => $recini) {
         }
     }
 
-    $data = array(6,3);
-    $labels = array("Valores\ndentro de\nnorma\n(%.1f%%)",
-                    "Valores\nfuera de\nnorma\n(%.1f%%)");
-     
-    $graph = new PieGraph(310,200);
-    $graph->SetShadow();
-     
-    $graph->title->Set(utf8_decode("Análisis de resultados 1er Ciclo"));
-    $graph->title->SetFont(FF_FONT1,FS_BOLD);
-     
-    $p1 = new PiePlot3D($data);
-    $p1->SetSize(0.5);
-    $p1->SetCenter(0.5);
-    $p1->ExplodeAll(15);
-    $p1->SetStartAngle(60);
-    $p1->SetLabels($labels);
-    $p1->SetLabelPos(0);
-    $p1->value->SetColor('black');
-    
-    $graph->Add($p1);
-    $p1->SetSliceColors(array('green','red'));
-    //$graph->Stroke();
+    if($verde[0] === $verde[1] AND $verde[0] === $verde[2] AND $verde[1] === $verde[2] AND
+        $rojo[0] === $rojo[1] AND $rojo[0] === $rojo[2] AND $rojo[1] === $rojo[2]){
 
-    $nombreImagen = '' . uniqid() . '.png';
-    // Display the graph
-    $graph->Stroke($nombreImagen);
+        crearPie($pdf, $verde[0], $rojo[0], '1er, 2do y 3er Ciclos', 'C');
 
-    //Aqui agrego la imagen que acabo de crear con jpgraph
-    $pdf->Image($nombreImagen, 90, 142  , 55, 45);
+    }elseif($verde[0] !== $verde[1] AND $verde[0] !== $verde[2] AND $verde[1] !== $verde[2] AND
+            $rojo[0] !== $rojo[1] AND $rojo[0] !== $rojo[2] AND $rojo[1] !== $rojo[2]){
 
-    unlink($nombreImagen);
+        crearPie($pdf, $verde[0], $rojo[0], '1er  Ciclo', 'L');
 
-    $data = array(2,7);
-    $labels = array("Valores\ndentro de\nnorma\n(%.1f%%)",
-                "Valores\nfuera de\nnorma\n(%.1f%%)");
+        crearPie($pdf, $verde[1], $rojo[1], '2do  Ciclo', 'C');
 
-    $graph = new PieGraph(310,200);
-    $graph->SetShadow();
-     
-    $graph->title->Set(utf8_decode("Análisis de resultados 2do Ciclo"));
-    $graph->title->SetFont(FF_FONT1,FS_BOLD);
-     
-    $p1 = new PiePlot3D($data);
-    $p1->SetSize(0.5);
-    $p1->SetCenter(0.5);
-    $p1->ExplodeAll(15);
-    $p1->SetStartAngle(60);
-    $p1->SetLabels($labels);
-    $p1->SetLabelPos(0);
-    $p1->value->SetColor('black');
-    
-    $graph->Add($p1);
-    $p1->SetSliceColors(array('green','red'));
-    //$graph->Stroke();
+        crearPie($pdf, $verde[2], $rojo[2], '3er  Ciclo', 'R');
+    }elseif($verde[0] === $verde[1] AND $rojo[0] === $rojo[1] AND $verde[1] !== $verde[2] AND 
+            $rojo[1] !== $rojo[2] AND $verde[0] !== $verde[2] AND $rojo[0] !== $rojo[2]){
 
-    $nombreImagen = '' . uniqid() . '.png';
-    // Display the graph
-    $graph->Stroke($nombreImagen);
+        crearPie($pdf, $verde[0], $rojo[0], '1er y 2do Ciclo', 'L');
 
-    //Aqui agrego la imagen que acabo de crear con jpgraph
-    $pdf->Image($nombreImagen, 145, 142, 55, 45);
+        crearPie($pdf, $verde[2], $rojo[2], '3er  Ciclo', 'C');
 
-    unlink($nombreImagen);
+    }elseif($verde[1] === $verde[2] AND $rojo[1] === $rojo[2] AND $verde[0] !== $verde[1] AND
+            $rojo[0] !== $rojo[1] AND $verde[0] !== $verde[2] AND $rojo[0] !== $rojo[2]){
 
-    $data = array(0,9);
-    $labels = array("Valores\ndentro de\nnorma\n(%.1f%%)",
-                "Valores\nfuera de\nnorma\n(%.1f%%)");
+        crearPie($pdf, $verde[1], $rojo[1], '2do y 3er  Ciclo', 'L');
 
-    $graph = new PieGraph(310,200);
-    $graph->SetShadow();
-     
-    $graph->title->Set(utf8_decode("Análisis de resultados 3er Ciclo"));
-    $graph->title->SetFont(FF_FONT1,FS_BOLD);
-     
-    $p1 = new PiePlot3D($data);
-    $p1->SetSize(0.5);
-    $p1->SetCenter(0.5);
-    $p1->ExplodeAll(15);
-    $p1->SetStartAngle(60);
-    $p1->SetLabels($labels);
-    $p1->SetLabelPos(0);
-    $p1->value->SetColor('black');
-    
-    $graph->Add($p1);
-    $p1->SetSliceColors(array('green','red'));
-    //$graph->Stroke();
+        crearPie($pdf, $verde[0], $rojo[0], '1er  Ciclo', 'C');
 
-    $nombreImagen = '' . uniqid() . '.png';
-    // Display the graph
-    $graph->Stroke($nombreImagen);
+    }elseif($verde[0] === $verde[2] AND $rojo[0] === $rojo[2] AND $verde[1] !== $verde[2] AND 
+            $rojo[1] !== $rojo[2] AND $verde[0] !== $verde[1] AND $rojo[0] !== $rojo[1]){
 
-    //Aqui agrego la imagen que acabo de crear con jpgraph
-    $pdf->Image($nombreImagen, 195, 142, 55, 45);
+        crearPie($pdf, $verde[0], $rojo[0], '1er y 3er Ciclo', 'L');
 
-    unlink($nombreImagen);
+        crearPie($pdf, $verde[1], $rojo[1], '2do  Ciclo', 'C');
+
+    }
+
     $pdf->Rotate(0);
 
 /**************************************************************************************************/
@@ -1189,6 +1116,15 @@ foreach ($puntos as $key => $punto) {
         $s->bindValue(':id', $punto['id']);
         $s->execute();
         $mediciones = $s->fetchAll();
+
+        $sql="SELECT influencia
+            FROM recsilumtbl
+            INNER JOIN puntorecilumtbl ON recsilumtbl.id = puntorecilumtbl.recilumidfk
+            WHERE puntoidfk = :id";
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $punto['id']);
+        $s->execute();
+        $influencia = $s->fetch();
 
         /*echo "<pre>";
         var_dump($mediciones);
@@ -1220,7 +1156,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->Cell(25, 6, utf8_decode('Medición No'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(30, 6, utf8_decode('1'), 1, 0, 'C', true);
+    $pdf->Cell(30, 6, utf8_decode($punto['medicion']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(30, 6, utf8_decode('Fecha'), 1, 0, 'C', true);
@@ -1350,6 +1286,9 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetFontSizes(array(7));
 
     $datay1 = array();
+    $datay2 = array();
+    $verde = array(0, 0, 0);
+    $rojo = array(0, 0, 0);
     foreach ($mediciones as $key => $medicion) {
         $correccion = json_decode($punto['correccion'], TRUE);
         //var_dump($correccion);
@@ -1370,6 +1309,9 @@ foreach ($puntos as $key => $punto) {
 
         $medplanocorregida = (intval($medicion['e2plano']) !== 0) ? round(floatval($medicion['e2plano']) * floatval($factor1) + floatval($factor2)) : '---';
         $datay1[] = $medplanocorregida;
+        $datay2[0] = $punto['nirm'];
+        $datay2[1] = $punto['nirm'];
+        $datay2[2] = $punto['nirm'];
         $incertidumbreplano = ($medplanocorregida !== '---') ? round($medplanocorregida * 0.107632, 0) : '---';
 
         $reflexplano = (intval($medicion['e1plano']) !== 0) ? (round(floatval($medicion['e1plano']) * floatval($factor1) + floatval($factor2)) / $medplanocorregida) * 100 : 'No Aplica';
@@ -1380,20 +1322,71 @@ foreach ($puntos as $key => $punto) {
         $reflexpared = (intval($medicion['e1pared']) !== 0) ?  (round(floatval($medicion['e1pared']) * floatval($factor1) + floatval($factor2)) / $medparedcorregida) * 100 : 'No Aplica';
         
         $pdf->RowColor2(array(utf8_decode($medicion['hora']),
-                        utf8_decode($medplanocorregida.' ± '.$incertidumbreplano),
-                        utf8_decode($punto['nirm']),
-                        utf8_decode($reflexplano),
-                        utf8_decode($medparedcorregida.' ± '.$incertidumbrepared),
-                        utf8_decode($reflexpared)
-                    )
-                );
+                            utf8_decode($medplanocorregida.' ± '.$incertidumbreplano),
+                            utf8_decode($punto['nirm']),
+                            utf8_decode($reflexplano),
+                            utf8_decode($medparedcorregida.' ± '.$incertidumbrepared),
+                            utf8_decode($reflexpared)
+                        )
+                    );
+
+        if($medplanocorregida >= $punto['nirm']){
+            $verde[$key]++;
+        }else{
+            $rojo[$key]++;
+        }
+    }
+
+    if(count($verde) === 3){
+
+    }elseif(count($rojo) === 3){
+
+    }else{
+        
+    }
+
+    if($verde[0] === $verde[1] AND $verde[0] === $verde[2] AND $verde[1] === $verde[2] AND
+        $rojo[0] === $rojo[1] AND $rojo[0] === $rojo[2] AND $rojo[1] === $rojo[2]){
+
+        crearPie($pdf, $verde[0], $rojo[0], '1er, 2do y 3er Ciclos', 'C');
+
+    }elseif($verde[0] !== $verde[1] AND $verde[0] !== $verde[2] AND $verde[1] !== $verde[2] AND
+            $rojo[0] !== $rojo[1] AND $rojo[0] !== $rojo[2] AND $rojo[1] !== $rojo[2]){
+
+        crearPie($pdf, $verde[0], $rojo[0], '1er  Ciclo', 'L');
+
+        crearPie($pdf, $verde[1], $rojo[1], '2do  Ciclo', 'C');
+
+        crearPie($pdf, $verde[2], $rojo[2], '3er  Ciclo', 'R');
+
+    }elseif($verde[0] === $verde[1] AND $rojo[0] === $rojo[1] AND $verde[1] !== $verde[2] AND 
+            $rojo[1] !== $rojo[2] AND $verde[0] !== $verde[2] AND $rojo[0] !== $rojo[2]){
+
+        crearPie($pdf, $verde[0], $rojo[0], '1er y 2do Ciclo', 'L');
+
+        crearPie($pdf, $verde[2], $rojo[2], '3er  Ciclo', 'C');
+
+    }elseif($verde[1] === $verde[2] AND $rojo[1] === $rojo[2] AND $verde[0] !== $verde[1] AND
+            $rojo[0] !== $rojo[1] AND $verde[0] !== $verde[2] AND $rojo[0] !== $rojo[2]){
+
+        crearPie($pdf, $verde[1], $rojo[1], '2do y 3er  Ciclo', 'L');
+
+        crearPie($pdf, $verde[0], $rojo[0], '1er  Ciclo', 'C');
+
+    }elseif($verde[0] === $verde[2] AND $rojo[0] === $rojo[2] AND $verde[1] !== $verde[2] AND 
+            $rojo[1] !== $rojo[2] AND $verde[0] !== $verde[1] AND $rojo[0] !== $rojo[1]){
+
+        crearPie($pdf, $verde[0], $rojo[0], '1er y 3er Ciclo', 'L');
+
+        crearPie($pdf, $verde[1], $rojo[1], '2do  Ciclo', 'C');
+
     }
 
     $pdf->Ln(3);
  
-    $graph = new Graph(500,250,'auto');    
+    $graph = new Graph(500, 250, 'auto');
+    $graph->img->SetAntiAliasing(false);
     $graph->SetScale("textlin");
-    $graph->SetShadow();
     $graph->img->SetMargin(30,15,15,30);
     $graph->xaxis->SetTickLabels(array('1','2','3'));
      
@@ -1401,18 +1394,28 @@ foreach ($puntos as $key => $punto) {
     $bplot1->SetShadow();
 
     // Setup color for gradient fill style 
-    $bplot1->SetFillGradient("navy","lightsteelblue",GRAD_HOR);
+    $bplot1->SetFillGradient("dodgerblue4","lightsteelblue", GRAD_HOR);
          
     // Set color for the frame of each bar
-    $bplot1->SetColor("navy");
+    $bplot1->SetColor("black");
+
     $graph->Add($bplot1);
+
+    $p1 = new LinePlot($datay2);
+    $graph->Add($p1);
+    $p1->mark->SetType(MARK_DIAMOND);
+    $p1->mark->SetWidth(8); 
+    $p1->mark->SetFillColor('navy');
+    $p1->SetBarCenter();
+    $p1->SetColor('navy');
+    $p1->SetStyle('solid');
      
-     $nombreImagen = '' . uniqid() . '.png';
+    $nombreImagen = '' . uniqid() . '.png';
     // Display the graph
     $graph->Stroke($nombreImagen);
 
     //Aqui agrego la imagen que acabo de crear con jpgraph
-    $pdf->Image($nombreImagen, 20, 182, 90, 60);
+    $pdf->Image($nombreImagen, 20, 185, 95, 55);
 
     unlink($nombreImagen);
 
@@ -1422,7 +1425,7 @@ foreach ($puntos as $key => $punto) {
 
     $pdf->Cell(100, 6, '', 0, 0);
     blanco($pdf);
-    $pdf->Cell(0, 20, utf8_decode('Iluminacion natural y artificial'), 1, 1, 'C', true);
+    $pdf->Cell(0, 20, utf8_decode('Iluminación '.(($influencia['influencia'] === 0) ? 'Natural y artificial' : 'Iluminación Artificial').'. '.$punto['observaciones']), 1, 1, 'C', true);
 
     $pdf->Ln(2);
 
@@ -2286,6 +2289,45 @@ foreach ($puntos as $key => $punto) {
                                 )
                             );
             $pdf->Ln(12);
+    }
+
+    function crearPie($pdf, $verde, $rojo, $ciclos, $alineacion){
+        $data = array($verde, $rojo);
+        $labels = array("Valores\ndentro de\nnorma\n(%.1f%%)",
+                        "Valores\nfuera de\nnorma\n(%.1f%%)");
+         
+        $graph = new PieGraph(310,200);
+        $graph->SetShadow();
+         
+        $graph->title->Set(utf8_decode("Análisis de resultados ".$ciclos));
+        $graph->title->SetFont(FF_FONT1,FS_BOLD);
+         
+        $p1 = new PiePlot3D($data);
+        $p1->SetSize(0.5);
+        $p1->SetCenter(0.5);
+        $p1->ExplodeAll(15);
+        $p1->SetStartAngle(60);
+        $p1->SetLabels($labels);
+        $p1->SetLabelPos(0);
+        $p1->value->SetColor('black');
+        
+        $graph->Add($p1);
+        $p1->SetSliceColors(array('green','red'));
+        //$graph->Stroke();
+
+        $nombreImagen = '' . uniqid() . '.png';
+        // Display the graph
+        $graph->Stroke($nombreImagen);
+
+        if($alineacion === 'C'){
+            $pdf->Image($nombreImagen, 145, 142, 55, 45);
+        }elseif($alineacion === 'L'){
+            $pdf->Image($nombreImagen, 90, 142  , 55, 45);
+        }elseif($alineacion === 'R'){
+            $pdf->Image($nombreImagen, 195, 142, 55, 45);
+        }
+
+        unlink($nombreImagen);
     }
 
     ?>

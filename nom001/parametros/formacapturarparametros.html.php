@@ -44,8 +44,8 @@ function agregarIntervalo(nombre, unidades, resultado){
              							"Solidos suspendidos" => "ssuspendidos",
                           "DBO" => "dbo",
                           "Nitrógeno Kjeldahl" => "nkjedahl",
-                          "Nitritos" => "nitritos",
-                          "Nitratos" => "nitratos",
+                          "Nitrógeno de Nitritos" => "nitritos",
+                          "Nitrógeno de Nitratos" => "nitratos",
                           "Nitrógeno" => "nitrogeno",
                           "Fosforo" => "fosforo",
                           "Arsenico" => "arsenico",
@@ -98,65 +98,65 @@ function agregarIntervalo(nombre, unidades, resultado){
       	<?php endforeach?>
   	  
   	    <?php for ($i=0; $i<$cantidad; $i++) :?>
-  	    <div>
-  	    	<label for="parametros[<?php echo $i; ?>][GyA]">Grasas y Aceites:</label>
-    			<input type="text" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>">
+    	    <div>
+    	    	<label for="parametros[<?php echo $i; ?>][GyA]">Grasas y Aceites:</label>
+      			<input type="text" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>">
 
-    			<label for="parametros[<?php echo $i; ?>][coliformes]">Coliformes Fecales:</label>
-    			<input type="text" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["coliformes"]) : ""; ?>">
-  	    </div>
-  	  <?php endfor; ?>
-      <fieldset id="adicionales">
-       <legend>Adicionales:</legend>
-       <input type="button" id="agregar" value="Agregar nuevo adicional">
-       <?php for ($i=0; $i<10; $i++): ?>
-       <div>
-        <?php echo ($i+1).":"; ?>
-        <label for="adicionales[<?php echo $i; ?>][nombre]">Nombre del párametro:</label>
-        <input type="text" name="adicionales[<?php echo $i; ?>][nombre]" id="adicionales[<?php echo $i; ?>][nombre]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["nombre"]) : ""; ?>">
+      			<label for="parametros[<?php echo $i; ?>][coliformes]">Coliformes Fecales:</label>
+      			<input type="text" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["coliformes"]) : ""; ?>">
+    	    </div>
+  	   <?php endfor; ?>
+        <fieldset id="adicionales">
+          <legend>Adicionales:</legend>
+          <input type="button" id="agregar" value="Agregar nuevo adicional">
+          <?php for ($i=0; $i<10; $i++): ?>
+            <div>
+            <?php echo ($i+1).":"; ?>
+            <label for="adicionales[<?php echo $i; ?>][nombre]">Nombre del párametro:</label>
+            <input type="text" name="adicionales[<?php echo $i; ?>][nombre]" id="adicionales[<?php echo $i; ?>][nombre]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["nombre"]) : ""; ?>">
 
-        <label for="adicionales[<?php echo $i; ?>][unidades]">Unidades:</label>
-        <input type="text" name="adicionales[<?php echo $i; ?>][unidades]" id="adicionales[<?php echo $i; ?>][unidades]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["unidades"]) : ""; ?>">
+            <label for="adicionales[<?php echo $i; ?>][unidades]">Unidades:</label>
+            <input type="text" name="adicionales[<?php echo $i; ?>][unidades]" id="adicionales[<?php echo $i; ?>][unidades]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["unidades"]) : ""; ?>">
 
-        <label for="adicionales[<?php echo $i; ?>][resultado]">Resultado:</label>
-        <input type="text" name="adicionales[<?php echo $i; ?>][resultado]" id="adicionales[<?php echo $i; ?>][resultado]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["resultado"]) : ""; ?>">
-       </div>
-       <?php endfor; ?>
-       <?php if(isset($adicionales) AND count($adicionales)>10): ?>
-         <?php for ($i=0; $i<(count($adicionales)-10); $i++): ?>
-           <script type="text/javascript">
-            agregarIntervalo(<?php echo $adicionales[$i+10]["nombre"]; ?>, <?php echo $adicionales[$i+10]["unidades"]; ?>, <?php echo $adicionales[$i+10]["resultado"]; ?>);
-           </script>
-         <?php endfor; ?>
-       <?php endif;?>
-    </fieldset>
-	  </fieldset>
-	  <div>
-      <?php if(isset($regreso) AND $regreso === 1): ?>
-       <input type="hidden" name="regreso" value="1">
-       <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
-      <?php endif;?>
-	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
-      <input type="hidden" name="idparametro" value="<?php htmlout($idparametro); ?>">
-	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
-	  </div>
-	</form>
-  <?php if(isset($regreso) AND $regreso === 1): ?>
-    <br>
-    <form action="<?php htmlout($_SESSION['url']); ?>" method="post">
-      <input type="hidden" name="regreso" value="1">
-      <input type="hidden" name="id" value="<?php htmlout($id); ?>">
-      <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
-      <input type="hidden" name="coms" value="">
-      <input type="submit" name="accion" value="volver">
-    </form>
-  <?php endif;?>
-  <p><a href="../generales">No guardar parametros</a></p>
-  <p><a href="..">Regresa al búsqueda de ordenes</a></p>
-  </div>  <!-- cuerpoprincipal -->
-  <div id="footer">
-    <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>
-  </div>  <!-- footer -->
+            <label for="adicionales[<?php echo $i; ?>][resultado]">Resultado:</label>
+            <input type="text" name="adicionales[<?php echo $i; ?>][resultado]" id="adicionales[<?php echo $i; ?>][resultado]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["resultado"]) : ""; ?>">
+            </div>
+          <?php endfor; ?>
+          <?php if(isset($adicionales) AND count($adicionales)>10): ?>
+            <?php for ($i=0; $i<(count($adicionales)-10); $i++): ?>
+              <script type="text/javascript">
+              agregarIntervalo(<?php echo $adicionales[$i+10]["nombre"]; ?>, <?php echo $adicionales[$i+10]["unidades"]; ?>, <?php echo $adicionales[$i+10]["resultado"]; ?>);
+              </script>
+            <?php endfor; ?>
+          <?php endif;?>
+        </fieldset>
+      </fieldset>
+  	  <div>
+        <?php if(isset($regreso) AND $regreso === 1): ?>
+         <input type="hidden" name="regreso" value="1">
+         <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
+        <?php endif;?>
+  	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
+        <input type="hidden" name="idparametro" value="<?php htmlout($idparametro); ?>">
+  	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
+  	  </div>
+    	</form>
+    <?php if(isset($regreso) AND $regreso === 1): ?>
+      <br>
+      <form action="<?php htmlout($_SESSION['url']); ?>" method="post">
+        <input type="hidden" name="regreso" value="1">
+        <input type="hidden" name="id" value="<?php htmlout($id); ?>">
+        <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
+        <input type="hidden" name="coms" value="">
+        <input type="submit" name="accion" value="volver">
+      </form>
+    <?php endif;?>
+    <p><a href="../generales">No guardar parametros</a></p>
+    <p><a href="..">Regresa al búsqueda de ordenes</a></p>
+    </div>  <!-- cuerpoprincipal -->
+    <div id="footer">
+      <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>
+    </div>  <!-- footer -->
   </div> <!-- contenedor -->
 </body>
 </html>
@@ -165,11 +165,12 @@ function agregarIntervalo(nombre, unidades, resultado){
 <script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
 <script type="text/javascript">
   $(document).ready(function() {
-      //this calculates values automatically 
-      calculateSum();
+    //this calculates values automatically 
+    calculateSum();
 
-      <?php if(!isset($parametros)): ?>
-        $("#fechareporte").on("keydown keyup", function() {
+    <?php if($valores === ""): ?>
+      $("#fechareporte").on("keydown keyup", function() {
+        if($("#fechareporte").val().length === 10){
           $.ajax({
             type: "POST",
             url: "limites.php",
@@ -178,7 +179,6 @@ function agregarIntervalo(nombre, unidades, resultado){
             dataType: 'json',
             success: function(html){
               if(html !== false){
-                console.log(html);
                 $(".GyA").val(parseInt(html['GyA']));
                 $(".coliformes").val("<"+parseInt(html['coliformes']));
                 $("#ssedimentables").val("<"+html['ssedimentables']);
@@ -198,12 +198,13 @@ function agregarIntervalo(nombre, unidades, resultado){
               }
             }
           });
-        });
-      <?php endif; ?>
-
-      $(".nits").on("keydown keyup", function() {
-          calculateSum();
+        }
       });
+    <?php endif; ?>
+
+    $(".nits").on("keydown keyup", function() {
+        calculateSum();
+    });
 
     $('#agregar').click(function(e){
         e.preventDefault();
@@ -214,9 +215,7 @@ function agregarIntervalo(nombre, unidades, resultado){
 
   function calculateSum() {
       var sum = 0;
-      //iterate through each textboxes and add the values
       $(".nits").each(function() {
-          //add only if the value is number
           if (this.value.length != 0) {
             if(this.value.search('<') !== -1){
               value = this.value.split('<'); 

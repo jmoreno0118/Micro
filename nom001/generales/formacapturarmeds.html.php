@@ -28,7 +28,7 @@
              							"Lugar del muestreo (5.0)" => "lugarmuestreo",
              							"Descripción del proceso (Max. 100)" => "descriproceso",
                           "Tipo de medición" => "tipomediciones",
-                          "Propósito (6.0)" => "proposito",
+                          //"Propósito (6.0)" => "proposito",
              							"Materias primas usadas (8.0)" => "materiasusadas",
              							"Tratamiento del agua antes de la descarga (9.0) (Max. 100)" => "tratamiento",
              							"Características de la descarga (10.0)" => "Caracdescarga",
@@ -37,6 +37,7 @@
                           "No. muestras tomadas (13.0)" => "numuestras",
                           "Observaciones (19.0)" => "observaciones",
                           "Fecha de muestreo(aaaa-mm-dd)" => "fechamuestreo",
+                          "Fecha fin de muestreo(aaaa-mm-dd)" => "fechamuestreofin",
                           "Identificación" => "identificacion",
                           "Temperatura(Ej. 12.12)" => "temperatura",
                           "E.M. en calibración del termómetro(Ej. 12.1234)" => "caltermometro",
@@ -50,7 +51,7 @@
                           "Grasas y Aceite visual" => "GyAvisual",
                           "Burbujas y espuma" => "burbujas");
 
-      $arquitectura = array("valores" => array("variables" => 'empresagiro,descargaen,uso,numedicion,lugarmuestreo,descriproceso,tipomediciones,proposito,materiasusadas,tratamiento,Caracdescarga,receptor,estrategia,numuestras,observaciones,fechamuestreo,identificacion,temperatura,caltermometro,pH,conductividad,responsable,mflotante,olor,color,turbiedad,GyAvisual,burbujas',
+      $arquitectura = array("valores" => array("variables" => 'empresagiro,descargaen,uso,numedicion,lugarmuestreo,descriproceso,tipomediciones,proposito,materiasusadas,tratamiento,Caracdescarga,receptor,estrategia,numuestras,observaciones,fechamuestreo,fechamuestreofin,identificacion,temperatura,caltermometro,pH,conductividad,responsable,mflotante,olor,color,turbiedad,GyAvisual,burbujas',
                                               "tipo" => 1),
                             "id" => array("variables" => "id",
                                           "tipo" => 0));
@@ -231,6 +232,9 @@
         },
         fechamuestreo: {
          required: true,
+         dateISO: true
+        },
+        fechamuestreofin: {
          dateISO: true
         },
         identificacion: "required",

@@ -205,17 +205,19 @@
 /* Acción default */
 /**************************************************************************************************/
 	//var_dump($_SESSION['parametros']);
-	$id = $_SESSION['parametros']['id'];
-	$cantidad = $_SESSION['parametros']['cantidad'];
-	$valores = $_SESSION['parametros']['valores'];
-	$parametros = $_SESSION['parametros']['parametros'];
-	$adicionales = $_SESSION['parametros']['adicionales'];
-	$idparametro = $_SESSION['parametros']['idparametro'];
-	$boton = $_SESSION['parametros']['boton'];
-	$regreso = $_SESSION['parametros']['regreso'];
-	$pestanapag = $_SESSION['parametros']['pestanapag'];
-	$titulopagina = $_SESSION['parametros']['titulopagina'];
-	unset($_SESSION['parametros']);
+	//if(!isset($_SESSION['parametros'])){
+		$id = $_SESSION['parametros']['id'];
+		$cantidad = $_SESSION['parametros']['cantidad'];
+		$valores = $_SESSION['parametros']['valores'];
+		$parametros = $_SESSION['parametros']['parametros'];
+		$adicionales = $_SESSION['parametros']['adicionales'];
+		$idparametro = $_SESSION['parametros']['idparametro'];
+		$boton = $_SESSION['parametros']['boton'];
+		$regreso = $_SESSION['parametros']['regreso'];
+		$pestanapag = $_SESSION['parametros']['pestanapag'];
+		$titulopagina = $_SESSION['parametros']['titulopagina'];
+		unset($_SESSION['parametros']);
+	//}
 	include 'formacapturarparametros.html.php';
 	exit();
 

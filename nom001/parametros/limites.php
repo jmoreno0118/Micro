@@ -5,7 +5,7 @@
 		try
 		{
 			$pdo->beginTransaction();
-			$sql='SELECT * FROM limitestbl WHERE fecha=:fecha ORDER BY id DESC';
+			$sql='SELECT * FROM limitestbl WHERE fecha<=:fecha ORDER BY id DESC';
 			$s=$pdo->prepare($sql);
 			$s->bindValue(':fecha',$_POST['fecha']);
 			$s->execute();

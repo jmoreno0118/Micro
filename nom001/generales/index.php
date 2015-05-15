@@ -67,8 +67,7 @@
               estrategia=:estrategia,
               numuestras=:numuestras,
               observaciones=:observaciones,
-              tipomediciones=:tipomediciones,
-              proposito=:proposito';
+              tipomediciones=:tipomediciones';
         $s=$pdo->prepare($sql);
         $s->bindValue(':id', $_POST['id']);
         $s->bindValue(':nom01maximosidfk', $nom01maximosidfk['id']);
@@ -83,7 +82,7 @@
         $s->bindValue(':numuestras', $_POST['numuestras']);
         $s->bindValue(':observaciones', $_POST['observaciones']);
         $s->bindValue(':tipomediciones', $_POST['tipomediciones']);
-        $s->bindValue(':proposito', $_POST['proposito']);
+        //$s->bindValue(':proposito', $_POST['proposito']);
         $s->execute();
         $id=$pdo->lastInsertid();
 
@@ -118,6 +117,16 @@
         $s->bindValue(':GyAvisual',$_POST['GyAvisual']);
         $s->bindValue(':burbujas',$_POST['burbujas']);
         $s->execute();
+
+        if(isset($_POST['fechamuestreofin']) AND $_POST['fechamuestreofin'] !== ""){
+          $sql='UPDATE muestreosaguatbl SET
+              fechamuestreofin=:fechamuestreofin,
+              WHERE generalaguaidfk=:generalaguaidfk';
+          $s=$pdo->prepare($sql);
+          $s->bindValue(':generalaguaidfk', $id);
+          $s->bindValue(':fechamuestreofin', $_POST['fechamuestreofin']);
+          $s->execute();
+        }
 
         $pdo->commit();
       }
@@ -169,7 +178,7 @@
 				             "lugarmuestreo" => "",
 				             "descriproceso" => "",
 				             "tipomediciones" => "",
-				             "proposito" => "",
+				             //"proposito" => "",
 				             "materiasusadas" => "",
 				             "tratamiento" => "",
 				             "Caracdescarga" => "",
@@ -178,6 +187,7 @@
 				             "numuestras" => "",
 				             "observaciones" => "",
 				             "fechamuestreo" => "",
+                     "fechamuestreofin" => "",
 				             "identificacion" => "",
 				             "temperatura" => "",
 				             "caltermometro" => "",
@@ -232,7 +242,7 @@
 			           "lugarmuestreo" => $linea["lugarmuestreo"],
 			           "descriproceso" => $linea["descriproceso"],
 			           "tipomediciones" => $linea["tipomediciones"],
-			           "proposito" => $linea["proposito"],
+			           //"proposito" => $linea["proposito"],
 			           "materiasusadas" => $linea["materiasusadas"],
 			           "tratamiento" => $linea["tratamiento"],
 			           "Caracdescarga" => $linea["Caracdescarga"],
@@ -241,6 +251,7 @@
 			           "numuestras" => $linea["numuestras"],
 			           "observaciones" => $linea["observaciones"],
 			           "fechamuestreo" => $linea["fechamuestreo"],
+                 "fechamuestreofin" => $linea["fechamuestreofin"],
 			           "identificacion" => $linea["identificacion"],
 			           "temperatura" => $linea["temperatura"],
 			           "caltermometro" => $linea["caltermometro"],
@@ -389,8 +400,7 @@
               estrategia=:estrategia,
               numuestras=:numuestras,
               observaciones=:observaciones,
-              tipomediciones=:tipomediciones,
-              proposito=:proposito
+              tipomediciones=:tipomediciones
               WHERE id=:id';
         $s=$pdo->prepare($sql);
         $s->bindValue(':id',$_POST['id']);
@@ -406,7 +416,7 @@
         $s->bindValue(':numuestras', $_POST['numuestras']);
         $s->bindValue(':observaciones', $_POST['observaciones']);
         $s->bindValue(':tipomediciones', $_POST['tipomediciones']);
-        $s->bindValue(':proposito', $_POST['proposito']);
+        //$s->bindValue(':proposito', $_POST['proposito']);
         $s->execute();
 
         $sql='UPDATE muestreosaguatbl SET
@@ -425,7 +435,7 @@
               burbujas=:burbujas
               WHERE generalaguaidfk=:generalaguaidfk';
         $s=$pdo->prepare($sql);
-        $s->bindValue(':generalaguaidfk', $id);
+        $s->bindValue(':generalaguaidfk', $_POST['id']);
         $s->bindValue(':fechamuestreo', $_POST['fechamuestreo']);
         $s->bindValue(':identificacion', $_POST['identificacion']);
         $s->bindValue(':temperatura', $_POST['temperatura']);
@@ -440,6 +450,16 @@
         $s->bindValue(':GyAvisual', $_POST['GyAvisual']);
         $s->bindValue(':burbujas', $_POST['burbujas']);
         $s->execute();
+
+        if(isset($_POST['fechamuestreofin']) AND $_POST['fechamuestreofin'] !== ""){
+          $sql='UPDATE muestreosaguatbl SET
+              fechamuestreofin=:fechamuestreofin
+              WHERE generalaguaidfk=:generalaguaidfk';
+          $s=$pdo->prepare($sql);
+          $s->bindValue(':generalaguaidfk', $_POST['id']);
+          $s->bindValue(':fechamuestreofin', $_POST['fechamuestreofin']);
+          $s->execute();
+        }
 
         $pdo->commit();
       }catch (PDOException $e){
@@ -490,7 +510,7 @@
                         "lugarmuestreo" => $linea["lugarmuestreo"],
                         "descriproceso" => $linea["descriproceso"],
                         "tipomediciones" => $linea["tipomediciones"],
-                        "proposito" => $linea["proposito"],
+                        //"proposito" => $linea["proposito"],
                         "materiasusadas" => $linea["materiasusadas"],
                         "tratamiento" => $linea["tratamiento"],
                         "Caracdescarga" => $linea["Caracdescarga"],
@@ -499,6 +519,7 @@
                         "numuestras" => $linea["numuestras"],
                         "observaciones" => $linea["observaciones"],
                         "fechamuestreo" => $linea["fechamuestreo"],
+                        "fechamuestreofin" => $linea["fechamuestreofin"],
                         "identificacion" => $linea["identificacion"],
                         "temperatura" => $linea["temperatura"],
                         "caltermometro" => $linea["caltermometro"],
@@ -577,6 +598,22 @@
       {
         $sql='UPDATE ordenestbl SET
           fechafin=CURDATE()
+          WHERE id=:id';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id',$_POST['ot']);
+        $s->execute();
+      }
+      catch(PDOException $e)
+      {
+        $mensaje='Hubo un error al tratar de terminar la orden. Intentar nuevamente y avisar de este error a sistemas.';
+        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+        exit(); 
+      }
+    }else{
+      try
+      {
+        $sql='UPDATE ordenestbl SET
+          fechafin = NULL
           WHERE id=:id';
         $s=$pdo->prepare($sql);
         $s->bindValue(':id',$_POST['ot']);

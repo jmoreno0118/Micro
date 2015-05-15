@@ -58,7 +58,7 @@
             <input type="hidden" name="numedicion" value="<?php htmlout($medagua['numedicion']); ?>">
             <input type="submit" name="accion" value="croquis">
           </form>
-          <form action="conagua/index.php" method="post" style="float:left;" target="_blank">
+          <form action="../conagua/index.php" method="post" style="float:left;" target="_blank">
            <input type="hidden" name="otm" value="<?php htmlout($nombreot['ot'].'-'.$medagua['numedicion']); ?>">
            <input type="submit" name="accion" value="conagua">
           </form>

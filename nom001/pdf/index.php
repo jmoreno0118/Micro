@@ -20,7 +20,7 @@
 
         function Footer()
         {
-            $this->SetY(-40);
+            $this->SetY(-30);
 
             $this->SetTextColor(125);
             $this->SetFont('Arial', '', 6);
@@ -29,11 +29,9 @@
 
             $this->SetTextColor(0);
             $this->SetFont('Arial', '', 7);
-            $this->Cell(0, 3, utf8_decode('GENERAL SOSTENES ROCHA 28, MAGDALENA MIXHUCA, MÉXICO D.F. 15850'), 0, 1, 'C');
+            $this->Cell(0, 3, utf8_decode('GENERAL SOSTENES ROCHA No. 28 COL. MAGDALENA MIXHUCA C.P. 15850  MÉXICO D.F.'), 0, 1, 'C');
             $this->Ln(1);
-            $this->Cell(0, 3, utf8_decode('Tel: +52 (55)5768-7744, Fax: +52 (55)5764-0295'), 0, 1, 'C');
-            $this->Ln(1);
-            $this->Cell(0, 3, utf8_decode('E-Mail: ventas@microanalisis.com Web: www.microanalisis.com'), 0, 1, 'C');
+            $this->Cell(0, 3, $this->WriteHTML(utf8_decode('TELS: 5768-7744   E-Mail: <b><u>ventas@microanalisis.com</u></b>   Web: <b><u>www.microanalisis.com</u></b>')), 0, 1, 'C');
         }
 
         var $widths;
@@ -225,6 +223,108 @@
                     $i++;
             }
             return $nl;
+        }
+
+        var $B=0;
+        var $I=0;
+        var $U=0;
+        var $HREF='';
+        var $ALIGN='';
+
+        function WriteHTML($html)
+        {
+            //HTML parser
+            $html=str_replace("\n", ' ', $html);
+            $a=preg_split('/<(.*)>/U', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+            foreach($a as $i=>$e)
+            {
+                if($i%2==0)
+                {
+                    //Text
+                    if($this->HREF)
+                        $this->PutLink($this->HREF, $e);
+                    elseif($this->ALIGN == 'center')
+                        $this->Cell(0, 5, $e, 0, 1, 'C');
+                    else
+                        $this->Write(5, $e);
+                }
+                else
+                {
+                    //Tag
+                    if($e{0}=='/')
+                        $this->CloseTag(strtoupper(substr($e, 1)));
+                    else
+                    {
+                        //Extract properties
+                        $a2=split(' ', $e);
+                        $tag=strtoupper(array_shift($a2));
+                        $prop=array();
+                        foreach($a2 as $v)
+                            if(ereg('^([^=]*)=["\']?([^"\']*)["\']?$', $v, $a3))
+                                $prop[strtoupper($a3[1])]=$a3[2];
+                        $this->OpenTag($tag, $prop);
+                    }
+                }
+            }
+        }
+
+        function OpenTag($tag, $prop)
+        {
+            //Opening tag
+            if($tag=='B' or $tag=='I' or $tag=='U')
+                $this->SetStyle($tag, true);
+            if($tag=='A')
+                $this->HREF=$prop['HREF'];
+            if($tag=='BR')
+                $this->Ln(5);
+            if($tag=='P')
+                $this->ALIGN=$prop['ALIGN'];
+            if($tag=='HR')
+            {
+                if( $prop['WIDTH'] != '' )
+                    $Width = $prop['WIDTH'];
+                else
+                    $Width = $this->w - $this->lMargin-$this->rMargin;
+                $this->Ln(2);
+                $x = $this->GetX();
+                $y = $this->GetY();
+                $this->SetLineWidth(0.4);
+                $this->Line($x, $y, $x+$Width, $y);
+                $this->SetLineWidth(0.2);
+                $this->Ln(2);
+            }
+        }
+
+        function CloseTag($tag)
+        {
+            //Closing tag
+            if($tag=='B' or $tag=='I' or $tag=='U')
+                $this->SetStyle($tag, false);
+            if($tag=='A')
+                $this->HREF='';
+            if($tag=='P')
+                $this->ALIGN='';
+        }
+
+        function SetStyle($tag, $enable)
+        {
+            //Modify style and select corresponding font
+            $this->$tag+=($enable ? 1 : -1);
+            $style='';
+            foreach(array('B', 'I', 'U') as $s)
+                if($this->$s>0)
+                    $style.=$s;
+            $this->SetFont('', $style);
+        }
+
+        function PutLink($URL, $txt)
+        {
+            //Put a hyperlink
+            $this->SetTextColor(0, 0, 255);
+            $this->SetStyle('U', true);
+            $this->Write(5, $txt, $URL);
+            $this->SetStyle('U', false);
+            $this->SetTextColor(0);
         }
     }
 
@@ -625,7 +725,7 @@
                 $pdf->Cell(50, 5, utf8_decode('Compañía'), 1, 0, 'C');
 
                 $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(0, 5, utf8_decode($cliente['Razon_Social']), 1, 1, 'R');
+                $pdf->MultiCell(0, 5, utf8_decode($cliente['Razon_Social']), 1, 'R');
 
                 $pdf->SetFont('Arial', 'B', 9);
                 $pdf->Cell(50, 5, utf8_decode('Giro de la empresa'), 1, 0, 'C');
@@ -647,19 +747,19 @@
                 $pdf->Cell(50, 5, utf8_decode('Identificación de la muestra'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($muestra['identificacion']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($muestra['identificacion']), 1, 1, 'L');
 
-                $pdf->SetFont('Arial', 'B', 9);
+                /*$pdf->SetFont('Arial', 'B', 9);
                 $pdf->Cell(50, 5, utf8_decode('Lugar de muestreo'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($muestra['lugarmuestreo']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($muestra['lugarmuestreo']), 1, 1, 'R');*/
 
                 $pdf->SetFont('Arial', 'B', 9);
                 $pdf->Cell(50, 5, utf8_decode('Descripción del proceso'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($muestra['descriproceso']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($muestra['descriproceso']), 1, 1, 'L');
 
                 $x = $pdf->GetX();
                 $y = $pdf->GetY();
@@ -668,7 +768,7 @@
 
                 $pdf->SetXY($x + 50, $y);
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 8, utf8_decode($muestra['materiasusadas']), 1, 1, 'R');
+                $pdf->Cell(0, 8, utf8_decode($muestra['materiasusadas']), 1, 1, 'L');
 
                 $x = $pdf->GetX();
                 $y = $pdf->GetY();
@@ -677,31 +777,27 @@
 
                 $pdf->SetXY($x + 50, $y);
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 8, utf8_decode($muestra['tratamiento']), 1, 1, 'R');
+                $pdf->Cell(0, 8, utf8_decode($muestra['tratamiento']), 1, 1, 'L');
 
-                $pdf->SetFont('Arial', 'B', 9);
+                /*$pdf->SetFont('Arial', 'B', 9);
                 $pdf->Cell(50, 5, utf8_decode('Características de la descarga'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($muestra['Caracdescarga']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($muestra['Caracdescarga']), 1, 1, 'R');*/
 
                 $pdf->SetFont('Arial', 'B', 9);
                 $pdf->Cell(50, 5, utf8_decode('Tipo de receptor de la descarga'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($muestra['receptor']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($muestra['receptor']), 1, 1, 'L');
 
                 $pdf->SetWidths(array(50,115));
                 $pdf->SetFonts(array('B',''));
                 $pdf->SetFontSizes(array(9));
-                $pdf->SetAligns(array('L','R'));
+                $pdf->SetAligns(array('L','L'));
                 $pdf->Row(array(utf8_decode('Estrategia de muestreo'),utf8_decode($muestra['estrategia'])));
                 //$pdf->MultiCell(0, 4, utf8_decode($muestra['estrategia']."adfhddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"), 1, 'J');
 
-                $pdf->SetWidths(array(50,115));
-                $pdf->SetFonts(array('B',''));
-                $pdf->SetFontSizes(array(9));
-                $pdf->SetAligns(array('L','R'));
                 $pdf->Row(array(utf8_decode('Observaciones de campo'),utf8_decode($muestra['observaciones'])));
                 //$pdf->MultiCell(0, 4, utf8_decode($muestra['observaciones']."adfhdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"), 1, 'J');
 
@@ -709,7 +805,7 @@
                 $pdf->Cell(50, 5, utf8_decode('Conservación de muestra'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode('Refrigeración < 4 °C'), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode('Refrigeración < 4 °C'), 1, 1, 'L');
                 $pdf->Ln();
 
                 $pdf->SetFont('Arial', 'B', 9);
@@ -728,19 +824,19 @@
                 $pdf->Cell(40, 5, utf8_decode('Temperatura'), 1, 0, 'C');
                 $pdf->Cell(20, 5, utf8_decode('°C'), 1, 0, 'C');
                 $pdf->Cell(25, 5, utf8_decode(($muestra['temperatura'] - $muestra['caltermometro'])), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('±'.($muestra['temperatura'] * 1.645 * 0.02866)), 1, 0, 'C');
+                $pdf->Cell(40, 5, utf8_decode('±      ').(number_format(($muestra['temperatura'] * 1.645 * 0.02866), 2, '.', '')), 1, 0, 'C');
                 $pdf->Cell(40, 5, utf8_decode('40'), 1, 1, 'C');
 
                 $pdf->Cell(40, 5, utf8_decode('pH'), 1, 0, 'C');
                 $pdf->Cell(20, 5, utf8_decode('U de pH'), 1, 0, 'C');
                 $pdf->Cell(25, 5, utf8_decode($muestra['pH']), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('±'.($muestra['pH'] * 1.645 * 0.0037)), 1, 0, 'C');
+                $pdf->Cell(40, 5, utf8_decode('±      ').(number_format(($muestra['pH'] * 1.645 * 0.0037), 2, '.', '')), 1, 0, 'C');
                 $pdf->Cell(40, 5, utf8_decode('de 5 a 10'), 1, 1, 'C');
                 
                 $pdf->Cell(40, 5, utf8_decode('Conductividad'), 1, 0, 'C');
                 $pdf->Cell(20, 5, utf8_decode('ms/m'), 1, 0, 'C');
                 $pdf->Cell(25, 5, utf8_decode($muestra['conductividad']), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('±'.($muestra['conductividad'] * 1.645 * 0.00964)), 1, 0, 'C');
+                $pdf->Cell(40, 5, utf8_decode('±      ').(number_format(($muestra['conductividad'] * 1.645 * 0.00964), 2, '.', '')), 1, 0, 'C');
                 $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
                 $pdf->Ln(3);
 
@@ -781,30 +877,32 @@
                 $pdf->Cell(40, 5, utf8_decode(($muestra['mflotante'] === '1')? 'Presente' : 'Ausente'), 1, 0, 'C');
                 $pdf->Cell(40, 5, utf8_decode('Ausente'), 1, 1, 'C');
 
-                $pdf->Cell(45, 5, utf8_decode('Olor'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode(($muestra['olor'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
+                if($cantidad === 1){
+                    $pdf->Cell(45, 5, utf8_decode('Olor'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode(($muestra['olor'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
 
-                $pdf->Cell(45, 5, utf8_decode('Color visual'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode(($muestra['color'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
+                    $pdf->Cell(45, 5, utf8_decode('Color visual'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode(($muestra['color'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
 
-                $pdf->Cell(45, 5, utf8_decode('Turbiedad visual'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode(($muestra['turbiedad'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
+                    $pdf->Cell(45, 5, utf8_decode('Turbiedad visual'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode(($muestra['turbiedad'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
 
-                $pdf->Cell(45, 5, utf8_decode('Grasas y aceites visual'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode(($muestra['GyAvisual'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
+                    $pdf->Cell(45, 5, utf8_decode('Grasas y aceites visual'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode(($muestra['GyAvisual'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
 
-                $pdf->Cell(45, 5, utf8_decode('Burbujas y espuma visual'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode(($muestra['burbujas'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
+                    $pdf->Cell(45, 5, utf8_decode('Burbujas y espuma visual'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode(($muestra['burbujas'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
+                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
+                }
                 $pdf->Ln();
 
                 //var_dump($parametros2);
@@ -1160,14 +1258,14 @@
         
         $pdf->SetFont('Arial', '', 9);
         foreach ($params as $key => $value) {
-            $pdf->Cell(45, 5, utf8_decode($key), 1, 0, 'L');
+            $pdf->Cell(45, 6, utf8_decode($key), 1, 0, 'L');
 
             if($value == "coliformes"):
-                $pdf->Cell(25, 5, utf8_decode('NMP/100ml'), 1, 0, 'C');
+                $pdf->Cell(25, 6, utf8_decode('NMP/100ml'), 1, 0, 'C');
             elseif($value == "hdehelminto"):
-                $pdf->Cell(25, 5, utf8_decode('Huevos /L'), 1, 0, 'C');
+                $pdf->Cell(25, 6, utf8_decode('Huevos /L'), 1, 0, 'C');
             else:
-                $pdf->Cell(25, 5, utf8_decode('mg/L'), 1, 0, 'C');
+                $pdf->Cell(25, 6, utf8_decode('mg/L'), 1, 0, 'C');
             endif;
 
             if($value == "GyA"):
@@ -1177,14 +1275,14 @@
                             $pdf->SetFont('Arial', 'B', 9);
                         }
                     }
-                    $pdf->Cell(25, 5, utf8_decode(number_format(doubleval($parametros2[0]['GyA']), 5)), 1, 0, 'C');
+                    $pdf->Cell(25, 6, utf8_decode(number_format(doubleval($parametros2[0]['GyA']), 5)), 1, 0, 'C');
                 }else{
                     if(in_array($value, $formulario2)){
                         if($gya > doubleval($maximos[$value])){
                             $pdf->SetFont('Arial', 'B', 9);
                         }
                     }
-                    $pdf->Cell(25, 5, utf8_decode(number_format($gya, 5)), 1, 0, 'C');
+                    $pdf->Cell(25, 6, utf8_decode(number_format($gya, 5)), 1, 0, 'C');
                 }
             elseif($value == "coliformes"):
                 if($cantidad === 1){
@@ -1193,14 +1291,14 @@
                             $pdf->SetFont('Arial', 'B', 9);
                         }
                     }
-                    $pdf->Cell(25, 5, utf8_decode(number_format(doubleval($parametros2[0]['coliformes']), 5)), 1, 0, 'C');
+                    $pdf->Cell(25, 6, utf8_decode(number_format(doubleval($parametros2[0]['coliformes']), 5)), 1, 0, 'C');
                 }else{
                     if(in_array($value, $formulario2)){
                         if(doubleval($coliformes) > doubleval($maximos[$value])){
                             $pdf->SetFont('Arial', 'B', 9);
                         }
                     }                    
-                    $pdf->Cell(25, 5, utf8_decode(number_format($coliformes, 5)), 1, 0, 'C');
+                    $pdf->Cell(25, 6, utf8_decode(number_format($coliformes, 5)), 1, 0, 'C');
                 }
             else:
                 if(in_array($value, $formulario2)){
@@ -1208,23 +1306,20 @@
                             $pdf->SetFont('Arial', 'B', 9);
                         }
                     }
-                $pdf->Cell(25, 5, utf8_decode((in_array($value, $formulario)) ? $parametros[$value] : ""), 1, 0, 'C');
+                $pdf->Cell(25, 6, utf8_decode((in_array($value, $formulario)) ? $parametros[$value] : ""), 1, 0, 'C');
             endif;
 
             $pdf->SetFont('Arial', '', 9);
-            $pdf->Cell(30, 5, utf8_decode((in_array($value, $formulario2)) ? $maximos[$value] : "No Aplica"), 1, 0, 'C');
-            $pdf->Cell(40, 5, utf8_decode($metodos[$value]), 1, 1, 'C');
+            $pdf->Cell(30, 6, utf8_decode((in_array($value, $formulario2)) ? $maximos[$value] : "No Aplica"), 1, 0, 'C');
+            $pdf->Cell(40, 6, utf8_decode($metodos[$value]), 1, 1, 'C');
         }
         $pdf->Ln(1);
         $pdf->SetFont('Arial', 'BU', 8);
         $pdf->MultiCell(0, 3, utf8_decode('Valores que superan el LMP'), 0, 'C');
-        $pdf->Ln(2);
+        $pdf->Ln(1);
         $pdf->SetFont('Arial', 'B', 8);
-        $pdf->MultiCell(0, 3, utf8_decode('** Los LMP son de acuerdo a los límites indicados por la CNA'), 0, 'C');
-        $pdf->Ln(2);
-        $pdf->Cell(10, 3, utf8_decode('NOTA:'), 0, 0, 'L');
-        $pdf->SetFont('Arial', '', 8);
-        $pdf->MultiCell(0, 3, utf8_decode('De acuerdo a la NOM-008-SCFI-1993 "Sistema general de unidades de medidas" se indica que el decimal debe ser una coma, esta regla está de acuerdo con la recomendaciones de la organización Internacional de Normalización (ISO).'), 0, 'J');
+        $pdf->MultiCell(0, 3, utf8_decode('L.M.P. = Limite Máximo Permisible'), 0, 'L');
+        $pdf->Ln();
     }
 
 /**************************************************************************************************/
@@ -1248,17 +1343,12 @@
             $pdf->Cell(40, 5, utf8_decode($value['resultado']), 1, 0, 'C');
             $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
         }
-
         $pdf->Ln(1);
         $pdf->SetFont('Arial', 'BU', 8);
         $pdf->MultiCell(0, 3, utf8_decode('Valores que superan el LMP'), 0, 'C');
-        $pdf->Ln(2);
+        $pdf->Ln(1);
         $pdf->SetFont('Arial', 'B', 8);
-        $pdf->MultiCell(0, 3, utf8_decode('** Los LMP son de acuerdo a los límites indicados por la CNA'), 0, 'C');
-        $pdf->Ln(2);
-        $pdf->Cell(10, 3, utf8_decode('NOTA:'), 0, 0, 'L');
-        $pdf->SetFont('Arial', '', 8);
-        $pdf->MultiCell(0, 3, utf8_decode("De acuerdo a la NOM-008-SCFI-1993 \"Sistema general de unidades de medidas\" se indica que el decimal debe ser una coma, esta regla está de acuerdo con la recomendaciones de la organización Internacional de Normalización (ISO)."), 0, 'J');
+        $pdf->MultiCell(0, 3, utf8_decode('L.M.P. = Limite Máximo Permisible'), 0, 'L');
         $pdf->Ln();
     }
 
@@ -1272,14 +1362,14 @@
         $pdf->Cell(0, 5, utf8_decode('Croquis del lugar donde se tomó la muestra'), 1, 1, 'C', true);
         if($croquis!==false){
             if($cantidad === 1){
-                $pdf->Image($imagen, 20, 74, 165, 70);
+                $pdf->Image($imagen, 20, 74, 165, 75);
             }elseif($cantidad === 4){
-                $pdf->Image($imagen, 20, 143, 165, 70);
+                $pdf->Image($imagen, 20, 143, 165, 75);
             }elseif($cantidad === 6){
-                $pdf->Image($imagen, 20, 153, 165, 70);
+                $pdf->Image($imagen, 20, 153, 165, 75);
             }
         }
-        $pdf->Cell(0, 70, '', 1, 1, 'C');
+        $pdf->Cell(0, 75, '', 1, 1, 'C');
         $pdf->Ln(3);
 
         $pdf->Cell(60, 5, utf8_decode('Responsable del muestreo'), 0, 0, 'C');
