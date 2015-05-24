@@ -21,35 +21,117 @@
   <div id="cuerpoprincipal">
    <h2><?php htmlout($titulopagina); ?></h2>
    <?php
-   		$formulario = array("Giro de la empresa" => "empresagiro",
-                          "Descarga en" => "descargaen",
-                          "Uso" => "uso",
-                          "Número de medición" => "numedicion",
-             							"Lugar del muestreo (5.0)" => "lugarmuestreo",
-             							"Descripción del proceso (Max. 100)" => "descriproceso",
-                          "Tipo de medición" => "tipomediciones",
-                          //"Propósito (6.0)" => "proposito",
-             							"Materias primas usadas (8.0)" => "materiasusadas",
-             							"Tratamiento del agua antes de la descarga (9.0) (Max. 100)" => "tratamiento",
-             							"Características de la descarga (10.0)" => "Caracdescarga",
-             							"Tipo de receptor de la decarga (11.0)" => "receptor",
-             							"Estrategia de muestreo (12.0)" => "estrategia",
-                          "No. muestras tomadas (13.0)" => "numuestras",
-                          "Observaciones (19.0)" => "observaciones",
-                          "Fecha de muestreo(aaaa-mm-dd)" => "fechamuestreo",
-                          "Fecha fin de muestreo(aaaa-mm-dd)" => "fechamuestreofin",
-                          "Identificación" => "identificacion",
-                          "Temperatura(Ej. 12.12)" => "temperatura",
-                          "E.M. en calibración del termómetro(Ej. 12.1234)" => "caltermometro",
-                          "pH Compuesta(Ej. 12.12)" => "pH",
-                          "Conductividad compuesta(Ej. 12.123)" => "conductividad",
-                          "Responsable" => "responsable",
-                          "Materia flotante visual" => "mflotante",
-                          "Olor" => "olor",
-                          "Color visual" => "color",
-                          "Turbiedad visual" => "turbiedad",
-                          "Grasas y Aceite visual" => "GyAvisual",
-                          "Burbujas y espuma" => "burbujas");
+      $formulario = array(
+                  'empresagiro' => array(
+                                        'label' => 'Giro de la empresa'
+                                        ),
+                  'descargaen' => array(
+                                        'label' => 'Descarga en',
+                                        'tipo' => 'select2',
+                                        'option' => $descargaen
+                                        ),
+                  'uso' => array(
+                                        'label' => 'Uso', 
+                                        'tipo' => 'select'
+                                        ),
+                  'numedicion' => array(
+                                        'label' => 'Número de medición'
+                                        ),
+                  'lugarmuestreo' => array(
+                                        'label' => 'Lugar del muestreo (5.0)'
+                                        ),
+                  'descriproceso' => array(
+                                        'label' => 'Descripción del proceso (Max. 100)',
+                                        'tipo' => 'textarea',
+                                        'atts' => array('maxlength' => 100)
+                                        ),
+                  'tipomediciones' => array(
+                                        'label' => 'Tipo de medición',
+                                        'tipo' => 'select',
+                                        'option' => array('1' => 'Puntual', '8' => '8 Horas', '24' => '4 Horas')
+                                        ),
+                  'materiasusadas' => array(
+                                        'label' => 'Materias primas usadas (8.0)'
+                                        ),
+                  'tratamiento' => array(
+                                        'label' => 'Tratamiento del agua antes de la descarga (9.0) (Max. 100)',
+                                        'tipo' => 'textarea',
+                                        'atts' => array('maxlength' => 100)
+                                        ),
+                  'Caracdescarga' => array(
+                                        'label' => 'Características de la descarga (10.0)'
+                                        ),
+                  'receptor' => array(
+                                        'label' => 'Tipo de receptor de la decarga (11.0)'
+                                        ),
+                  'estrategia' => array(
+                                        'label' => 'Estrategia de muestreo (12.0)',
+                                        'tipo' => 'textarea',
+                                        'atts' => array('maxlength' => 6500)
+                                        ),
+                  'numuestras' => array(
+                                        'label' => 'No. muestras tomadas (13.0)'
+                                        ),
+                  'observaciones' => array(
+                                        'label' => 'Observaciones (19.0)',
+                                        'tipo' => 'textarea',
+                                        'atts' => array('maxlength' => 6500)
+                                        ),
+                  'fechamuestreo' => array(
+                                        'label' => 'Fecha de muestreo(aaaa-mm-dd)'
+                                        ),
+                  'fechamuestreofin' => array(
+                                        'label' => 'Fecha fin de muestreo(aaaa-mm-dd)'
+                                        ),
+                  'identificacion' => array(
+                                        'label' => 'Identificación'
+                                        ),
+                  'temperatura' => array(
+                                        'label' => 'Temperatura(Ej. 12.12)'
+                                        ),
+                  'caltermometro' => array(
+                                        'label' => 'E.M. en calibración del termómetro(Ej. 12.1234)'
+                                        ),
+                  'pH' => array(
+                                        'label' => 'pH Compuesta(Ej. 12.12)'
+                                        ),
+                  'conductividad' => array(
+                                        'label' => 'Conductividad compuesta(Ej. 12.123)'
+                                        ),
+                  'responsable' => array(
+                                        'label' => 'Responsable'
+                                        ),
+                  'mflotante' => array(
+                                        'label' => 'Materia flotante visual',
+                                        'tipo' => 'select',
+                                        'option' => array('0' => 'Ausente', '1' => 'Presente')
+                                        ),
+                  'olor' => array(
+                                        'label' => 'Olor',
+                                        'tipo' => 'select',
+                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        ),
+                  'color' => array(
+                                        'label' => 'Color visual',
+                                        'tipo' => 'select',
+                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        ),
+                  'turbiedad' => array(
+                                        'label' => 'Turbiedad visual',
+                                        'tipo' => 'select',
+                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        ),
+                  'GyAvisual' => array(
+                                        'label' => 'Grasas y Aceite visual',
+                                        'tipo' => 'select',
+                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        ),
+                  'burbujas' => array(
+                                        'label' => 'Burbujas y espuma',
+                                        'tipo' => 'select',
+                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        )
+      );
 
       $arquitectura = array("valores" => array("variables" => 'empresagiro,descargaen,uso,numedicion,lugarmuestreo,descriproceso,tipomediciones,proposito,materiasusadas,tratamiento,Caracdescarga,receptor,estrategia,numuestras,observaciones,fechamuestreo,fechamuestreofin,identificacion,temperatura,caltermometro,pH,conductividad,responsable,mflotante,olor,color,turbiedad,GyAvisual,burbujas',
                                               "tipo" => 1),
@@ -61,54 +143,24 @@
       <input type="hidden" name="url" value="<?php htmlout($_SESSION['url']); ?>">
       <input type="hidden" name="arquitectura" value='<?php htmlout(json_encode($arquitectura)); ?>'>
 
-    	<?php foreach($formulario as $label => $name): ?>
+    	<?php foreach($formulario as $key => $value): ?>
     	<div>
-        <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-        <?php if($name === "tipomediciones"):?>
-          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" <?php if($valores['tipomediciones'] !== "" AND !isset($new)){ ?> disabled <?php } ?>>
-            <option value="">Seleccionar</option>
-            <option value="1" <?php if($valores["tipomediciones"] === '1') echo 'selected'?>>Puntual</option>
-            <option value="8" <?php if($valores["tipomediciones"] === '8') echo 'selected'?>>8 horas</option>
-            <option value="24" <?php if($valores["tipomediciones"] === '24') echo 'selected'?>>24 horas</option>
-          </select>
-          <?php if($valores['tipomediciones'] !== ""){ ?>
-            <input type="hidden" name="<?php htmlout($name); ?>" value="<?php htmlout($valores["tipomediciones"]); ?>">
-          <?php } ?>
-        <?php elseif($name === "descargaen"):?>
-          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-            <option value="" disabled <?php if(strval($valores["descargaen"]) === '0') echo 'selected'?>>--Selecciona Descarga en--</option>
-            <?php foreach ($descargaen as $value): ?>
-              <option value="<?php htmlout($value['descargaen']); ?>" <?php if($valores["descargaen"] === $value['descargaen']) echo 'selected'?>>
-                <?php htmlout($value['descargaen']); ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-          <?php elseif($name === "uso"):?>
-          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-            <option value="" disabled selected="selected">--Selecciona uso--</option>
-          </select>
-        <?php elseif($name === "mflotante"):?>
-          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-            <option value="" <?php if(strval($valores["mflotante"]) === "") echo 'selected'?>>Seleccionar</option>
-            <option value="0" <?php if(strval($valores["mflotante"]) === "0") echo 'selected'?>>Ausente</option>
-            <option value="1" <?php if(strval($valores["mflotante"]) === "1") echo 'selected'?>>Presente</option>
-          </select> 
-        <?php elseif($name === "olor" OR $name === "color" OR $name === "turbiedad" OR $name === "GyAvisual" OR $name === "burbujas"):?>
-          <select name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
-            <option value="" <?php if(strval($valores[$name]) === "") echo 'selected'?>>Seleccionar</option>
-            <option value="0" <?php if(strval($valores[$name]) === "0") echo 'selected'?>>No</option>
-            <option value="1" <?php if(strval($valores[$name]) === "1") echo 'selected'?>>Sí</option>
-          </select>
-        <?php elseif($name === "descriproceso" OR $name === "proposito" OR $name === "tratamiento" OR $name === "observaciones" OR $name === "estrategia"):?>
-          <br><textarea style="resize: none;" maxlength=<?php echo ($name === "descriproceso" OR $name === "tratamiento")? "100" : "6500"; ?> rows=5 cols=50 name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>"><?php htmlout($valores[$name]); ?></textarea>
-        <?php else: ?>
-	    	  <input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>"
-          <?php if($name === "numedicion" AND $valores['numedicion'] !== "" AND !isset($new)): ?> disabled>
-            <input type="hidden" name="<?php htmlout($name); ?>" value="<?php htmlout($valores[$name]); ?>">
-          <?php else: ?>
-          >
-          <?php endif; ?>
+        <?php if($key === "numedicion" AND isset($valores['numedicion']) AND $valores['numedicion'] !== "" AND !isset($new)): ?>
+          <?php $formulario['numedicion']['atts'] = array('disabled') ?>
+          <input type="hidden" name="numedicion" value="<?php htmlout($valores['numedicion']); ?>">
         <?php endif; ?>
+
+        <?php if($key === "tipomediciones"  AND isset($valores['tipomediciones']) AND $valores['tipomediciones'] !== ""): ?>
+          <input type="hidden" name="tipomediciones" value="<?php htmlout($valores['tipomediciones']); ?>">
+        <?php endif; ?>
+        <?php crearForma(
+                        $value['label'], //Texto del abel
+                        $key, //Texto a colocar en los atributos id y name
+                        (isset($valores[$key])) ? $valores[$key] : '', //Valor extraido de la bd
+                        (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
+                        (isset($value['tipo'])) ? $value['tipo'] : 'text', //Tipo de etiqueta
+                        (isset($value['option'])) ? $value['option'] : '' //Options para los select
+              ); ?>
     	</div>
       <br>
     	<?php endforeach?>
@@ -146,9 +198,7 @@
       });
     }
 
-    <?php if($valores["descargaen"] !== '0'): ?>
-      listaUso(<?php echo '"'.$valores["descargaen"].'"' ?>, <?php echo '"'.$valores["uso"].'"' ?>);
-    <?php endif; ?>
+    listaUso(<?php echo '"'.$valores["descargaen"].'"' ?>, <?php echo '"'.$valores["uso"].'"' ?>);
 
     $("#descargaen").change(function(){
       listaUso(<?php echo '"'.$valores["descargaen"].'"' ?>, <?php echo '"'.$valores["uso"].'"' ?>);

@@ -27,7 +27,38 @@
                             "observaciones" => "Observaciones",
                             "caracteristicas" => "Caracteristicas: (Max. 350)",
                             "fechalab" => "Fecha recepción laboratorio(aaaa-mm-dd)",
-                            "horalab" => "Hora recepción laboratorio(hh:mm)");
+                            "horalab" => "Hora recepción laboratorio(hh:mm)",
+                            "identificacion" => "Identificación");
+        $formulario = array(
+                    'hora' => array(
+                                        'label' => 'Hora(hh:mm)'
+                                        ),
+                    'flujo' => array(
+                                        'label' => 'Flujo(m3/s) Ej. 1.1234'
+                                        ),
+                    'volumen' => array(
+                                        'label' => 'Volumen(ml)'
+                                        ),
+                    'observaciones' => array(
+                                        'label' => 'Observaciones',
+                                        'tipo' => 'textarea'
+                                        ),
+                    'caracteristicas' => array(
+                                        'label' => 'Caracteristicas: (Max. 350)',
+                                        'tipo' => 'textarea'
+                                        ),
+                    'fechalab' => array(
+                                        'label' => 'Fecha recepción laboratorio(aaaa-mm-dd)'
+                                        ),
+                    'horalab' => array(
+                                        'label' => 'Hora recepción laboratorio(hh:mm)'
+                                        ),
+                    'identificacion' => array(
+                                        'label' => 'Identificación'
+                                        ),
+        );
+
+
 
       $arquitectura = array("mcompuestas" => array("variables" => 'hora,flujo,volumen,observaciones,caracteristicas,fechalab,horalab',
                                               "tipo" => 2),
@@ -47,28 +78,26 @@
 
       <?php foreach ($formulario as $key => $value): ?>
         <fieldset>
-        <legend><?php echo $value; ?>:</legend>
-  	    <?php for ($i=0; $i<$cantidad; $i++) :?>
-          <label for="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]">Muestra <?php htmlout($i+1); ?>:</label>
-          <?php if($key === "caracteristicas" OR $key === "observaciones"): ?>
+          <legend><?php echo $value['label']; ?>:</legend>
+    	    <?php for ($i=0; $i<$cantidad+1; $i++) :?>
+            <?php if(($i+1 === $cantidad+1) AND ($key === "flujo" OR $key === "volumen")):
+              continue;
+             endif; ?>
+             <?php crearForma(
+                        "Muestra ".(($i < $cantidad) ? $i+1 : "Compuesta"), //Texto del abel
+                        "mcompuestas[".$i."][".$key."]", //Texto a colocar en los atributos id y name
+                        (isset($mcompuestas[$i][$key])) ? $mcompuestas[$i][$key] : '', //Valor extraido de la bd
+                        (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
+                        (isset($value['tipo'])) ? $value['tipo'] : 'text', //Tipo de etiqueta
+                        (isset($value['option'])) ? $value['option'] : '' //Options para los select
+              ); ?>
             <br>
-            <textarea style="resize: none;" maxlength=350 rows=5 cols=50 name="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i][$key]);} ?></textarea>
-            <br><br>
-            <?php if($i+1 === $cantidad): ?>
-            <label for="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]">Muestra Compuesta:</label>
-            <br>
-            <textarea style="resize: none;" maxlength=350 rows=5 cols=50 name="mcompuestas[<?php echo $i+1; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i+1; ?>][<?php echo $key; ?>]"><?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i+1][$key]);} ?></textarea>
-            <br>
-            <?php endif; ?>
-          <?php else: ?>
-    			   <input type="text" name="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" id="mcompuestas[<?php echo $i; ?>][<?php echo $key; ?>]" value="<?php if(isset($mcompuestas[$i])){htmlout($mcompuestas[$i][$key]);} ?>">
-          <?php endif; ?>
-          <br>
-  	  <?php endfor; ?>
+    	  <?php endfor; ?>
       </fieldset>
       <br>
     <?php endforeach; ?>
 
+      <!-- Se usa para almacenar el numero de la ot y saber que se usó el regreso -->
       <?php if(isset($regreso) AND $regreso === 1): ?>
        <input type="hidden" name="regreso" value="1">
        <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">

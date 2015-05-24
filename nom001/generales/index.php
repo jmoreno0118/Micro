@@ -29,9 +29,9 @@
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     $mcompuestas = "";
     if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-    $cantidad = intval($_POST['cantidad']);
-    $id = $_POST['id'];
-    $mcompuestas = json_decode($_POST['mcompuestas'], TRUE);
+      $cantidad = intval($_POST['cantidad']);
+      $id = $_POST['id'];
+      $mcompuestas = json_decode($_POST['mcompuestas'], TRUE);
     }else{
       try
       {
@@ -120,9 +120,9 @@
 
         if(isset($_POST['fechamuestreofin']) AND $_POST['fechamuestreofin'] !== ""){
           $sql='UPDATE muestreosaguatbl SET
-              fechamuestreofin=:fechamuestreofin,
+              fechamuestreofin=:fechamuestreofin
               WHERE generalaguaidfk=:generalaguaidfk';
-          $s=$pdo->prepare($sql);
+          $s = $pdo->prepare($sql);
           $s->bindValue(':generalaguaidfk', $id);
           $s->bindValue(':fechamuestreofin', $_POST['fechamuestreofin']);
           $s->execute();
@@ -151,10 +151,11 @@
     $params   = $_SERVER['QUERY_STRING'];
     $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
     $_SESSION['url'] = $currentUrl;
+
     if($cantidad === 1){
       formularioParametros($id, $cantidad, "", "", "", "", 1);
     }
-    formularioMediciones($id, $cantidad, $mcompuestas);
+    formularioMediciones($id, $cantidad, $mcompuestas, 2);
   }
 
 /**************************************************************************************************/
@@ -162,6 +163,14 @@
 /**************************************************************************************************/
 	if (isset($_GET['accion']) and $_GET['accion']=='capturar')
 	{
+    $_SESSION['accion'] = 'parametros';
+    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+    $host     = $_SERVER['HTTP_HOST'];
+    $script   = $_SERVER['SCRIPT_NAME'];
+    $params   = $_SERVER['QUERY_STRING'];
+    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
+    $_SESSION['url'] = $currentUrl;
+
 		$id = $_SESSION['ot'];
 		$pestanapag = 'Agrega medicón';
 		$titulopagina = 'Agregar una nueva medición';
@@ -172,34 +181,10 @@
 			$valores = json_decode($_POST['valores'],TRUE);
 		}else{
 			$valores = array("empresagiro" => getEGiro($id),
-				             "descargaen" => "0",
-				             "uso" => "0",
-				             "numedicion" => "",
-				             "lugarmuestreo" => "",
-				             "descriproceso" => "",
-				             "tipomediciones" => "",
-				             //"proposito" => "",
-				             "materiasusadas" => "",
-				             "tratamiento" => "",
-				             "Caracdescarga" => "",
-				             "receptor" => "",
-				             "estrategia" => "",
-				             "numuestras" => "",
-				             "observaciones" => "",
-				             "fechamuestreo" => "",
-                     "fechamuestreofin" => "",
-				             "identificacion" => "",
-				             "temperatura" => "",
-				             "caltermometro" => "",
-				             "pH" => "",
-				             "conductividad" => "",
-				             "responsable" => getResponsable($id),
-				             "mflotante" => "",
-				             "olor" => "",
-				             "color" => "",
-				             "turbiedad" => "",
-				             "GyAvisual" => "",
-				             "burbujas" => "");
+  				             "descargaen" => "",
+  				             "uso" => "",
+  				             "responsable" => getResponsable($id)
+                );
 		}
 		include 'formacapturarmeds.html.php';
 		exit();
@@ -356,6 +341,7 @@
     /*$mensaje='Error Forzado 1.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();*/
+
     $_SESSION['accion'] = 'salvar';
     $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
     $host     = $_SERVER['HTTP_HOST'];
@@ -570,7 +556,7 @@
     $_SESSION['url'] = $currentUrl;
 
     if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-		  formularioParametros($_POST['id'], $_POST['cantidad'], $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['regreso']);
+		  formularioParametros($_POST['id'], $_POST['cantidad'], $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['regreso'], $_POST['accionparam']);
     }else{
   		$cantidad = 1;
   		if($_POST['tipomedicion'] === '8'){
@@ -709,7 +695,7 @@ verMeds($_SESSION['ot']);
   		$s=$pdo->prepare('SELECT descargaen FROM nom01maximostbl group by descargaen;');
   		$s->execute();
   		foreach ($s as $value) {
-  			$maximos[] = array("descargaen" => $value['descargaen']);
+  			$maximos[] = $value['descargaen'];
   		}
   		return $maximos;
   	}catch (PDOException $e){

@@ -19,24 +19,48 @@
 	  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/encabezado.inc.php'; ?>
   </header>
   <div id="cuerpoprincipal">
+    <?php 
+    //var_dump($orden);
+    //var_dump($mcompuestas);
+    //var_dump($parametros);
+    ?>
     <h2>Orden de Trabajo <?php htmlout($orden['ot']); ?></h2>
 
     <table style="width:50%">
       <tr>
-        <td style="width:50%;">Compañía</td>
-        <td> <?php htmlout($orden['Razon_Social']); ?></td>
+        <td style="width:50%;">RFC</td>
+        <td> <?php htmlout($orden['rfc']); ?></td>
       </tr>
       <tr>
-        <td>RFC</td>
-        <td><?php htmlout($orden['RFC']); ?></td>    
+        <td>Compañía</td>
+        <td> <?php htmlout($orden['razonsocial']); ?></td>
       </tr>
       <tr>
-        <td>Cuerpo receptor y Uso de agua</td>
-        <td><?php htmlout($maximos['descargaen']." - ".$maximos['uso']); ?></td>    
+        <td>Direccion</td>
+        <td> <?php htmlout(htmldecode($orden['calle'].', '.$orden['cp'].', '.$orden['estado'].', '.$orden['ciudad'].', '.$orden['colonia'])); ?></td>
       </tr>
       <tr>
-        <td>OT</td>
-        <td><?php htmlout($orden['ot']); ?></td>    
+        <td>Título de Concesión</td>
+        <td><?php htmlout($orden['titulo']); ?></td>    
+      </tr>
+      <tr>
+        <td>Cuerpo receptor</td>
+        <td><?php htmlout($maximos['descargaen']); ?></td>    
+      </tr>
+      <tr>
+        <td>Uso de agua</td>
+        <td><?php htmlout($maximos['uso']); ?></td>    
+      </tr>
+      <tr>
+        <td>Numero de orden</td>
+        <td>
+          <form method="post">
+            <input type="hidden" name="otm" value="<?php htmlout($otm); ?>">
+            <input type="hidden" name="id" value="<?php htmlout($orden['id']); ?>">
+            <input type="text" name="numorden" value="<?php htmlout( isset($orden['numorden'])? $orden['numorden'] : ''); ?>">
+            <input type="submit" name="accion" value="guardar">
+          </form>
+        </td>   
       </tr>
       <tr>
         <td>Número de medición</td>
@@ -54,13 +78,82 @@
         <td>Dirección</td>
         <td><?php htmlout("direccion"); ?></td>    
       </tr-->
+    </table>
+    <br>
+
+    <table style="width:50%">
       <tr>
-        <td>Signatario</td>
-        <td><?php htmlout($orden['signatario']); ?></td>    
+        <th colspan="2">Ubicación según título</th>  
+      </tr>
+      <tr>
+        <th colspan="2">Latitud</th>
+      </tr>
+      <tr>
+        <td style="width:50%;">Grados</td>
+        <td><?php htmlout($orden['lattgrados']); ?></td>    
+      </tr>
+      <tr>
+        <td>Minutos</td>
+        <td><?php htmlout($orden['lattmin']); ?></td>    
+      </tr>
+      <tr>
+        <td>Segundos</td>
+        <td><?php htmlout($orden['lattseg']); ?></td>    
+      </tr>
+      <tr>
+        <th colspan="2">Longitud</th>
+      </tr>
+      <tr>
+        <td style="width:50%;">Grados</td>
+        <td><?php htmlout($orden['lontgrados']); ?></td>    
+      </tr>
+      <tr>
+        <td>Minutos</td>
+        <td><?php htmlout($orden['lontmin']); ?></td>    
+      </tr>
+      <tr>
+        <td>Segundos</td>
+        <td><?php htmlout($orden['lontseg']); ?></td>    
+      </tr>
+            <tr>
+        <th colspan="2">Ubicación del punto de muestro</th>  
+      </tr>
+      <tr>
+        <th colspan="2">Latitud</th>
+      </tr>
+      <tr>
+        <td style="width:50%;">Grados</td>
+        <td><?php htmlout($orden['latpgrados']); ?></td>    
+      </tr>
+      <tr>
+        <td>Minutos</td>
+        <td><?php htmlout($orden['latpmin']); ?></td>    
+      </tr>
+      <tr>
+        <td>Segundos</td>
+        <td><?php htmlout($orden['latpseg']); ?></td>    
+      </tr>
+      <tr>
+        <th colspan="2">Longitud</th>
+      </tr>
+      <tr>
+        <td style="width:50%;">Grados</td>
+        <td><?php htmlout($orden['lonpgrados']); ?></td>    
+      </tr>
+      <tr>
+        <td>Minutos</td>
+        <td><?php htmlout($orden['lonpmin']); ?></td>    
+      </tr>
+      <tr>
+        <td>Segundos</td>
+        <td><?php htmlout($orden['lonpseg']); ?></td>    
       </tr>
     </table>
     <br>
-    <?php if(count($mcompuestas) > 1): ?>
+
+
+    <?php $flujos = 0; $ft = 0;
+     if(count($mcompuestas) > 1): ?>
       <fieldset style="width:50%">
         <legend>MUESTRAS</legend>
         <?php for ($i=0; $i<count($mcompuestas); $i++) :?>
@@ -68,13 +161,33 @@
             <tr>
               <th colspan="2">Muestra <?php if($i+1<count($mcompuestas)){htmlout($i+1);}else{echo "Compuesta";} ?>:</th>  
             </tr>
+            <?php if($i+1<count($mcompuestas)): ?>
+              <tr>
+                <td>Signatario</td>
+                <td><?php htmlout($orden['signatario']); ?></td>    
+              </tr>
+            <?php endif; ?>
             <tr>
-              <td style="width:50%;">Fecha de conformación</td>
-              <td><?php htmlout($orden['fechamuestreo']); ?></td>    
+              <td style="width:50%;">Fecha</td>
+              <?php
+                $fecha = $orden['fechamuestreo'];
+                if($i>0):
+                  if( date('H', strtotime($mcompuestas[$i-1]['hora'])) > date('H', strtotime($mcompuestas[$i]['hora'])) ):
+                    $fecha = date('Y-m-d', strtotime($orden['fechamuestreo'] . ' + 1 day'));
+                    $horacomparar = $mcompuestas[$i-1]['hora'];
+                  endif;
+                  if(isset($horacomparar)):
+                    if( date('H', strtotime($horacomparar)) > date('H', strtotime($mcompuestas[$i]['hora'])) ):
+                      $fecha = date('Y-m-d', strtotime($orden['fechamuestreo'] . ' + 1 day'));
+                    endif;
+                  endif;
+                endif;
+              ?>
+              <td><?php htmlout($fecha); ?></td>
             </tr>
             <tr>
               <td>Hora de conformación</td>
-              <td><?php htmlout($mcompuestas[$i]['hora']); ?></td>    
+              <td><?php htmlout($mcompuestas[$i]['hora']); ?></td>
             </tr>
             <tr>
               <td>Fecha de recepción laboratorio</td>
@@ -86,12 +199,24 @@
             </tr>
             <tr>
               <td>Identificación</td>
-              <td><?php htmlout($orden['identificacion']); ?></td>    
+              <td><?php htmlout($mcompuestas[$i]['identificacion']); ?></td>    
             </tr>
-            <tr>
-              <td>Flujo</td>
-              <td><?php htmlout($orden['fechalta']); ?></td>    
-            </tr>
+            <?php if($i+1<count($mcompuestas)){ ?>
+              <tr>
+                <td>Flujo</td>
+                <td><?php htmlout($mcompuestas[$i]['flujo']); ?></td>    
+              </tr>
+            <?php 
+              if($mcompuestas[$i]['flujo'] !== "S/F"){
+                $flujos += floatval($mcompuestas[$i]['flujo']);
+                $ft++;
+              }
+            }else{ ?>
+              <tr>
+                <td>Caudal promedio</td>
+                <td><?php htmlout( floatval(($flujos/$ft++)) ); ?></td>    
+              </tr>
+            <?php } ?>
             <tr>
               <td>Descripción</td>
               <td><?php htmlout($mcompuestas[$i]['caracteristicas']); ?></td>    
@@ -100,6 +225,26 @@
               <td>Observaciones</td>
               <td><?php htmlout($mcompuestas[$i]['observaciones']); ?></td>    
             </tr>
+            <!--tr>
+              <td>pH</td>
+              <td><?php htmlout($orden['pH']); ?></td>    
+            </tr-->
+            <!--tr>
+              <td>Coliformes</td>
+              <td><?php htmlout( (isset($parametros2[$i]['coliformes'])) ? $parametros2[$i]['coliformes'] : "" ); ?></td>    
+            </tr-->
+            <!--tr>
+              <td>Temperatura</td>
+              <td><?php htmlout($orden['temperatura']); ?></td>    
+            </tr-->
+            <!--tr>
+              <td>Grasas y Aceites</td>
+              <td><?php htmlout( (isset($parametros2[$i]['GyA'])) ? $parametros2[$i]['GyA'] : "" ); ?></td>    
+            </tr-->
+            <!--tr>
+              <td>Materia Flotante</td>
+              <td><?php htmlout( (strval($orden['mflotante']) == "0") ? "Ausente" : "Presente"); ?></td>    
+            </tr-->
           </table>
           <?php if(count($mcompuestas) > 1): ?> <br><?php endif; ?>
         <?php endfor; ?>

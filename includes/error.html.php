@@ -53,6 +53,8 @@
             $post = json_decode($_POST['post'], TRUE);
             $accion = isset($post['accion']) ? $post['accion'] : $_SESSION['accion'];
             echo '<input type="hidden" name="accion" value=\''.$accion.'\'>';
+            $accionparam = isset($_POST['boton']) ? $_POST['boton'] : $_POST['accion'];
+            echo '<input type="hidden" name="accionparam" value=\''.$accionparam.'\'>';
             ?>
             <input type="submit" value="Regresar">
           </form>

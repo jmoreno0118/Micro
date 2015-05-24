@@ -26,9 +26,17 @@
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();*/
 
+		$_SESSION['accion'] = 'guardar';
+	    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+	    $host     = $_SERVER['HTTP_HOST'];
+	    $script   = $_SERVER['SCRIPT_NAME'];
+	    $params   = $_SERVER['QUERY_STRING'];
+	    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
+	    $_SESSION['url'] = $currentUrl;
+
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 		if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-			formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE));
+			formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), 1, $_POST['accionparam']);
 		}else{
 			insertMediciones($_POST["mcompuestas"], $_POST['id']);
 
@@ -46,11 +54,19 @@
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();*/
 
+		$_SESSION['accion'] = 'salvar';
+	    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+	    $host     = $_SERVER['HTTP_HOST'];
+	    $script   = $_SERVER['SCRIPT_NAME'];
+	    $params   = $_SERVER['QUERY_STRING'];
+	    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
+	    $_SESSION['url'] = $currentUrl;
+
 		$id = $_POST['id'];
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 
 		if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-			formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), 1);
+			formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), 1, $_POST['accionparam']);
 		}
 		try
 		{
@@ -63,14 +79,6 @@
 			$s->bindValue(':id',$_POST['id']);
 			$s->execute();
 			$muestreo = $s->fetch();
-
-			$sql='DELETE FROM laboratoriotbl WHERE mcompuestaidfk IN (SELECT mcompuestastbl.id
-									                                FROM mcompuestastbl
-									                                INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.id
-									                                WHERE muestreosaguatbl.generalaguaidfk = :id)';
-			$s=$pdo->prepare($sql);
-			$s->bindValue(':id', $muestreo['id']);
-			$s->execute();
 
 			$sql='DELETE FROM mcompuestastbl WHERE muestreoaguaidfk = :id';
 			$s=$pdo->prepare($sql);
@@ -118,6 +126,8 @@
 function insertMediciones($mcompuestas, $muestreoid){
 	global $pdo;
 	try{
+		//var_dump($mcompuestas);
+		//exit();
 		foreach ($mcompuestas as $key => $value) {
 	        $sql='INSERT INTO mcompuestastbl SET
 							muestreoaguaidfk=:id,
@@ -125,7 +135,10 @@ function insertMediciones($mcompuestas, $muestreoid){
 							flujo=:flujo,
 							volumen=:volumen,
 							observaciones=:observaciones,
-							caracteristicas=:caracteristicas';
+							caracteristicas=:caracteristicas,
+							identificacion=:identificacion,
+							fecharecepcion=:fecharecepcion,
+							horarecepcion=:horarecepcion';
 	        $s=$pdo->prepare($sql);
 	        $s->bindValue(':id', $muestreoid);
 	        $s->bindValue(':hora', (isset($value["hora"])) ? $value["hora"] : '');
@@ -133,16 +146,8 @@ function insertMediciones($mcompuestas, $muestreoid){
 	        $s->bindValue(':volumen', (isset($value["volumen"])) ? $value["volumen"] : 0);
 	        $s->bindValue(':observaciones', $value["observaciones"]);
 	        $s->bindValue(':caracteristicas', $value["caracteristicas"]);
-	        $s->execute();
-	        $mcompuesta = $pdo->lastInsertid();
-
-	        $sql='INSERT INTO laboratoriotbl SET
-							mcompuestaidfk=:id,
-							fecharecepcion=:fecharecepcion,
-							horarecepcion=:horarecepcion';
-	        $s=$pdo->prepare($sql);
-	        $s->bindValue(':id', $mcompuesta);
-	        $s->bindValue(':fecharecepcion', (isset($value["fechalab"])) ? $value["fechalab"] : '0000-00-00');
+	        $s->bindValue(':identificacion', $value["identificacion"]);
+	       	$s->bindValue(':fecharecepcion', (isset($value["fechalab"])) ? $value["fechalab"] : '0000-00-00');
 	        $s->bindValue(':horarecepcion', (isset($value["horalab"])) ? $value["horalab"] : '00:00');
 	        $s->execute();
       	}

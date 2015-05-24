@@ -39,25 +39,72 @@ function agregarIntervalo(nombre, unidades, resultado){
   </header>
   <div id="cuerpoprincipal">
    <h2><?php htmlout($titulopagina); ?></h2>
-   <?php $formulario = array("Fecha de Reporte(aaaa-mm-dd)" => "fechareporte",
-                          "Solidos sedimentables" => "ssedimentables",
-             							"Solidos suspendidos" => "ssuspendidos",
-                          "DBO" => "dbo",
-                          "Nitrógeno Kjeldahl" => "nkjedahl",
-                          "Nitrógeno de Nitritos" => "nitritos",
-                          "Nitrógeno de Nitratos" => "nitratos",
-                          "Nitrógeno" => "nitrogeno",
-                          "Fosforo" => "fosforo",
-                          "Arsenico" => "arsenico",
-                          "Cadmio" => "cadmio",
-                          "Cianuros" => "cianuros",
-                          "Cobre" => "cobre",
-                          "Cromo" => "cromo",
-                          "Mercurio" => "mercurio",
-                          "Niquel" => "niquel",
-                          "Plomo" => "plomo",
-             							"Zinc" => "zinc",
-             							"Huevos de Helminto" => "hdehelminto");
+   <?php
+          $formulario = array(
+                      'fechareporte' => array(
+                                        'label' => 'Fecha de Reporte(aaaa-mm-dd)'
+                                        ),
+                      'ssedimentables' => array(
+                                        'label' => 'Solidos sedimentables'
+                                        ),
+                      'ssuspendidos' => array(
+                                        'label' => 'Solidos suspendidos'
+                                        ),
+                      'dbo' => array(
+                                        'label' => 'DBO'
+                                        ),
+                      'nkjedahl' => array(
+                                        'label' => 'Nitrógeno Kjeldahl',
+                                        'atts' => array('class' => 'nits')
+                                        ),
+                      'nitritos' => array(
+                                        'label' => 'Nitrógeno de Nitritos',
+                                        'atts' => array('class' => 'nits')
+                                        ),
+                      'nitratos' => array(
+                                        'label' => 'Nitrógeno de Nitratos',
+                                        'atts' => array('class' => 'nits')
+                                        ),
+                      'nitrogeno' => array(
+                                        'label' => 'Nitrógeno',
+                                        'atts' => array('disabled')
+                                        ),
+                      'fosforo' => array(
+                                        'label' => 'Fosforo'
+                                        ),
+                      'arsenico' => array(
+                                        'label' => 'Arsenico'
+                                        ),
+                      'cadmio' => array(
+                                        'label' => 'Cadmio'
+                                        ),
+                      'cianuros' => array(
+                                        'label' => 'Cianuros'
+                                        ),
+                      'cobre' => array(
+                                        'label' => 'Cobre'
+                                        ),
+                      'cromo' => array(
+                                        'label' => 'Cromo'
+                                        ),
+                      'mercurio' => array(
+                                        'label' => 'Mercurio'
+                                        ),
+                      'niquel' => array(
+                                        'label' => 'Niquel'
+                                        ),
+                      'plomo' => array(
+                                        'label' => 'Plomo'
+                                        ),
+                      'zinc' => array(
+                                        'label' => 'Zinc'
+                                        ),
+                      'hdehelminto' => array(
+                                        'label' => 'Huevos de Helminto'
+                                        ),
+          );
+
+
 
           $arquitectura = array("valores" => array("variables" => 'fechareporte,ssedimentables,ssuspendidos,dbo,nkjedahl,nitritos,nitratos,nitrogeno,fosforo,arsenico,cadmio,cianuros,cobre,cromo,mercurio,niquel,plomo,zinc,hdehelminto',
                                                   "tipo" => 1),
@@ -87,12 +134,18 @@ function agregarIntervalo(nombre, unidades, resultado){
 
       <fieldset>
         <legend>Resultados de laboratorio:</legend>
-      	<?php foreach($formulario as $label => $name): ?>
+      	<?php foreach($formulario as $key => $value): ?>
       	<div>
-      		<label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-  	    	<input type="text" <?php if($name==="nitritos" || $name==="nitratos" || $name==="nkjedahl"){?>class="nits"<?php } ?> name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php if($valores !== ""){htmlout($valores[$name]);} ?>" <?php if($name==="nitrogeno") echo "disabled"; ?>>
-          <?php if($name==="nitrogeno"){ ?> 
-            <input type="hidden" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>">
+          <?php crearForma(
+                        $value['label'], //Texto del abel
+                        $key, //Texto a colocar en los atributos id y name
+                        (isset($valores[$key])) ? $valores[$key] : '', //Valor extraido de la bd
+                        (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
+                        (isset($value['tipo'])) ? $value['tipo'] : 'text', //Tipo de etiqueta
+                        (isset($value['option'])) ? $value['option'] : '' //Options para los select
+              ); ?>
+          <?php if($key==="nitrogeno"){ ?> 
+            <input type="hidden" name="<?php htmlout($key); ?>" id="<?php htmlout($key); ?>">
           <?php } ?>
       	</div>
       	<?php endforeach?>
@@ -140,17 +193,25 @@ function agregarIntervalo(nombre, unidades, resultado){
         <input type="hidden" name="idparametro" value="<?php htmlout($idparametro); ?>">
   	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
   	  </div>
-    	</form>
-    <?php if(isset($regreso) AND $regreso === 1): ?>
       <br>
-      <form action="<?php htmlout($_SESSION['url']); ?>" method="post">
-        <input type="hidden" name="regreso" value="1">
+      <div>
+        <input type="hidden" name="boton" value="<?php htmlout($boton); ?>">
         <input type="hidden" name="id" value="<?php htmlout($id); ?>">
-        <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
-        <input type="hidden" name="coms" value="">
-        <input type="submit" name="accion" value="volver">
-      </form>
-    <?php endif;?>
+        <input type="submit" name="accion" value="Siralab">
+      </div>
+      <?php if(isset($regreso) AND $regreso === 1): ?>
+        <br>
+        <div>
+          <input type="hidden" name="regreso" value="1">
+          <input type="hidden" name="id" value="<?php htmlout($id); ?>">
+          <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
+          <input type="hidden" name="coms" value="">
+          <input type="submit" name="accion" value="volver">
+        </div>
+      <?php endif;?>
+
+    	</form>
+
     <p><a href="../generales">No guardar parametros</a></p>
     <p><a href="..">Regresa al búsqueda de ordenes</a></p>
     </div>  <!-- cuerpoprincipal -->
@@ -168,7 +229,7 @@ function agregarIntervalo(nombre, unidades, resultado){
     //this calculates values automatically 
     calculateSum();
 
-    <?php if($valores === ""): ?>
+    <?php if($valores === "" OR $boton === "guardar parametros"): ?>
       $("#fechareporte").on("keydown keyup", function() {
         if($("#fechareporte").val().length === 10){
           $.ajax({

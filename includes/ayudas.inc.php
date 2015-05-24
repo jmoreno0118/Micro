@@ -46,4 +46,60 @@
     $texto=htmlout($texto);
 	exit();
   }
+
+  function crearForma($label, $nombre, $valor, $atts, $tipo, $options){
+    echo '<label for="'.$nombre.'">'.$label.': </label>';
+    switch ($tipo) {
+      case 'text':
+        echo '<input type="text" name="'.$nombre.'" id="'.$nombre.'" value="'.$valor.'"';
+        if($atts !== ''):
+          foreach ($atts as $key => $value):
+            if(!is_numeric($key)):
+              echo ' '.$key.'='.$value.' ';
+            else:
+              echo ' '.$value.' ';
+            endif;
+          endforeach;
+        endif;
+        echo '>';
+        break;
+
+      case 'textarea':
+        echo '<br><textarea style="resize: none;" rows=5 cols=50 name="'.$nombre.'" id="'.$nombre.'"';
+        if($atts !== ''):
+          foreach ($atts as $key => $value):
+            if(!is_numeric($key)):
+              echo ' '.$key.'='.$value.' ';
+            else:
+              echo ' '.$value.' ';
+            endif;
+          endforeach;
+        endif;
+        echo '>'.$valor.'</textarea>';
+        break;
+
+      case 'select':
+        echo '<select name="'.$nombre.'" id="'.$nombre.'">';
+        $selected = strval($valor) === ''? 'selected' : '';
+            echo '<option value="" disabled '.$selected.'>Seleccionar</option>';
+            foreach ($options as $value => $texto){
+              $selected = (strval($valor) === strval($value)) ? 'selected' : '';
+              echo '<option value="'.$value.'" '.$selected.'>'.$texto.'</option>';
+            }
+        echo '</select>';
+        break;
+
+      case 'select2':
+        echo '<select name="'.$nombre.'" id="'.$nombre.'">';
+        $selected = strval($valor) === ''? 'selected' : '';
+            echo '<option value="" disabled '.$selected.'>Seleccionar</option>';
+            foreach ($options as $value => $texto){
+              $selected = (strval($valor) === strval($texto)) ? 'selected' : '';
+              echo '<option value="'.$texto.'" '.$selected.'>'.$texto.'</option>';
+            }
+        echo '</select>';
+        break;
+    }
+  }
+
 ?>

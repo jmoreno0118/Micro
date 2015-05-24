@@ -256,7 +256,7 @@
                     else
                     {
                         //Extract properties
-                        $a2=split(' ', $e);
+                        $a2=explode(' ', $e);
                         $tag=strtoupper(array_shift($a2));
                         $prop=array();
                         foreach($a2 as $v)
@@ -622,8 +622,7 @@
 
               $sql="SELECT DATE_FORMAT(mcompuestastbl.hora, '%H:%i') as 'hora', mcompuestastbl.flujo, mcompuestastbl.volumen, mcompuestastbl.observaciones,
                     mcompuestastbl.caracteristicas
-                    FROM laboratoriotbl
-                    INNER JOIN mcompuestastbl ON laboratoriotbl.mcompuestaidfk = mcompuestastbl.id
+                    FROM mcompuestastbl
                     WHERE mcompuestastbl.muestreoaguaidfk = :id";
               $s=$pdo->prepare($sql); 
               $s->bindValue(':id', $muestra['muestreoaguaid']);
@@ -643,6 +642,7 @@
              include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
              exit();
             }
+            //var_dump($mcompuestas);
     //--------------------------------------------------------------------------------------------------------------------
     //Obtener adicionales-------------------------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------------------------------------------
@@ -1174,6 +1174,7 @@
 /**************************************************************************************************/
 //Recibe el objeto de pdf, el array de mcompuestas y el valor de cantidad
     function observacionesPDF($pdf, $mcompuestas, $cantidad){
+        //var_dump($cantidad);
         $pdf->SetFont('Arial', 'B', 9);
         $pdf->Cell(0, 5, utf8_decode('Caracteristicas y observaciones por toma.'), 1, 1, 'C', true);
 
