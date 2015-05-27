@@ -130,7 +130,7 @@ function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regr
 	    {
 	    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 	      $sql="SELECT DATE_FORMAT(mcompuestastbl.hora, '%H:%i') as 'hora', mcompuestastbl.flujo, mcompuestastbl.volumen, mcompuestastbl.observaciones,
-	            mcompuestastbl.caracteristicas, mcompuestastbl.fecharecepcion, DATE_FORMAT(mcompuestastbl.horarecepcion, '%H:%i') as 'horarecepcion', mcompuestastbl.identificacion
+	            mcompuestastbl.caracteristicas
 	            FROM  mcompuestastbl
 	            INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.id
 	            WHERE muestreosaguatbl.generalaguaidfk = :id";
@@ -148,10 +148,7 @@ function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regr
 										"flujo" => $linea["flujo"],
 										"volumen" => $linea["volumen"],
 										"observaciones" => $linea["observaciones"],
-										"caracteristicas" => $linea["caracteristicas"],
-										"fechalab" => $linea["fecharecepcion"],
-										"horalab" => $linea["horarecepcion"],
-										"identificacion" => $linea["identificacion"]);
+										"caracteristicas" => $linea["caracteristicas"]);
 			}
 	    }else{
 	    	$pestanapag='Agregar muestras compuestas';
@@ -173,7 +170,7 @@ function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regr
 /**************************************************************************************************/
 /* Función para ver formulario de la informacion de siralab */
 /**************************************************************************************************/
-function formularioSiralab($id = "", $valores = "", $regreso = ""){
+function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad = "", $regreso = ""){
 	$pestanapag='Editar Siralab';
 	$titulopagina='Editar Siralab';
 	$boton = "salvar";
@@ -194,13 +191,42 @@ function formularioSiralab($id = "", $valores = "", $regreso = ""){
 	      exit();
 	    }
 	    if(!$valores = $s->fetch()){
+	    	$valores = array("datumgps" => "WGS84");
 	    	$pestanapag='Agregar Siralab';
 			$titulopagina='Agregar Siralab';
 	    	$boton = "guardar";
 	    }
 	}
+	if($mcompuestas === ""){
+		try
+	    {
+	    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+	      $sql="SELECT mcompuestastbl.id, mcompuestastbl.fecharecepcion, DATE_FORMAT(mcompuestastbl.horarecepcion, '%H:%i') as 'horarecepcion',
+	      				mcompuestastbl.identificacion
+	            FROM  mcompuestastbl
+	            INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.id
+	            WHERE muestreosaguatbl.id = :id";
+	      $s=$pdo->prepare($sql);
+	      $s->bindValue(':id', $id);
+	      $s->execute();
+	    }catch (PDOException $e){
+	      $mensaje='Hubo un error extrayendo la información de siralab.'.$e;
+	      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+	      exit();
+	    }
+	    if($param1 = $s->fetchAll()){
+	    	foreach($param1 as $linea){
+				$mcompuestas[] = array("id" => $linea["id"],
+										"fechalab" => $linea["fecharecepcion"],
+										"horalab" => $linea["horarecepcion"],
+										"identificacion" => $linea["identificacion"]);
+			}
+	    }
+	}
 	$_SESSION['siralab'] = array('id' => $id,
 									'valores' => $valores,
+									'mcompuestas' => $mcompuestas,
+									'cantidad' => $cantidad,
 									'boton' => $boton,
 									'regreso' => $regreso,
 									'pestanapag' => $pestanapag,

@@ -42,65 +42,84 @@ function agregarIntervalo(nombre, unidades, resultado){
    <?php
           $formulario = array(
                       'fechareporte' => array(
-                                        'label' => 'Fecha de Reporte(aaaa-mm-dd)'
+                                        'label' => 'Fecha de Reporte(aaaa-mm-dd)',
+                                        'tipo' => 'text'
                                         ),
                       'ssedimentables' => array(
-                                        'label' => 'Solidos sedimentables'
+                                        'label' => 'Solidos sedimentables',
+                                        'tipo' => 'text'
                                         ),
                       'ssuspendidos' => array(
-                                        'label' => 'Solidos suspendidos'
+                                        'label' => 'Solidos suspendidos',
+                                        'tipo' => 'text'
                                         ),
                       'dbo' => array(
-                                        'label' => 'DBO'
+                                        'label' => 'DBO',
+                                        'tipo' => 'text'
                                         ),
                       'nkjedahl' => array(
                                         'label' => 'Nitrógeno Kjeldahl',
+                                        'tipo' => 'text',
                                         'atts' => array('class' => 'nits')
                                         ),
                       'nitritos' => array(
                                         'label' => 'Nitrógeno de Nitritos',
+                                        'tipo' => 'text',
                                         'atts' => array('class' => 'nits')
                                         ),
                       'nitratos' => array(
                                         'label' => 'Nitrógeno de Nitratos',
+                                        'tipo' => 'text',
                                         'atts' => array('class' => 'nits')
                                         ),
                       'nitrogeno' => array(
                                         'label' => 'Nitrógeno',
+                                        'tipo' => 'text',
                                         'atts' => array('disabled')
                                         ),
                       'fosforo' => array(
-                                        'label' => 'Fosforo'
+                                        'label' => 'Fosforo',
+                                        'tipo' => 'text'
                                         ),
                       'arsenico' => array(
-                                        'label' => 'Arsenico'
+                                        'label' => 'Arsenico',
+                                        'tipo' => 'text'
                                         ),
                       'cadmio' => array(
-                                        'label' => 'Cadmio'
+                                        'label' => 'Cadmio',
+                                        'tipo' => 'text'
                                         ),
                       'cianuros' => array(
-                                        'label' => 'Cianuros'
+                                        'label' => 'Cianuros',
+                                        'tipo' => 'text'
                                         ),
                       'cobre' => array(
-                                        'label' => 'Cobre'
+                                        'label' => 'Cobre',
+                                        'tipo' => 'text'
                                         ),
                       'cromo' => array(
-                                        'label' => 'Cromo'
+                                        'label' => 'Cromo',
+                                        'tipo' => 'text'
                                         ),
                       'mercurio' => array(
-                                        'label' => 'Mercurio'
+                                        'label' => 'Mercurio',
+                                        'tipo' => 'text'
                                         ),
                       'niquel' => array(
-                                        'label' => 'Niquel'
+                                        'label' => 'Niquel',
+                                        'tipo' => 'text'
                                         ),
                       'plomo' => array(
-                                        'label' => 'Plomo'
+                                        'label' => 'Plomo',
+                                        'tipo' => 'text'
                                         ),
                       'zinc' => array(
-                                        'label' => 'Zinc'
+                                        'label' => 'Zinc',
+                                        'tipo' => 'text'
                                         ),
                       'hdehelminto' => array(
-                                        'label' => 'Huevos de Helminto'
+                                        'label' => 'Huevos de Helminto',
+                                        'tipo' => 'text'
                                         ),
           );
 
@@ -128,6 +147,7 @@ function agregarIntervalo(nombre, unidades, resultado){
     ?>
     <form id="medsform" name="medsform"  action="" method="post">
       <input type="hidden" name="post" value='<?php echo json_encode($_POST); ?>'>
+      <input type="hidden" name="prevact" value='<?php htmlout($_SESSION['accion']); ?>'>
       <input type="hidden" name="url" value="<?php htmlout($_SESSION['url']); ?>">
       <input type="hidden" name="arquitectura" value='<?php echo json_encode($arquitectura); ?>'>
       <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
@@ -137,11 +157,11 @@ function agregarIntervalo(nombre, unidades, resultado){
       	<?php foreach($formulario as $key => $value): ?>
       	<div>
           <?php crearForma(
-                        $value['label'], //Texto del abel
+                        $value['label'], //Texto del label
                         $key, //Texto a colocar en los atributos id y name
                         (isset($valores[$key])) ? $valores[$key] : '', //Valor extraido de la bd
                         (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
-                        (isset($value['tipo'])) ? $value['tipo'] : 'text', //Tipo de etiqueta
+                        $value['tipo'], //Tipo de etiqueta
                         (isset($value['option'])) ? $value['option'] : '' //Options para los select
               ); ?>
           <?php if($key==="nitrogeno"){ ?> 
@@ -193,27 +213,30 @@ function agregarIntervalo(nombre, unidades, resultado){
         <input type="hidden" name="idparametro" value="<?php htmlout($idparametro); ?>">
   	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
   	  </div>
+      <?php if($cantidad !== 1): ?>
       <br>
       <div>
         <input type="hidden" name="boton" value="<?php htmlout($boton); ?>">
         <input type="hidden" name="id" value="<?php htmlout($id); ?>">
         <input type="submit" name="accion" value="Siralab">
       </div>
+      <?php endif; ?>
+      </form>
+      <form action="" method="post">
       <?php if(isset($regreso) AND $regreso === 1): ?>
         <br>
         <div>
+          <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
           <input type="hidden" name="regreso" value="1">
           <input type="hidden" name="id" value="<?php htmlout($id); ?>">
-          <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
           <input type="hidden" name="coms" value="">
           <input type="submit" name="accion" value="volver">
         </div>
       <?php endif;?>
-
     	</form>
 
     <p><a href="../generales">No guardar parametros</a></p>
-    <p><a href="..">Regresa al búsqueda de ordenes</a></p>
+    <p><a href="..">Regresa a la búsqueda de ordenes</a></p>
     </div>  <!-- cuerpoprincipal -->
     <div id="footer">
       <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>

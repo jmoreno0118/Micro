@@ -76,6 +76,8 @@
 			$s->bindValue(':comentarios', $_POST['comentarios']);
 			$s->execute();
 
+			guardarCompuestas($_POST['mcompuestas']);
+
 			$pdo->commit();
 		}
 		catch (PDOException $e)
@@ -148,6 +150,8 @@
 			$s->bindValue(':comentarios', $_POST['comentarios']);
 			$s->execute();
 
+			guardarCompuestas($_POST['mcompuestas']);
+
 			$pdo->commit();
 		}
 		catch (PDOException $e)
@@ -166,9 +170,34 @@
 /**************************************************************************************************/
 	$id = $_SESSION['siralab']['id'];
 	$valores = $_SESSION['siralab']['valores'];
+	$mcompuestas = $_SESSION['siralab']['mcompuestas'];
+	$cantidad = $_SESSION['siralab']['cantidad'];
 	$boton = $_SESSION['siralab']['boton'];
 	$regreso = $_SESSION['siralab']['regreso'];
 	$pestanapag = $_SESSION['siralab']['pestanapag'];
 	$titulopagina = $_SESSION['siralab']['titulopagina'];
 	include 'formacapturar.html.php';
 	exit();
+
+function guardarCompuestas($mcompuestas){
+	global $pdo;
+	try{
+		foreach ($mcompuestas as $value) {
+	        $sql='UPDATE mcompuestastbl SET
+						identificacion=:identificacion,
+						fecharecepcion=:fecharecepcion,
+						horarecepcion=:horarecepcion
+						WHERE id=:id';
+	        $s=$pdo->prepare($sql);
+	        $s->bindValue(':id', $value["id"]);
+	        $s->bindValue(':identificacion', $value["identificacion"]);
+	       	$s->bindValue(':fecharecepcion', (isset($value["fechalab"])) ? $value["fechalab"] : '0000-00-00');
+	        $s->bindValue(':horarecepcion', (isset($value["horalab"])) ? $value["horalab"] : '00:00');
+	        $s->execute();
+      	}
+	}catch (PDOException $e){
+		$mensaje='Hubo un error al tratar de actualizar compuestas. Favor de intentar nuevamente.'.$e;
+		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+		exit();
+	}
+}

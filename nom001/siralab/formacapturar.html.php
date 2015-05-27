@@ -21,87 +21,197 @@
   <div id="cuerpoprincipal">
    <h2><?php htmlout($titulopagina); ?></h2>
    <?php
-   		$formulario = array("Título de concesión" => array("titulo", "input"),
-                          "RFC" => array("rfc", "input"),
-                          "Cuenca" => array("cuenca", "input"),
-                          "Región Hidrólogica" => array("region", "input"),
-             							"Procedencia de la descarga" => array("procedencia", "input"),
-             							//"Cuerpo receptor de la descarga" => array("cuerporeceptor", "input"),
-                          "Ubicación geográfica del punto de descarga según el título de concesión" => 
-                              array("Latitud" => array(
-                                                      "Grados" => "lattgrados",
-                                                      "Minutos" => "lattmin",
-                                                      "Segundos" => "lattseg"
+      $formulario = array(
+                  'titulo' => array(
+                                    'label' => 'Título de concesión',
+                                    'tipo' => 'text'
                                     ),
-                                    "Longitud" => array(
-                                                        "Grados" => "lontgrados",
-                                                        "Minutos" => "lontmin",
-                                                        "Segundos" => "lontseg"
-                                    )
-                                  ),
-                          "Coordenadas del punto de muestreo" =>
-                              array("Latitud" => array(
-                                                      "Grados" => "latpgrados",
-                                                      "Minutos" => "latpmin",
-                                                      "Segundos" => "latpseg"
+                  'anexo' => array(
+                                    'label' => 'Anexo',
+                                    'tipo' => 'text'
                                     ),
-                                    "Longitud" => array(
-                                                        "Grados" => "lonpgrados",
-                                                        "Minutos" => "lonpmin",
-                                                        "Segundos" => "lonpseg"
+                  'rfc' => array(
+                                    'label' => 'RFC',
+                                    'tipo' => 'text'
+                                    ),
+                  'cuenca' => array(
+                                    'label' => 'Cuenca',
+                                    'tipo' => 'text'
+                                    ),
+                  'region' => array(
+                                    'label' => 'Región Hidrólogica',
+                                    'tipo' => 'text'
+                                    ),
+                  'procedencia' => array(
+                                    'label' => 'Procedencia de la descarga',
+                                    'tipo' => 'text'
+                                    ),
+                  'ubicaciongeo' => array(
+                                    'label' => 'Ubicación geográfica del punto de descarga según el título de concesión'
+                                    ),
+                  'latitud' => array(
+                                    'label' => 'Latitud'
+                                    ),
+                  'lattgrados' => array(
+                                    'label' => 'Grados',
+                                    'tipo' => 'text'
+                                    ),
+                  'lattmin' => array(
+                                    'label' => 'Minutos',
+                                    'tipo' => 'text'
+                                    ),
+                  'lattseg' => array(
+                                    'label' => 'Segundos',
+                                    'tipo' => 'text'
+                                    ),
+                  'longitud' => array(
+                                    'label' => 'Longitud'
+                                    ),
+                  'lontgrados' => array(
+                                    'label' => 'Grados',
+                                    'tipo' => 'text'
+                                    ),
+                  'lontmin' => array(
+                                    'label' => 'Minutos',
+                                    'tipo' => 'text'
+                                    ),
+                  'lontseg' => array(
+                                    'label' => 'Segundos',
+                                    'tipo' => 'text'
+                                    ),
+                  'muestreo' => array(
+                                    'label' => 'Coordenadas del punto de muestreo'
+                                    ),
+                  'latitud1' => array(
+                                    'label' => 'Latitud'
+                                    ),
+                  'latpgrados' => array(
+                                    'label' => 'Grados',
+                                    'tipo' => 'text'
+                                    ),
+                  'latpmin' => array(
+                                    'label' => 'Minutos',
+                                    'tipo' => 'text'
+                                    ),
+                  'latpseg' => array(
+                                    'label' => 'Segundos',
+                                    'tipo' => 'text'
+                                    ),
+                  'longitud1' => array(
+                                    'label' => 'Longitud'
+                                    ),
+                  'lonpgrados' => array(
+                                    'label' => 'Grados',
+                                    'tipo' => 'text'
+                                    ),
+                  'lonpmin' => array(
+                                    'label' => 'Minutos',
+                                    'tipo' => 'text'
+                                    ),
+                  'lonpseg' => array(
+                                    'label' => 'Segundos',
+                                    'tipo' => 'text'
+                                    ),
+                  'datumgps' => array(
+                                    'label' => 'Datum GPS',
+                                    'tipo' => 'text'
+                                    ),
+                  'comentarios' => array(
+                                    'label' => 'Comentarios',
+                                    'tipo' => 'textarea'
                                     )
-                                  ),
-             							"Datum GPS" => array("datumgps", "input", "WGS84"),
-             							"Comentarios" => array("comentarios" , "textarea")
-                          );
+      );
 
-      $arquitectura = array("valores" => array("variables" => 'titulo,rfc,cuenca,region,procedencia,cuerporeceptor,lattGrados,lattmin,lattseg,lontGrados,lontmin,lontseg,latpGrados,latpmin,latpseg,lonpGrados,lonpmin,lonpseg,datumgps,comentarios',
+      $formulario2 = array(
+                  'id' => array(
+                                      'tipo' => 'hidden'
+                                      ),
+                  'fechalab' => array(
+                                      'label' => 'Fecha recepción laboratorio(aaaa-mm-dd)',
+                                      'tipo' => 'text'
+                                      ),
+                  'horalab' => array(
+                                      'label' => 'Hora recepción laboratorio(hh:mm)',
+                                      'tipo' => 'text'
+                                      ),
+                  'identificacion' => array(
+                                      'label' => 'Identificación',
+                                      'tipo' => 'text'
+                                      ),
+        );
+
+      $arquitectura = array("valores" => array("variables" => 'titulo,anexo,rfc,cuenca,region,procedencia,cuerporeceptor,lattGrados,lattmin,lattseg,lontGrados,lontmin,lontseg,latpGrados,latpmin,latpseg,lonpGrados,lonpmin,lonpseg,datumgps,comentarios',
                                               "tipo" => 1),
+                            "mcompuestas" => array("variables" => 'fechalab,horalab,identificacion',
+                                              "tipo" => 2),
                             "id" => array("variables" => "id",
-                                          "tipo" => 0));
+                                          "tipo" => 0),
+                            "regreso" => array("variables" => "id",
+                                                "tipo" => 0,
+                                                "valor" => 2),
+                            "cantidad" => array("variables" => "cantidad",
+                                            "tipo" => 0),
+                            "boton" => array("variables" => "accion",
+                                              "tipo" => 0)
+                            );
    ?>
     <form id="siralabform" name="siralabform" action="?" method="post">
       <input type="hidden" name="post" value='<?php htmlout(json_encode($_POST)); ?>'>
       <input type="hidden" name="url" value="<?php htmlout($_SESSION['url']); ?>">
       <input type="hidden" name="arquitectura" value='<?php htmlout(json_encode($arquitectura)); ?>'>
+      <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
 
-    	<?php foreach($formulario as $label => $name): ?>
+    	<?php foreach($formulario as $key => $value): ?>
     	<div>
-        <label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-        <?php if(isset($name[0])): ?>
-          <?php 
-            if(isset($valores[$name[0]])){
-               $valor = $valores[$name[0]];
-            }elseif(isset($name[2])){
-              $valor = $name[2];
-            }else{
-              $valor = "";
-            } ?>
-          <?php if($name[1] === "input"): ?>
-              <input type="text" name="<?php htmlout($name[0]); ?>" id="<?php htmlout($name[0]); ?>" value="<?php htmlout($valor) ?>">
-          <?php elseif($name[1] === "textarea"): ?>
-              <br><textarea style="resize: none;" maxlength=350 rows=5 cols=50 name="<?php htmlout($name[0]); ?>" id="<?php htmlout($name[0]); ?>"><?php htmlout($valor); ?></textarea>
-          <?php endif; ?>
-        <?php else: ?>
-          <?php foreach ($name as $key => $dms): ?>
-            <br><br>
-            <label><?php htmlout($key); ?>:</label>
-            <br>
-            <?php foreach ($dms as $key => $value): ?>
-              <?php $valor = (isset($valores[$value]))? $valores[$value] : ""; ?>
-              <label for="<?php htmlout($value); ?>"><?php htmlout($key); ?>:</label>
-              <input type="text" name="<?php htmlout($value); ?>" id="<?php htmlout($value); ?>" value="<?php htmlout($valor) ?>">
-            <?php endforeach; ?>
-          <?php endforeach; ?>
-        <?php endif; ?>
+        <?php crearForma(
+                        $value['label'], //Texto del label
+                        $key, //Texto a colocar en los atributos id y name
+                        (isset($valores[$key])) ? $valores[$key] : '', //Valor extraido de la bd
+                        (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
+                        (isset($value['tipo'])) ? $value['tipo'] : '', //Tipo de etiqueta
+                        (isset($value['option'])) ? $value['option'] : '' //Options para los select
+              ); ?>
     	</div>
       <br>
     	<?php endforeach?>
+      <?php foreach ($formulario2 as $key => $value):
+      if($value['tipo'] !== 'hidden'){ ?>
+        <fieldset>
+          <legend><?php echo $value['label']; ?>:</legend>
+          <?php for ($i=0; $i<$cantidad+1; $i++) :?>
+            <?php if(($i+1 === $cantidad+1) AND ($key === "flujo" OR $key === "volumen")):
+              continue;
+             endif; ?>
+             <?php crearForma(
+                        "Muestra ".(($i < $cantidad) ? $i+1 : "Compuesta"), //Texto del label
+                        "mcompuestas[".$i."][".$key."]", //Texto a colocar en los atributos id y name
+                        ($mcompuestas !== "") ? (isset($mcompuestas[$i][$key])) ? $mcompuestas[$i][$key] : '' : '', //Valor extraido de la bd
+                        (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
+                        $value['tipo'], //Tipo de etiqueta
+                        (isset($value['option'])) ? $value['option'] : '' //Options para los select
+              ); ?>
+            <br>
+        <?php endfor; ?>
+      </fieldset>
+      <br>
+    <?php }else{
+       for ($i=0; $i<$cantidad+1; $i++) :
+        crearForma(
+                  '', //Texto del label
+                  "mcompuestas[".$i."][".$key."]", //Texto a colocar en los atributos id y name
+                  ($mcompuestas !== "") ? (isset($mcompuestas[$i][$key])) ? $mcompuestas[$i][$key] : '' : '', //Valor extraido de la bd
+                  '', //Atributos extra de la etiqueta
+                  $value['tipo'], //Tipo de etiqueta
+                  '' //Options para los select
+        );
+      endfor; 
+    }
+    endforeach; ?>
 	  <div>
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
       <p><a href="../generales">Volver a mediciones</a></p>
-	    <p><a href="..">Regresa al búsqueda de ordenes</a></p>
+	    <p><a href="../../nom001">Regresa a la búsqueda de ordenes</a></p>
 	  </div> 
 	</form>
   </div>  <!-- cuerpoprincipal -->
@@ -118,7 +228,9 @@
 <script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
 <script type="text/javascript">
   $(document).ready(function() {
-
+   jQuery.validator.addMethod('hora', function (value, element, param) {
+    return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value); 
+   }, 'Favor de introducir una hora valida.');
 
    jQuery.validator.addMethod('cuatrocimales', function (value, element, param) {
     return /^\d{1,2}(\.\d{1,4})$/.test(value);
@@ -132,11 +244,11 @@
       rules: {
         empresagiro: "required",
         titulo: "required",
+        anexo: "required",
         rfc: "required",
         cuenca: "required",
         region: "required",
         procedencia: "required",
-        //cuerporeceptor: "required",
         lattGrados: {
          required: true,
          dosint: true
@@ -186,7 +298,23 @@
          cuatrocimales: true
         },
         datumgps: "required",
-        comentarios: "required"
+        comentarios: "required",
+        <?php for ($i=0; $i<$cantidad+1; $i++) :
+        echo "
+          'mcompuestas[$i][fechalab]':{
+            required: true,
+            date: true
+          },
+          'mcompuestas[$i][horalab]':{
+            required: true,
+            hora: true
+          },
+          'mcompuestas[$i][identificacion]':{
+            required: true
+          }
+        ";
+        echo ($i<$cantidad+2)? "," : "";
+       endfor; ?>
       },
       success: "valid",
       submitHandler: function(form) {  

@@ -132,16 +132,18 @@
       }
       catch (PDOException $e)
       {
-      $pdo->rollback();
-      $mensaje='Hubo un error al tratar de insertar la medicion. Favor de intentar nuevamente.'.$e;
-      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-      exit();
+        $pdo->rollback();
+        $mensaje='Hubo un error al tratar de insertar la medicion. Favor de intentar nuevamente.'.$e;
+        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+        exit();
       }
       $cantidad = 1;
-      if($_POST['tipomediciones'] === '8'){
-        $cantidad = 4;
-      }else if($_POST['tipomediciones'] === '16' || $_POST['tipomediciones'] === '24'){
-        $cantidad = 6;
+      if($_POST['tipomediciones'] === '4'){
+          $cantidad = 2;
+      }else if($_POST['tipomediciones'] === '8'){
+          $cantidad = 4;
+      }else if($_POST['tipomediciones'] === '12'){
+          $cantidad = 6;
       }
     }
     $_SESSION['accion'] = 'guardar';
@@ -455,10 +457,12 @@
         exit();
       }
       $cantidad = 1;
-      if($_POST['tipomediciones'] === '8'){
-        $cantidad = 4;
-      }elseif($_POST['tipomediciones'] === '16' OR $_POST['tipomediciones'] === '24'){
-        $cantidad = 6;
+      if($_POST['tipomediciones'] === '4'){
+          $cantidad = 2;
+      }else if($_POST['tipomediciones'] === '8'){
+          $cantidad = 4;
+      }else if($_POST['tipomediciones'] === '12'){
+          $cantidad = 6;
       }
     }else{ // cierre de if(!isset($_POST['regreso']))
       $cantidad = intval($_POST['cantidad']);
@@ -559,18 +563,47 @@
 		  formularioParametros($_POST['id'], $_POST['cantidad'], $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['regreso'], $_POST['accionparam']);
     }else{
   		$cantidad = 1;
-  		if($_POST['tipomedicion'] === '8'){
-  			$cantidad = 4;
-  		}else if($_POST['tipomedicion'] === '16' || $_POST['tipomedicion'] === '24'){
-  			$cantidad = 6;
-  		}
+      if($_POST['tipomedicion'] === '4'){
+          $cantidad = 2;
+      }else if($_POST['tipomedicion'] === '8'){
+          $cantidad = 4;
+      }else if($_POST['tipomedicion'] === '12'){
+          $cantidad = 6;
+      }
     }
     if(isset($_POST['idparametro']) AND $_POST['idparametro'] !== ""){
 		  formularioParametros($_POST['id'], $cantidad, $_POST['idparametro']);
     }else{
       formularioParametros($_POST['id'], $cantidad);
     }
-    exit();
+  }
+
+/**************************************************************************************************/
+/* Formulario de parametros de una medicion una orden de trabajo */
+/**************************************************************************************************/
+  if (isset($_POST['accion']) and $_POST['accion']=='captura siralab')
+  {
+    $_SESSION['accion'] = 'captura siralab';
+    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+    $host     = $_SERVER['HTTP_HOST'];
+    $script   = $_SERVER['SCRIPT_NAME'];
+    $params   = $_SERVER['QUERY_STRING'];
+    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
+    $_SESSION['url'] = $currentUrl;
+
+    if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
+      formularioSiralab($_POST['id'], json_decode($_POST['valores'], TRUE), json_decode($_POST['mcompuestas'], TRUE), $_POST['cantidad'], $_POST['regreso']);
+    }else{
+      $cantidad = 1;
+      if($_POST['tipomedicion'] === '4'){
+          $cantidad = 2;
+      }else if($_POST['tipomedicion'] === '8'){
+          $cantidad = 4;
+      }else if($_POST['tipomedicion'] === '12'){
+          $cantidad = 6;
+      }
+    }
+    formularioSiralab($_POST['muestreoid'], '', '', $cantidad, 0);
   }
 
 /**************************************************************************************************/
@@ -645,8 +678,9 @@ verMeds($_SESSION['ot']);
 		$s->execute();
 		$nombreot = $s->fetch();
 
-		$sql='SELECT id, numedicion, lugarmuestreo, descriproceso, tipomediciones
+		$sql='SELECT generalesaguatbl.id, numedicion, lugarmuestreo, descriproceso, tipomediciones, muestreosaguatbl.id as "muestreoid"
 			FROM generalesaguatbl
+      INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
 			WHERE ordenaguaidfk = :id';
 		$s=$pdo->prepare($sql); 
 		$s->bindValue(':id',$ot);
@@ -677,7 +711,8 @@ verMeds($_SESSION['ot']);
 						'lugarmuestreo'=>$linea['lugarmuestreo'],
 						'descriproceso'=>$linea['descriproceso'],
 						'tipomediciones'=>$linea['tipomediciones'],
-						'parametros'=> ($params = $p->fetch()) ? $params['id'] : "");
+						'parametros'=> ($params = $p->fetch()) ? $params['id'] : "",
+            'muestreoid'=> $linea['muestreoid']);
 	}
 	if($params = $s->fetch()){
 		$paramid = $params['id'];

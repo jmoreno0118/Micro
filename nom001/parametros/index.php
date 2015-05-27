@@ -85,7 +85,8 @@
 	    $_SESSION['url'] = $currentUrl;
 
 	    $valores = (isset($_POST['valores'])) ? json_decode($_POST['valores'], TRUE) : "";
-		formularioSiralab($_POST['id'], $valores, 0);
+	    $mcompuesta = (isset($_POST['mcompuesta'])) ? json_decode($_POST['mcompuesta'], TRUE) : "";
+		formularioSiralab($_POST['id'], $valores, $mcompuesta, $_POST['cantidad'], 0);
 	}
 
 /**************************************************************************************************/

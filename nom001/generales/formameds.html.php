@@ -52,11 +52,20 @@
             <input type="submit" name="accion" value="editar">
             <input type="submit" name="accion" value="borrar">
             <input type="hidden" name="tipomedicion" value="<?php echo $medagua['tipomediciones']; ?>">
-            <?php if($medagua['parametros'] !== ""): ?><input type="hidden" name="idparametro" value="<?php echo $medagua['parametros']; ?>"><?php endif; ?>
+            <?php if($medagua['parametros'] !== ""): ?>
+              <input type="hidden" name="idparametro" value="<?php echo $medagua['parametros']; ?>">
+            <?php endif; ?>
             <input type="submit" name="accion" value="parametros">
             <input type="hidden" name="ot" value="<?php htmlout($ot); ?>">
             <input type="hidden" name="numedicion" value="<?php htmlout($medagua['numedicion']); ?>">
             <input type="submit" name="accion" value="croquis">
+
+            <?php if($medagua['tipomediciones'] !== '1'){
+              if($medagua['muestreoid'] !== ""): ?>
+                <input type="hidden" name="muestreoid" value="<?php echo $medagua['muestreoid']; ?>">
+              <?php endif; ?>
+              <input type="submit" name="accion" value="captura siralab">
+            <?php } ?>
           </form>
           <form action="../conagua/index.php" method="post" style="float:left;" target="_blank">
            <input type="hidden" name="otm" value="<?php htmlout($nombreot['ot'].'-'.$medagua['numedicion']); ?>">

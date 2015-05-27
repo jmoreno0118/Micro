@@ -19,25 +19,20 @@
 	  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/encabezado.inc.php'; ?>
   </header>
   <div id="cuerpoprincipal">
-    <?php //var_dump($_POST); ?>
    <h2><?php htmlout($titulopagina); ?></h2>
-   <?php $formulario = array("hora" => "Hora(hh:mm)",
-                            "flujo" => "Flujo(m3/s) Ej. 1.1234",
-                            "volumen" => "Volumen(ml)",
-                            "observaciones" => "Observaciones",
-                            "caracteristicas" => "Caracteristicas: (Max. 350)",
-                            "fechalab" => "Fecha recepción laboratorio(aaaa-mm-dd)",
-                            "horalab" => "Hora recepción laboratorio(hh:mm)",
-                            "identificacion" => "Identificación");
+   <?php //var_dump($mcompuestas);
         $formulario = array(
                     'hora' => array(
-                                        'label' => 'Hora(hh:mm)'
+                                        'label' => 'Hora(hh:mm)',
+                                        'tipo' => 'text'
                                         ),
                     'flujo' => array(
-                                        'label' => 'Flujo(m3/s) Ej. 1.1234'
+                                        'label' => 'Flujo(m3/s) Ej. 1.1234',
+                                        'tipo' => 'text'
                                         ),
                     'volumen' => array(
-                                        'label' => 'Volumen(ml)'
+                                        'label' => 'Volumen(ml)',
+                                        'tipo' => 'text'
                                         ),
                     'observaciones' => array(
                                         'label' => 'Observaciones',
@@ -46,19 +41,8 @@
                     'caracteristicas' => array(
                                         'label' => 'Caracteristicas: (Max. 350)',
                                         'tipo' => 'textarea'
-                                        ),
-                    'fechalab' => array(
-                                        'label' => 'Fecha recepción laboratorio(aaaa-mm-dd)'
-                                        ),
-                    'horalab' => array(
-                                        'label' => 'Hora recepción laboratorio(hh:mm)'
-                                        ),
-                    'identificacion' => array(
-                                        'label' => 'Identificación'
-                                        ),
+                                        )
         );
-
-
 
       $arquitectura = array("mcompuestas" => array("variables" => 'hora,flujo,volumen,observaciones,caracteristicas,fechalab,horalab',
                                               "tipo" => 2),
@@ -75,6 +59,7 @@
       <input type="hidden" name="post" value='<?php echo json_encode($_POST); ?>'>
       <input type="hidden" name="url" value="<?php htmlout($_SESSION['url']); ?>">
       <input type="hidden" name="arquitectura" value='<?php echo json_encode($arquitectura); ?>'>
+      <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
 
       <?php foreach ($formulario as $key => $value): ?>
         <fieldset>
@@ -84,11 +69,11 @@
               continue;
              endif; ?>
              <?php crearForma(
-                        "Muestra ".(($i < $cantidad) ? $i+1 : "Compuesta"), //Texto del abel
+                        "Muestra ".(($i < $cantidad) ? $i+1 : "Compuesta"), //Texto del label
                         "mcompuestas[".$i."][".$key."]", //Texto a colocar en los atributos id y name
-                        (isset($mcompuestas[$i][$key])) ? $mcompuestas[$i][$key] : '', //Valor extraido de la bd
+                        ($mcompuestas !== "") ? (isset($mcompuestas[$i][$key])) ? $mcompuestas[$i][$key] : '' : '', //Valor extraido de la bd
                         (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
-                        (isset($value['tipo'])) ? $value['tipo'] : 'text', //Tipo de etiqueta
+                        $value['tipo'], //Tipo de etiqueta
                         (isset($value['option'])) ? $value['option'] : '' //Options para los select
               ); ?>
             <br>
@@ -102,7 +87,6 @@
        <input type="hidden" name="regreso" value="1">
        <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
       <?php endif;?>
-      <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>"> 
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
 	</form>
@@ -114,7 +98,7 @@
     <input type="submit" name="accion" value="volver">
   </form>
   <p><a href="../generales">Volver a mediciones</a></p>
-  <p><a href="../nom001">Regresa al búsqueda de ordenes</a></p>
+  <p><a href="../../nom001">Regresa a la búsqueda de ordenes</a></p>
   </div>  <!-- cuerpoprincipal -->
   <div id="footer">
     <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>

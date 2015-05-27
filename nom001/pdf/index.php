@@ -573,7 +573,14 @@
         }
 
         foreach ($muestras as $muestra) {
-            $cantidad = 1; if($muestra['tipomediciones'] == '8'){$cantidad = 4;}elseif($muestra['tipomediciones'] === '24'){$cantidad = 6;}
+            $cantidad = 1;
+            if($_POST['tipomediciones'] === '4'){
+                $cantidad = 2;
+            }else if($_POST['tipomediciones'] === '8'){
+                $cantidad = 4;
+            }else if($_POST['tipomediciones'] === '12'){
+                $cantidad = 6;
+            }
             
     //--------------------------------------------------------------------------------------------------------------------
     //Obtener parametros y maximos----------------------------------------------------------------------------------------

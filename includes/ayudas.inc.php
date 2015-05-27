@@ -48,38 +48,31 @@
   }
 
   function crearForma($label, $nombre, $valor, $atts, $tipo, $options){
-    echo '<label for="'.$nombre.'">'.$label.': </label>';
+    if($tipo !== 'hidden')
+      echo '<label for="'.$nombre.'">'.$label.': </label>';
     switch ($tipo) {
       case 'text':
         echo '<input type="text" name="'.$nombre.'" id="'.$nombre.'" value="'.$valor.'"';
-        if($atts !== ''):
-          foreach ($atts as $key => $value):
-            if(!is_numeric($key)):
-              echo ' '.$key.'='.$value.' ';
-            else:
-              echo ' '.$value.' ';
-            endif;
-          endforeach;
-        endif;
+        imprimeAtts($atts);
+        echo '>';
+        break;
+
+      case 'hidden':
+        echo '<input type="hidden" name="'.$nombre.'" id="'.$nombre.'" value="'.$valor.'"';
+        imprimeAtts($atts);
         echo '>';
         break;
 
       case 'textarea':
         echo '<br><textarea style="resize: none;" rows=5 cols=50 name="'.$nombre.'" id="'.$nombre.'"';
-        if($atts !== ''):
-          foreach ($atts as $key => $value):
-            if(!is_numeric($key)):
-              echo ' '.$key.'='.$value.' ';
-            else:
-              echo ' '.$value.' ';
-            endif;
-          endforeach;
-        endif;
+        imprimeAtts($atts);
         echo '>'.$valor.'</textarea>';
         break;
 
       case 'select':
-        echo '<select name="'.$nombre.'" id="'.$nombre.'">';
+        echo '<select name="'.$nombre.'" id="'.$nombre.'"';
+        imprimeAtts($atts);
+        echo '>';
         $selected = strval($valor) === ''? 'selected' : '';
             echo '<option value="" disabled '.$selected.'>Seleccionar</option>';
             foreach ($options as $value => $texto){
@@ -90,7 +83,9 @@
         break;
 
       case 'select2':
-        echo '<select name="'.$nombre.'" id="'.$nombre.'">';
+        echo '<select name="'.$nombre.'" id="'.$nombre.'"';
+        imprimeAtts($atts);
+        echo '>';
         $selected = strval($valor) === ''? 'selected' : '';
             echo '<option value="" disabled '.$selected.'>Seleccionar</option>';
             foreach ($options as $value => $texto){
@@ -100,6 +95,19 @@
         echo '</select>';
         break;
     }
+  }
+
+
+  function imprimeAtts($atts){
+    if($atts !== ''):
+      foreach ($atts as $key => $value):
+        if(!is_numeric($key)):
+          echo ' '.$key.'='.$value.' ';
+        else:
+          echo ' '.$value.' ';
+        endif;
+      endforeach;
+    endif;
   }
 
 ?>

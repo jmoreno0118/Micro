@@ -23,7 +23,8 @@
    <?php
       $formulario = array(
                   'empresagiro' => array(
-                                        'label' => 'Giro de la empresa'
+                                        'label' => 'Giro de la empresa',
+                                        'tipo' => 'text'
                                         ),
                   'descargaen' => array(
                                         'label' => 'Descarga en',
@@ -35,10 +36,12 @@
                                         'tipo' => 'select'
                                         ),
                   'numedicion' => array(
-                                        'label' => 'Número de medición'
+                                        'label' => 'Número de medición',
+                                        'tipo' => 'text'
                                         ),
                   'lugarmuestreo' => array(
-                                        'label' => 'Lugar del muestreo (5.0)'
+                                        'label' => 'Lugar del muestreo (5.0)',
+                                        'tipo' => 'text'
                                         ),
                   'descriproceso' => array(
                                         'label' => 'Descripción del proceso (Max. 100)',
@@ -46,12 +49,16 @@
                                         'atts' => array('maxlength' => 100)
                                         ),
                   'tipomediciones' => array(
-                                        'label' => 'Tipo de medición',
+                                        'label' => 'Horas que opera el proceso generador de la descarga',
                                         'tipo' => 'select',
-                                        'option' => array('1' => 'Puntual', '8' => '8 Horas', '24' => '4 Horas')
+                                        'option' => array('1' => 'Puntual',
+                                                          '4' => '<4 Horas',
+                                                          '8' => '>4 y <12 Horas',
+                                                          '12' => '>12 Horas')
                                         ),
                   'materiasusadas' => array(
-                                        'label' => 'Materias primas usadas (8.0)'
+                                        'label' => 'Materias primas usadas (8.0)',
+                                        'tipo' => 'text'
                                         ),
                   'tratamiento' => array(
                                         'label' => 'Tratamiento del agua antes de la descarga (9.0) (Max. 100)',
@@ -59,10 +66,12 @@
                                         'atts' => array('maxlength' => 100)
                                         ),
                   'Caracdescarga' => array(
-                                        'label' => 'Características de la descarga (10.0)'
+                                        'label' => 'Características de la descarga (10.0)',
+                                        'tipo' => 'text'
                                         ),
                   'receptor' => array(
-                                        'label' => 'Tipo de receptor de la decarga (11.0)'
+                                        'label' => 'Tipo de receptor de la decarga (11.0)',
+                                        'tipo' => 'text'
                                         ),
                   'estrategia' => array(
                                         'label' => 'Estrategia de muestreo (12.0)',
@@ -70,7 +79,8 @@
                                         'atts' => array('maxlength' => 6500)
                                         ),
                   'numuestras' => array(
-                                        'label' => 'No. muestras tomadas (13.0)'
+                                        'label' => 'No. muestras tomadas (13.0)',
+                                        'tipo' => 'text'
                                         ),
                   'observaciones' => array(
                                         'label' => 'Observaciones (19.0)',
@@ -78,58 +88,66 @@
                                         'atts' => array('maxlength' => 6500)
                                         ),
                   'fechamuestreo' => array(
-                                        'label' => 'Fecha de muestreo(aaaa-mm-dd)'
+                                        'label' => 'Fecha de muestreo(aaaa-mm-dd)',
+                                        'tipo' => 'text'
                                         ),
                   'fechamuestreofin' => array(
-                                        'label' => 'Fecha fin de muestreo(aaaa-mm-dd)'
+                                        'label' => 'Fecha fin de muestreo(aaaa-mm-dd)',
+                                        'tipo' => 'text'
                                         ),
                   'identificacion' => array(
-                                        'label' => 'Identificación'
+                                        'label' => 'Identificación',
+                                        'tipo' => 'text'
                                         ),
                   'temperatura' => array(
-                                        'label' => 'Temperatura(Ej. 12.12)'
+                                        'label' => 'Temperatura(Ej. 12.12)',
+                                        'tipo' => 'text'
                                         ),
                   'caltermometro' => array(
-                                        'label' => 'E.M. en calibración del termómetro(Ej. 12.1234)'
+                                        'label' => 'E.M. en calibración del termómetro(Ej. 12.1234)',
+                                        'tipo' => 'text'
                                         ),
                   'pH' => array(
-                                        'label' => 'pH Compuesta(Ej. 12.12)'
+                                        'label' => 'pH Compuesta(Ej. 12.12)',
+                                        'tipo' => 'text'
                                         ),
                   'conductividad' => array(
-                                        'label' => 'Conductividad compuesta(Ej. 12.123)'
+                                        'label' => 'Conductividad compuesta(Ej. 1234)',
+                                        'tipo' => 'text'
                                         ),
                   'responsable' => array(
-                                        'label' => 'Responsable'
+                                        'label' => 'Responsable',
+                                        'tipo' => 'text'
                                         ),
                   'mflotante' => array(
                                         'label' => 'Materia flotante visual',
                                         'tipo' => 'select',
-                                        'option' => array('0' => 'Ausente', '1' => 'Presente')
+                                        'option' => array('Ausente', 'Presente')
                                         ),
                   'olor' => array(
                                         'label' => 'Olor',
                                         'tipo' => 'select',
-                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        'option' => array('No', 'Sí')
                                         ),
                   'color' => array(
                                         'label' => 'Color visual',
                                         'tipo' => 'select',
-                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        'option' => array('No', 'Sí')
                                         ),
                   'turbiedad' => array(
                                         'label' => 'Turbiedad visual',
                                         'tipo' => 'select',
-                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        'option' => array('No', 'Sí')
                                         ),
                   'GyAvisual' => array(
                                         'label' => 'Grasas y Aceite visual',
                                         'tipo' => 'select',
-                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        'option' => array('No', 'Sí')
                                         ),
                   'burbujas' => array(
                                         'label' => 'Burbujas y espuma',
                                         'tipo' => 'select',
-                                        'option' => array('0' => 'No', '1' => 'Sí')
+                                        'option' => array('No', 'Sí')
                                         )
       );
 
@@ -146,19 +164,20 @@
     	<?php foreach($formulario as $key => $value): ?>
     	<div>
         <?php if($key === "numedicion" AND isset($valores['numedicion']) AND $valores['numedicion'] !== "" AND !isset($new)): ?>
-          <?php $formulario['numedicion']['atts'] = array('disabled') ?>
+          <?php $value['atts'] = array('disabled') ?>
           <input type="hidden" name="numedicion" value="<?php htmlout($valores['numedicion']); ?>">
         <?php endif; ?>
 
         <?php if($key === "tipomediciones"  AND isset($valores['tipomediciones']) AND $valores['tipomediciones'] !== ""): ?>
+          <?php $value['atts'] = array('disabled') ?>
           <input type="hidden" name="tipomediciones" value="<?php htmlout($valores['tipomediciones']); ?>">
         <?php endif; ?>
         <?php crearForma(
-                        $value['label'], //Texto del abel
+                        $value['label'], //Texto del label
                         $key, //Texto a colocar en los atributos id y name
                         (isset($valores[$key])) ? $valores[$key] : '', //Valor extraido de la bd
                         (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
-                        (isset($value['tipo'])) ? $value['tipo'] : 'text', //Tipo de etiqueta
+                        $value['tipo'], //Tipo de etiqueta
                         (isset($value['option'])) ? $value['option'] : '' //Options para los select
               ); ?>
     	</div>
@@ -168,7 +187,7 @@
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
       <p><a href="../generales">Volver a mediciones</a></p>
-	    <p><a href="..">Regresa al búsqueda de ordenes</a></p>
+	    <p><a href="..">Regresa a la búsqueda de ordenes</a></p>
 	  </div> 
 	</form>
   </div>  <!-- cuerpoprincipal -->
@@ -213,8 +232,8 @@
    }, 'Ingresar de 1 a 2 decimales.');
 
    jQuery.validator.addMethod('trescimales', function (value, element, param) {
-    return /^\d{1,2}(\.\d{1,3})$/.test(value);
-   }, 'Ingresar de 1 a 3 decimales.');
+    return /^\d{1,4}$/.test(value);
+   }, 'Ingresar de 1 a 4 enteros.');
 
    jQuery.validator.addMethod('cuatrocimales', function (value, element, param) {
     return /^\d{1,2}(\.\d{1,4})$/.test(value);

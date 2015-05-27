@@ -51,7 +51,13 @@
               }
             }
             $post = json_decode($_POST['post'], TRUE);
-            $accion = isset($post['accion']) ? $post['accion'] : $_SESSION['accion'];
+            if(isset($_POST['prevact'])){
+              $accion = $_POST['prevact'];
+            }elseif(isset($post['accion'])){
+              $accion = $post['accion'];
+            }else{
+              $accion = $_SESSION['accion'];
+            }
             echo '<input type="hidden" name="accion" value=\''.$accion.'\'>';
             $accionparam = isset($_POST['boton']) ? $_POST['boton'] : $_POST['accion'];
             echo '<input type="hidden" name="accionparam" value=\''.$accionparam.'\'>';

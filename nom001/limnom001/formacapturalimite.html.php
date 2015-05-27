@@ -39,7 +39,7 @@
                           "Zinc" => "zinc",
                           "Huevos de Helminto" => "hdehelminto");
    ?>
-    <form action="" method="post">
+    <form id="limitesform" action="" method="post">
     	<?php foreach($formulario as $label => $name): ?>
     	<div>
     		<label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
@@ -58,3 +58,104 @@
   </div> <!-- contenedor -->
 </body>
 </html>
+<link rel="stylesheet" href="../../includes/jquery-validation-1.13.1/demo/site-demos.css">
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/jquery.validate.js"></script>
+<script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
+<script type="text/javascript">
+  $(document).ready(function() {
+   jQuery.validator.addMethod('permitido', function (value, element, param) {
+    return /^(\d{1,2}\.\d{1,4})$/.test(value); 
+   }, 'Ingresar de 1 a 4 decimales.');
+
+    $("#limitesform").validate({
+      rules: {
+        GyA: {
+          required: true,
+          permitido: true
+        },
+        coliformes: {
+          required: true,
+          permitido: true
+        },
+        ssedimentables: {
+          required: true,
+          permitido: true
+        },
+        ssedimentables: {
+          required: true,
+          permitido: true
+        },
+        ssuspendidos: {
+         required: true,
+         permitido: true
+        },
+        dbo: {
+         required: true,
+         permitido: true
+        },
+        /*nkjedahl: {
+         required: true,
+         permitido: true
+        },
+        nitritos: {
+         required: true,
+         permitido: true
+        },
+        nitratos: {
+         required: true,
+         permitido: true
+        },*/
+        nitrogeno: {
+         required: true,
+         permitido: true
+        },
+        fosforo: {
+         required: true,
+         permitido: true
+        },
+        arsenico: {
+         required: true,
+         permitido: true
+        },
+        cadmio: {
+         required: true,
+         permitido: true
+        },
+        cianuros: {
+         required: true,
+         permitido: true
+        },
+        cobre: {
+         required: true,
+         permitido: true
+        },
+        cromo: {
+         required: true,
+         permitido: true
+        },
+        mercurio: {
+         required: true,
+         permitido: true
+        },
+        niquel: {
+         required: true,
+         permitido: true
+        },
+        plomo: {
+         required: true,
+         permitido: true
+        },
+        zinc: {
+         required: true,
+         permitido: true
+        },
+        hdehelminto: {
+         required: true,
+         permitido: true
+        }
+      },
+      success: "valid"
+    });
+  });</script>
