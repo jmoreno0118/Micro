@@ -5,7 +5,7 @@
  
  $especialidades= array('MH','ME','Medicas');
  $higiene= array('Iluminacion','Nivel sonoro equivalente','Dosis de ruido', 'temperaturas extremas/abatidas','Radiaciones NO ionizantes','Vibraciones mano-brazo','Vibraciones cuerpo completo','Radiaciones ionizantes');
- $ecologia=array('NOM 001','NOM 002','Fuentes fijas','Ruido periferico','suelos',' CRETIB');
+ $ecologia=array('NOM 001','NOM 002','Fuentes fijas','Ruido periferico','Suelos',' CRETIB');
 
  if (!usuarioRegistrado())
  {

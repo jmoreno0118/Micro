@@ -386,13 +386,13 @@
     </table>
     <br>
 
-    <table style="width:50%">
-      <tr>
-        <th style="width:40%;">Nombre de Párametro</th>
-        <th>Unidades</th>
-        <th>Resultado</th>
-      </tr>
-      <?php if($parametros['hdehelminto'] !== ''): ?>
+    <?php if($adicionales !== ""){ ?>
+      <table style="width:50%">
+        <tr>
+          <th style="width:40%;">Nombre de Párametro</th>
+          <th>Unidades</th>
+          <th>Resultado</th>
+        </tr>
         <?php foreach ($adicionales as $value): ?>
           <tr>
             <td><?php htmlout($value['nombre']); ?></td>
@@ -400,8 +400,8 @@
             <td><?php htmlout($value['resultado']); ?></td>
           </tr>
         <?php endforeach; ?>
-      <?php endif; ?>
-    </table>
+      </table>
+    <?php } ?>
   </div>  <!-- cuerpoprincipal -->
   <div id="footer">
     <?php include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/pie_pag.inc.php'; ?>

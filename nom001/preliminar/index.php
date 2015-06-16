@@ -24,7 +24,7 @@
    $s->execute();
    $orden = $s->fetchAll();
 
-   $sql='SELECT *
+   $sql='SELECT parametrostbl.*
          FROM parametrostbl
          INNER JOIN muestreosaguatbl ON muestreosaguatbl.id = parametrostbl.muestreoaguaidfk
          INNER JOIN generalesaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
@@ -43,6 +43,21 @@
      $s->bindValue(':id', $value['nom01maximosidfk']);
      $s->execute();
      $maximos[] = $s->fetch();
+   }
+
+   foreach ($parametros as $key => $value) {
+      $sql='SELECT *
+            FROM adicionalestbl
+            WHERE parametroidfk = :id';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':id', $value['id']);
+      $s->execute();
+      $adicionales[$key] = "";
+      foreach ($s as $linea) {
+        $adicionales[$key][]=array("nombre" => $linea["nombre"],
+                               "unidades" => $linea["unidades"],
+                               "resultado" => $linea["resultado"]);
+      }
    }
   }
   catch (PDOException $e)
