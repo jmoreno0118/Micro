@@ -33,11 +33,11 @@
 			$sql='INSERT INTO siralabtbl SET
 			muestreoaguaidfk=:id,
 			titulo=:titulo,
+			anexo=:anexo,
 			rfc=:rfc,
 			cuenca=:cuenca,
 			region=:region,
 			procedencia=:procedencia,
-			cuerporeceptor=:cuerporeceptor,
 			lattgrados=:lattgrados,
 			lattmin=:lattmin,
 			lattseg=:lattseg,
@@ -55,11 +55,11 @@
 			$s=$pdo->prepare($sql);
 			$s->bindValue(':id', $_POST['id']);
 			$s->bindValue(':titulo', $_POST['titulo']);
+			$s->bindValue(':anexo', $_POST['anexo']);
 			$s->bindValue(':rfc', $_POST['rfc']);
 			$s->bindValue(':cuenca', $_POST['cuenca']);
 			$s->bindValue(':region', $_POST['region']);
 			$s->bindValue(':procedencia', $_POST['procedencia']);
-			$s->bindValue(':cuerporeceptor', $_POST['cuerporeceptor']);
 			$s->bindValue(':lattgrados', $_POST['lattgrados']);
 			$s->bindValue(':lattmin', $_POST['lattmin']);
 			$s->bindValue(':lattseg', $_POST['lattseg']);
@@ -106,6 +106,7 @@
 
 			$sql='UPDATE siralabtbl SET
 			titulo=:titulo,
+			anexo=:anexo,
 			rfc=:rfc,
 			cuenca=:cuenca,
 			region=:region,
@@ -129,6 +130,7 @@
 			$s=$pdo->prepare($sql);
 			$s->bindValue(':id', $_POST['id']);
 			$s->bindValue(':titulo', $_POST['titulo']);
+			$s->bindValue(':anexo', $_POST['anexo']);
 			$s->bindValue(':rfc', $_POST['rfc']);
 			$s->bindValue(':cuenca', $_POST['cuenca']);
 			$s->bindValue(':region', $_POST['region']);

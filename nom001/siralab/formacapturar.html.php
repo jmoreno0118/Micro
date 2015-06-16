@@ -163,6 +163,7 @@
 
     	<?php foreach($formulario as $key => $value): ?>
     	<div>
+        <?php if(isset($_SESSION['supervisada'])) $value['atts'] = array('disabled'); ?>
         <?php crearForma(
                         $value['label'], //Texto del label
                         $key, //Texto a colocar en los atributos id y name
@@ -182,10 +183,18 @@
             <?php if(($i+1 === $cantidad+1) AND ($key === "flujo" OR $key === "volumen")):
               continue;
              endif; ?>
-             <?php crearForma(
+             <?php if(isset($_SESSION['supervisada'])) $value['atts'] = array('disabled'); ?>
+             <?php 
+             $compuesta = '';
+             if($mcompuestas !== ""){
+              if( isset($mcompuestas[$i][$key]) AND ($key === 'fechalab' AND $mcompuestas[$i][$key] !== '0000-00-00') OR ($key === 'horalab' AND $mcompuestas[$i][$key] !== '00:00') OR ($key === 'identificacion')){
+                $compuesta = $mcompuestas[$i][$key];
+              }
+             }
+             crearForma(
                         "Muestra ".(($i < $cantidad) ? $i+1 : "Compuesta"), //Texto del label
                         "mcompuestas[".$i."][".$key."]", //Texto a colocar en los atributos id y name
-                        ($mcompuestas !== "") ? (isset($mcompuestas[$i][$key])) ? $mcompuestas[$i][$key] : '' : '', //Valor extraido de la bd
+                        $compuesta, //Valor extraido de la bd
                         (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
                         $value['tipo'], //Tipo de etiqueta
                         (isset($value['option'])) ? $value['option'] : '' //Options para los select
@@ -196,6 +205,7 @@
       <br>
     <?php }else{
        for ($i=0; $i<$cantidad+1; $i++) :
+        if(isset($_SESSION['supervisada'])) $value['atts'] = array('disabled');
         crearForma(
                   '', //Texto del label
                   "mcompuestas[".$i."][".$key."]", //Texto a colocar en los atributos id y name
@@ -209,7 +219,11 @@
     endforeach; ?>
 	  <div>
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
-	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
+      <?php if(isset($_SESSION['supervisada'])){ ?>
+        <p><a href="../generales">Terminar</a></p>
+      <?php }else{ ?>
+        <input type="submit" name="accion" value="<?php htmlout($boton); ?>"> 
+      <?php } ?>
       <p><a href="../generales">Volver a mediciones</a></p>
 	    <p><a href="../../nom001">Regresa a la búsqueda de ordenes</a></p>
 	  </div> 
