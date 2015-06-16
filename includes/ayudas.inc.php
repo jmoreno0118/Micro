@@ -47,12 +47,18 @@
 	exit();
   }
 
-  function crearForma($label, $nombre, $valor, $atts, $tipo, $options){
+  function crearForma($label, $nombre, $valor, $atts, $tipo, $options, $extra = ''){
     if($tipo !== 'hidden')
       echo '<label for="'.$nombre.'">'.$label.': </label>';
+
     switch ($tipo) {
+      
       case 'text':
-        echo '<input type="text" name="'.$nombre.'" id="'.$nombre.'" value="'.$valor.'"';
+        if(!isset($atts['name']))
+          $atts['name'] = $nombre;
+        if(!isset($atts['id']))
+          $atts['id'] = $nombre;
+        echo '<input type="text" value="'.$valor.'"';
         imprimeAtts($atts);
         echo '>';
         break;
@@ -74,11 +80,15 @@
         imprimeAtts($atts);
         echo '>';
         $selected = strval($valor) === ''? 'selected' : '';
-            echo '<option value="" disabled '.$selected.'>Seleccionar</option>';
-            foreach ($options as $value => $texto){
-              $selected = (strval($valor) === strval($value)) ? 'selected' : '';
-              echo '<option value="'.$value.'" '.$selected.'>'.$texto.'</option>';
-            }
+        $disabled = '';
+        if(isset($extra['disabled']) AND $extra['disabled'] === 'false'){
+          $disabled = 'disabled';
+        }
+        echo '<option value="" '.$disabled.' '.$selected.'>Seleccionar</option>';
+        foreach ($options as $value => $texto){
+          $selected = (strval($valor) === strval($value)) ? 'selected' : '';
+          echo '<option value="'.$value.'" '.$selected.'>'.$texto.'</option>';
+        }
         echo '</select>';
         break;
 
@@ -87,12 +97,48 @@
         imprimeAtts($atts);
         echo '>';
         $selected = strval($valor) === ''? 'selected' : '';
-            echo '<option value="" disabled '.$selected.'>Seleccionar</option>';
-            foreach ($options as $value => $texto){
-              $selected = (strval($valor) === strval($texto)) ? 'selected' : '';
-              echo '<option value="'.$texto.'" '.$selected.'>'.$texto.'</option>';
-            }
+        $disabled = '';
+        if(isset($extra['disabled']) AND $extra['disabled'] === 'false'){
+          $disabled = 'disabled';
+        }
+        echo '<option value="" '.$disabled.' '.$selected.'>Seleccionar</option>';
+        foreach ($options as $value => $texto){
+          $selected = (strval($valor) === strval($texto)) ? 'selected' : '';
+          echo '<option value="'.$texto.'" '.$selected.'>'.$texto.'</option>';
+        }
         echo '</select>';
+        break;
+
+      //Varios check seleccionados, value = valor
+      case 'check':
+        if($valor === '')
+          $valor = array();
+        foreach ($options as $value => $texto){
+          echo '<div>';
+
+          $comp = $value;
+          if($extra['comp'] === 'texto'){
+            $comp = $texto;
+          }
+
+          $val = $value;
+          if($extra['value'] === 'texto'){
+            $val = $texto;
+          }
+
+          $multi = '';
+          if($extra['multi'] === 1){
+            $multi = '[]';
+            $selected = in_array($comp, $valor) ? 'checked' : '';
+          }else{
+            $selected = (strval($valor) === strval($comp)) ? 'checked' : '';
+          }
+
+          echo '<input type="checkbox" name="'.$nombre.$multi.'" id="'.$nombre.'" value="'.$val.'"';
+          imprimeAtts($atts);
+          echo $selected.'>'.$texto;
+          echo '</div>';
+        }
         break;
     }
   }
@@ -108,6 +154,16 @@
         endif;
       endforeach;
     endif;
+  }
+
+  function fijarAccionUrl($accion){
+    $_SESSION['accion'] = $accion;
+    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
+    $host     = $_SERVER['HTTP_HOST'];
+    $script   = $_SERVER['SCRIPT_NAME'];
+    $params   = $_SERVER['QUERY_STRING'];
+    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
+    $_SESSION['url'] = $currentUrl;
   }
 
 ?>

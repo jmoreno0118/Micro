@@ -15,7 +15,7 @@
 /**************************************************************************************************/
 /* Función para ver formulario de parametros de una medicion de una orden de trabajo */
 /**************************************************************************************************/
-function formularioParametros($id = "", $cantidad = "", $idparametro = "", $valores = "", $parametros = "", $adicionales = "", $regreso = "", $accion = ""){
+function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idparametro = "", $valores = "", $parametros = "", $adicionales = "", $regreso = "", $accion = ""){
 	if($accion === "" OR $accion === "salvar parametros"){
 		$pestanapag='Editar Parametros';
 		$titulopagina='Editar Parametros';
@@ -25,16 +25,24 @@ function formularioParametros($id = "", $cantidad = "", $idparametro = "", $valo
 		$titulopagina='Agregar Parametros';
 		$boton = 'guardar parametros';
 	}
-	
+
 	if($valores === "" AND $parametros === "" AND $adicionales === ""){
 	    try{
 	    	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-	        $sql='SELECT * FROM parametrostbl
-	              WHERE muestreoaguaidfk = (SELECT id
-	                                        FROM muestreosaguatbl
-	                                        WHERE generalaguaidfk = :id)';
+	        	
+	    	$sql = 'SELECT id
+	    			FROM muestreosaguatbl
+	                WHERE generalaguaidfk = :id';
 	        $s=$pdo->prepare($sql);
 	        $s->bindValue(':id', $id);
+	        $s->execute();
+	        $muestreoid = $s->fetch();
+	        $muestreoid = $muestreoid['id'];
+
+	        $sql='SELECT * FROM parametrostbl
+	              WHERE muestreoaguaidfk = :id';
+	        $s=$pdo->prepare($sql);
+	        $s->bindValue(':id', $muestreoid);
 	        $s->execute();
 			if($param1 = $s->fetch()){
 				$pestanapag='Editar Parametros';
@@ -97,7 +105,13 @@ function formularioParametros($id = "", $cantidad = "", $idparametro = "", $valo
 		}
 	}
 
+	if(isset($_SESSION['supervisada'])){
+		$pestanapag='Parametros';
+		$titulopagina='Parametros';
+	}
+
 	$_SESSION['parametros'] = array('id' => $id,
+									'muestreoid' => $muestreoid,
 									'cantidad' => $cantidad,
 									'valores' => $valores,
 									'parametros' => $parametros,
@@ -114,7 +128,7 @@ function formularioParametros($id = "", $cantidad = "", $idparametro = "", $valo
 /**************************************************************************************************/
 /* Función para ver formulario de las mediciones de una orden de trabajo */
 /**************************************************************************************************/
-function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regreso = ""){
+function formularioMediciones($id = "", $muestreoid = "", $cantidad = "", $mcompuestas = "", $regreso = ""){
 	$pestanapag='Editar muestras compuestas';
 	$titulopagina='Editar muestras compuestas';
 	$boton = "salvar";
@@ -132,8 +146,7 @@ function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regr
 	      $sql="SELECT DATE_FORMAT(mcompuestastbl.hora, '%H:%i') as 'hora', mcompuestastbl.flujo, mcompuestastbl.volumen, mcompuestastbl.observaciones,
 	            mcompuestastbl.caracteristicas
 	            FROM  mcompuestastbl
-	            INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.id
-	            WHERE muestreosaguatbl.generalaguaidfk = :id";
+	            WHERE mcompuestastbl.muestreoaguaidfk  = :id";
 	      $s=$pdo->prepare($sql);
 	      $s->bindValue(':id', $id);
 	      $s->execute();
@@ -156,7 +169,15 @@ function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regr
 	    	$boton = "guardar";
 	    }
 	}
+
+	if(isset($_SESSION['supervisada'])){
+		$pestanapag='Muestras compuestas';
+		$titulopagina='Muestras compuestas';
+		$boton = "siguiente";
+	}
+
 	$_SESSION['mediciones'] = array('id' => $id,
+									'muestreoid' => $muestreoid,
 									'mcompuestas' => $mcompuestas,
 									'cantidad' => $cantidad,
 									'boton' => $boton,
@@ -170,10 +191,16 @@ function formularioMediciones($id = "", $cantidad = "", $mcompuestas = "", $regr
 /**************************************************************************************************/
 /* Función para ver formulario de la informacion de siralab */
 /**************************************************************************************************/
-function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad = "", $regreso = ""){
-	$pestanapag='Editar Siralab';
-	$titulopagina='Editar Siralab';
-	$boton = "salvar";
+function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad = "", $regreso = "", $accion = ""){
+	if($accion === "" OR $accion === "salvar"){
+		$pestanapag='Editar Siralab';
+		$titulopagina='Editar Siralab';
+		$boton = "salvar";
+	}elseif($accion === "guardar"){
+		$pestanapag='Agregar Siralab';
+			$titulopagina='Agregar Siralab';
+	    	$boton = "guardar";
+	}
 
 	if($valores === ""){
 		try
@@ -183,7 +210,7 @@ function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad
 	            FROM siralabtbl
 	            WHERE muestreoaguaidfk = :id";
 	      $s=$pdo->prepare($sql);
-	      $s->bindValue(':id', $_POST['id']);
+	      $s->bindValue(':id', $id);
 	      $s->execute();
 	    }catch (PDOException $e){
 	      $mensaje='Hubo un error extrayendo la información de parametros.';
@@ -191,7 +218,7 @@ function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad
 	      exit();
 	    }
 	    if(!$valores = $s->fetch()){
-	    	$valores = array("datumgps" => "WGS84");
+	    	$valores['datumgps'] = "WGS84";
 	    	$pestanapag='Agregar Siralab';
 			$titulopagina='Agregar Siralab';
 	    	$boton = "guardar";
@@ -204,7 +231,7 @@ function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad
 	      $sql="SELECT mcompuestastbl.id, mcompuestastbl.fecharecepcion, DATE_FORMAT(mcompuestastbl.horarecepcion, '%H:%i') as 'horarecepcion',
 	      				mcompuestastbl.identificacion
 	            FROM  mcompuestastbl
-	            INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.id
+	            INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.generalaguaidfk
 	            WHERE muestreosaguatbl.id = :id";
 	      $s=$pdo->prepare($sql);
 	      $s->bindValue(':id', $id);
@@ -223,6 +250,12 @@ function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad
 			}
 	    }
 	}
+
+	if(isset($_SESSION['supervisada'])){
+		$pestanapag='Siralab';
+		$titulopagina='Siralab';
+	}
+
 	$_SESSION['siralab'] = array('id' => $id,
 									'valores' => $valores,
 									'mcompuestas' => $mcompuestas,
