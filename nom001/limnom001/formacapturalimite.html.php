@@ -21,29 +21,97 @@
   <div id="cuerpoprincipal">
    <h2><?php htmlout($titulopagina); ?></h2>
    <?php
-   		$formulario = array("Grasas y Aceites" => "GyA",
-                          "Coliformes Fecales" => "coliformes",
-             							"Solidos sedimentables" => "ssedimentables",
-                          "Solidos suspendidos" => "ssuspendidos",
-                          "DBO" => "dbo",
-                          "Nitrogeno" => "nitrogeno",
-                          "Fosforo" => "fosforo",
-                          "Arsenico" => "arsenico",
-                          "Cadmio" => "cadmio",
-                          "Cianuros" => "cianuros",
-                          "Cobre" => "cobre",
-                          "Cromo" => "cromo",
-                          "Mercurio" => "mercurio",
-                          "Niquel" => "niquel",
-                          "Plomo" => "plomo",
-                          "Zinc" => "zinc",
-                          "Huevos de Helminto" => "hdehelminto");
+      $formulario = array(
+                  'GyA' => array(
+                                        'label' => 'Grasas y Aceites',
+                                        'tipo' => 'text'
+                                        ),
+                  'coliformes' => array(
+                                        'label' => 'Coliformes Fecales',
+                                        'tipo' => 'text'
+                                        ),
+                  'ssedimentables' => array(
+                                        'label' => 'Solidos sedimentables',
+                                        'tipo' => 'text'
+                                        ),
+                  'ssuspendidos' => array(
+                                        'label' => 'Solidos suspendidos',
+                                        'tipo' => 'text'
+                                        ),
+                  'dbo' => array(
+                                        'label' => 'DBO',
+                                        'tipo' => 'text'
+                                        ),
+                  'nkjedahl' => array(
+                                        'label' => 'Nitrógeno Kjeldahl',
+                                        'tipo' => 'text'
+                                        ),
+                  'nitritos' => array(
+                                        'label' => 'Nitrógeno de Nitritos',
+                                        'tipo' => 'text'
+                                        ),
+                  'nitratos' => array(
+                                        'label' => 'Nitrógeno de Nitratos',
+                                        'tipo' => 'text'
+                                        ),
+                  'fosforo' => array(
+                                        'label' => 'Fosforo',
+                                        'tipo' => 'text'
+                                        ),
+                  'arsenico' => array(
+                                        'label' => 'Arsenico',
+                                        'tipo' => 'text'
+                                        ),
+                  'cadmio' => array(
+                                        'label' => 'Cadmio',
+                                        'tipo' => 'text'
+                                        ),
+                  'cianuros' => array(
+                                        'label' => 'Cianuros',
+                                        'tipo' => 'text'
+                                        ),
+                  'cobre' => array(
+                                        'label' => 'Cobre',
+                                        'tipo' => 'text'
+                                        ),
+                  'cromo' => array(
+                                        'label' => 'Cromo',
+                                        'tipo' => 'text'
+                                        ),
+                  'mercurio' => array(
+                                        'label' => 'Mercurio',
+                                        'tipo' => 'text'
+                                        ),
+                  'niquel' => array(
+                                        'label' => 'Niquel',
+                                        'tipo' => 'text'
+                                        ),
+                  'plomo' => array(
+                                        'label' => 'Plomo',
+                                        'tipo' => 'text'
+                                        ),
+                  'zinc' => array(
+                                        'label' => 'Zinc',
+                                        'tipo' => 'text'
+                                        ),
+                  'hdehelminto' => array(
+                                        'label' => 'Huevos de Helminto',
+                                        'tipo' => 'text'
+                                        )
+      );
+
    ?>
     <form id="limitesform" action="" method="post">
-    	<?php foreach($formulario as $label => $name): ?>
+    	<?php foreach($formulario as $key => $value): ?>
     	<div>
-    		<label for="<?php htmlout($name); ?>"><?php htmlout($label); ?>:</label>
-	    	<input type="text" name="<?php htmlout($name); ?>" id="<?php htmlout($name); ?>" value="<?php if(isset($valores)){htmlout($valores[$name]);} ?>">
+    		<?php crearForma(
+                        $value['label'], //Texto del label
+                        $key, //Texto a colocar en los atributos id y name
+                        (isset($valores[$key])) ? $valores[$key] : '', //Valor extraido de la bd
+                        (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
+                        $value['tipo'], //Tipo de etiqueta
+                        (isset($value['option'])) ? $value['option'] : '' //Options para los select
+              ); ?>
     	</div>
     	<?php endforeach?>
 	  <div>
@@ -95,7 +163,7 @@
          required: true,
          permitido: true
         },
-        /*nkjedahl: {
+        nkjedahl: {
          required: true,
          permitido: true
         },
@@ -106,11 +174,11 @@
         nitratos: {
          required: true,
          permitido: true
-        },*/
-        nitrogeno: {
+        },
+        /*nitrogeno: {
          required: true,
          permitido: true
-        },
+        },*/
         fosforo: {
          required: true,
          permitido: true

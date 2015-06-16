@@ -30,7 +30,9 @@
      ssedimentables=:ssedimentables,
      ssuspendidos=:ssuspendidos,
      dbo=:dbo,
-     nitrogeno=:nitrogeno,
+     nkjedahl=:nkjedahl,
+     nitritos=:nitritos,
+     nitratos=:nitratos,
      fosforo=:fosforo,
      arsenico=:arsenico,
      cadmio=:cadmio,
@@ -49,7 +51,9 @@
     $s->bindValue(':ssedimentables', $_POST['ssedimentables']);
     $s->bindValue(':ssuspendidos', $_POST['ssuspendidos']);
     $s->bindValue(':dbo', $_POST['dbo']);
-    $s->bindValue(':nitrogeno', $_POST['nitrogeno']);
+    $s->bindValue(':nkjedahl', $_POST['nkjedahl']);
+    $s->bindValue(':nitritos', $_POST['nitritos']);
+    $s->bindValue(':nitratos', $_POST['nitratos']);
     $s->bindValue(':fosforo', $_POST['fosforo']);
     $s->bindValue(':arsenico', $_POST['arsenico']);
     $s->bindValue(':cadmio', $_POST['cadmio']);
@@ -70,39 +74,7 @@
      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
      exit();
     }
-    try   
-    {
-     $s=$pdo->prepare('SELECT * FROM limitestbl WHERE id = :id'); 
-     $s->bindValue(':id', $id);
-     $s->execute();
-    }
-    catch (PDOException $e)
-    {
-     $mensaje='Hubo un error extrayendo la información de limites.';
-     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-     exit();
-    }
-    if($param1 = $s->fetch()){
-     $valores = array("GyA" => $param1["GyA"],
-                      "coliformes" => $param1["coliformes"],
-                      "ssedimentables" => $param1["ssedimentables"],
-                      "ssuspendidos" => $param1["ssuspendidos"],
-                      "dbo" => $param1["dbo"],
-                      "nitrogeno" => $param1["nitrogeno"],
-                      "fosforo" => $param1["fosforo"],
-                      "arsenico" => $param1["arsenico"],
-                      "cadmio" => $param1["cadmio"],
-                      "cianuros" => $param1["cianuros"],
-                      "cobre" => $param1["cobre"],
-                      "cromo" => $param1["cromo"],
-                      "mercurio" => $param1["mercurio"],
-                      "niquel" => $param1["niquel"],
-                      "plomo" =>$param1["plomo"],
-                      "zinc" => $param1["zinc"],
-                      "hdehelminto" => $param1["hdehelminto"],
-                      "fecha" => $param1["fecha"]);
-     formularioLimites($valores, "salvar");
-    }
+    header('Location: ../..');
   }
 
 /**************************************************************************************************/
@@ -126,7 +98,9 @@
                       "ssedimentables" => $param1["ssedimentables"],
                       "ssuspendidos" => $param1["ssuspendidos"],
                       "dbo" => $param1["dbo"],
-                      "nitrogeno" => $param1["nitrogeno"],
+                      "nkjedahl" => $param1["nkjedahl"],
+                      "nitritos" => $param1["nitritos"],
+                      "nitratos" => $param1["nitratos"],
                       "fosforo" => $param1["fosforo"],
                       "arsenico" => $param1["arsenico"],
                       "cadmio" => $param1["cadmio"],
