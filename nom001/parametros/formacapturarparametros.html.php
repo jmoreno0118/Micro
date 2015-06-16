@@ -14,17 +14,17 @@
 <script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
 <script type="text/javascript">
 i = 10;
-function agregarIntervalo(nombre, unidades, resultado){
+function agregarIntervalo(nombre, unidades, resultado, disabled){
   $('#adicionales').append('<div>'
     +(i+1)+': '
     +'<label for="adicionales['+i+'][nombre]">Nombre del párametro: </label>'
-    +'<input type="text" name="adicionales['+i+'][nombre]" id="adicionales['+i+'][nombre]" value="'+nombre+'"> '
+    +'<input type="text" name="adicionales['+i+'][nombre]" id="adicionales['+i+'][nombre]" value="'+nombre+'" '+disabled+'> '
 
     +'<label for="adicionales['+i+'][unidades]">Unidades: </label>'
-    +'<input type="text" name="adicionales['+i+'][unidades]" id="adicionales['+i+'][unidades]" value="'+unidades+'"> '
+    +'<input type="text" name="adicionales['+i+'][unidades]" id="adicionales['+i+'][unidades]" value="'+unidades+'" '+disabled+'> '
 
     +'<label for="adicionales['+i+'][resultado]">Resultado: </label>'
-    +'<input type="text" name="adicionales['+i+'][resultado]" id="adicionales['+i+'][resultado]" value="'+resultado+'"> '
+    +'<input type="text" name="adicionales['+i+'][resultado]" id="adicionales['+i+'][resultado]" value="'+resultado+'" '+disabled+'> '
     +'</div>');
   i += 1;
 }
@@ -120,7 +120,7 @@ function agregarIntervalo(nombre, unidades, resultado){
                       'hdehelminto' => array(
                                         'label' => 'Huevos de Helminto',
                                         'tipo' => 'text'
-                                        ),
+                                        )
           );
 
 
@@ -132,6 +132,8 @@ function agregarIntervalo(nombre, unidades, resultado){
                                 "adicionales" => array("variables" => 'nombre,unidades,resultado',
                                               "tipo" => 2),
                                 "id" => array("variables" => "id",
+                                              "tipo" => 0),
+                                "muestreoid" => array("variables" => "muestreoid",
                                               "tipo" => 0),
                                 "idparametro" => array("variables" => "idparametro",
                                               "tipo" => 0),
@@ -156,6 +158,9 @@ function agregarIntervalo(nombre, unidades, resultado){
         <legend>Resultados de laboratorio:</legend>
       	<?php foreach($formulario as $key => $value): ?>
       	<div>
+          <?php if(isset($_SESSION['supervisada'])){ ?>
+            <?php $value['atts'] = array('disabled'); ?>
+           <?php } ?>
           <?php crearForma(
                         $value['label'], //Texto del label
                         $key, //Texto a colocar en los atributos id y name
@@ -170,35 +175,44 @@ function agregarIntervalo(nombre, unidades, resultado){
       	</div>
       	<?php endforeach?>
   	  
+        <?php
+        $disabled = '';
+        if(isset($_SESSION['supervisada'])){ 
+          $disabled = 'disabled';
+        } ?>
+
   	    <?php for ($i=0; $i<$cantidad; $i++) :?>
     	    <div>
     	    	<label for="parametros[<?php echo $i; ?>][GyA]">Grasas y Aceites:</label>
-      			<input type="text" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>">
+      			<input type="text" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>" <?php echo $disabled; ?>>
 
       			<label for="parametros[<?php echo $i; ?>][coliformes]">Coliformes Fecales:</label>
-      			<input type="text" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["coliformes"]) : ""; ?>">
+      			<input type="text" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]) ? htmlout($parametros[$i]["coliformes"]) : ""; ?>" <?php echo $disabled; ?>>
     	    </div>
   	   <?php endfor; ?>
         <fieldset id="adicionales">
           <legend>Adicionales:</legend>
-          <input type="button" id="agregar" value="Agregar nuevo adicional">
+          <?php if(!isset($_SESSION['supervisada'])){ ?>
+            <input type="button" id="agregar" value="Agregar nuevo adicional">
+          <?php } ?>
           <?php for ($i=0; $i<10; $i++): ?>
             <div>
             <?php echo ($i+1).":"; ?>
+
             <label for="adicionales[<?php echo $i; ?>][nombre]">Nombre del párametro:</label>
-            <input type="text" name="adicionales[<?php echo $i; ?>][nombre]" id="adicionales[<?php echo $i; ?>][nombre]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["nombre"]) : ""; ?>">
+            <input type="text" name="adicionales[<?php echo $i; ?>][nombre]" id="adicionales[<?php echo $i; ?>][nombre]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["nombre"]) : ""; ?>" <?php echo $disabled; ?>>
 
             <label for="adicionales[<?php echo $i; ?>][unidades]">Unidades:</label>
-            <input type="text" name="adicionales[<?php echo $i; ?>][unidades]" id="adicionales[<?php echo $i; ?>][unidades]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["unidades"]) : ""; ?>">
+            <input type="text" name="adicionales[<?php echo $i; ?>][unidades]" id="adicionales[<?php echo $i; ?>][unidades]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["unidades"]) : ""; ?>" <?php echo $disabled; ?>>
 
             <label for="adicionales[<?php echo $i; ?>][resultado]">Resultado:</label>
-            <input type="text" name="adicionales[<?php echo $i; ?>][resultado]" id="adicionales[<?php echo $i; ?>][resultado]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["resultado"]) : ""; ?>">
+            <input type="text" name="adicionales[<?php echo $i; ?>][resultado]" id="adicionales[<?php echo $i; ?>][resultado]" value="<?php isset($adicionales[$i]) ? htmlout($adicionales[$i]["resultado"]) : ""; ?>" <?php echo $disabled; ?>>
             </div>
           <?php endfor; ?>
           <?php if(isset($adicionales) AND count($adicionales)>10): ?>
             <?php for ($i=0; $i<(count($adicionales)-10); $i++): ?>
               <script type="text/javascript">
-              agregarIntervalo(<?php echo $adicionales[$i+10]["nombre"]; ?>, <?php echo $adicionales[$i+10]["unidades"]; ?>, <?php echo $adicionales[$i+10]["resultado"]; ?>);
+                agregarIntervalo(<?php echo $adicionales[$i+10]["nombre"]; ?>, <?php echo $adicionales[$i+10]["unidades"]; ?>, <?php echo $adicionales[$i+10]["resultado"]; ?>, "<?php echo $disabled; ?>");
               </script>
             <?php endfor; ?>
           <?php endif;?>
@@ -209,21 +223,27 @@ function agregarIntervalo(nombre, unidades, resultado){
          <input type="hidden" name="regreso" value="1">
          <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
         <?php endif;?>
-  	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
+  	    <input type="hidden" name="muestreoid" value="<?php htmlout($muestreoid); ?>">
+        <input type="hidden" name="id" value="<?php htmlout($id); ?>">
         <input type="hidden" name="idparametro" value="<?php htmlout($idparametro); ?>">
-  	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
+  	    <?php if(!isset($_SESSION['supervisada'])){ ?>
+          <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
+        <?php } ?>
   	  </div>
       <?php if($cantidad !== 1): ?>
       <br>
       <div>
-        <input type="hidden" name="boton" value="<?php htmlout($boton); ?>">
+        <?php if(!isset($_SESSION['supervisada'])){ ?>
+          <input type="hidden" name="boton" value="<?php htmlout($boton); ?>">
+        <?php } ?>
         <input type="hidden" name="id" value="<?php htmlout($id); ?>">
+        <input type="hidden" name="muestreoid" value="<?php htmlout($muestreoid); ?>">
         <input type="submit" name="accion" value="Siralab">
       </div>
       <?php endif; ?>
       </form>
-      <form action="" method="post">
       <?php if(isset($regreso) AND $regreso === 1): ?>
+      <form action="http://<?php echo $_SERVER['HTTP_HOST']; ?>/reportes/nom001/generales/" method="post">
         <br>
         <div>
           <input type="hidden" name="cantidad" value="<?php htmlout($cantidad); ?>">
@@ -232,10 +252,14 @@ function agregarIntervalo(nombre, unidades, resultado){
           <input type="hidden" name="coms" value="">
           <input type="submit" name="accion" value="volver">
         </div>
-      <?php endif;?>
     	</form>
+      <?php endif;?>
 
-    <p><a href="../generales">No guardar parametros</a></p>
+    <?php if(isset($_SESSION['supervisada'])){ ?>
+      <p><a href="../generales">Terminar</a></p>
+    <?php }else{ ?>
+      <p><a href="../generales">No guardar parametros</a></p>
+    <?php } ?>
     <p><a href="..">Regresa a la búsqueda de ordenes</a></p>
     </div>  <!-- cuerpoprincipal -->
     <div id="footer">
@@ -264,21 +288,21 @@ function agregarIntervalo(nombre, unidades, resultado){
             success: function(html){
               if(html !== false){
                 $(".GyA").val(parseInt(html['GyA']));
-                $(".coliformes").val("<"+parseInt(html['coliformes']));
-                $("#ssedimentables").val("<"+html['ssedimentables']);
-                $("#ssuspendidos").val("<"+html['ssuspendidos']);
-                $("#dbo").val("<"+html['dbo']);
-                $("#fosforo").val("<"+html['fosforo']);
-                $("#arsenico").val("<"+html['arsenico']);
-                $("#cadmio").val("<"+html['cadmio']);
-                $("#cianuros").val("<"+html['cianuros']);
-                $("#cobre").val("<"+html['cobre']);
-                $("#cromo").val("<"+html['cromo']);
-                $("#mercurio").val("<"+html['mercurio']);
-                $("#niquel").val("<"+html['niquel']);
-                $("#plomo").val("<"+html['plomo']);
-                $("#zinc").val("<"+html['zinc']);
-                $("#hdehelminto").val("<"+html['hdehelminto']);
+                $(".coliformes").val("< "+parseInt(html['coliformes']));
+                $("#ssedimentables").val("< "+html['ssedimentables']);
+                $("#ssuspendidos").val("< "+html['ssuspendidos']);
+                $("#dbo").val("< "+html['dbo']);
+                $("#fosforo").val("< "+html['fosforo']);
+                $("#arsenico").val("< "+html['arsenico']);
+                $("#cadmio").val("< "+html['cadmio']);
+                $("#cianuros").val("< "+html['cianuros']);
+                $("#cobre").val("< "+html['cobre']);
+                $("#cromo").val("< "+html['cromo']);
+                $("#mercurio").val("< "+html['mercurio']);
+                $("#niquel").val("< "+html['niquel']);
+                $("#plomo").val("< "+html['plomo']);
+                $("#zinc").val("< "+html['zinc']);
+                $("#hdehelminto").val("< "+html['hdehelminto']);
               }
             }
           });
@@ -321,103 +345,82 @@ function agregarIntervalo(nombre, unidades, resultado){
   $(document).ready(function() {
 
    jQuery.validator.addMethod('permitido', function (value, element, param) {
-    return /^(\< *\d{1,3}\.\d{1,4}|\d{1,3}\.\d{1,4} *\± *\d{1,3}\.\d{1,4})$/.test(value);
+    return /^( *|\< *\d{1,3}\.\d{1,4}|\d{1,3}\.\d{1,4} *\± *\d{1,3}\.\d{1,4})$/.test(value);
    }, 'Sólo valores decimales iniciando con < o conteniendo ±.');
 
    jQuery.validator.addMethod('gya', function (value, element, param) {
-    return /^(\< *12|\d*\.\d{1,3}|\d*)$/.test(value);
+    return /^( *|\< *12|\d*\.\d{1,3}|\d*)$/.test(value);
    }, 'Sólo "<12" o valores enteros o decimales.');
 
    jQuery.validator.addMethod('coliformes', function (value, element, param) {
-    return /^(\< *3|\> *2400|\d*)$/.test(value);
+    return /^( *|\< *3|\> *2400|\d*)$/.test(value);
    }, 'Sólo valores enteros o ">2400" o "<3"');
 
     $("#medsform").validate({
       rules: {
         fechareporte: {
-         required: true,
          dateISO: true
         },
         ssedimentables: {
-         required: true,
          permitido: true
         },
         ssuspendidos: {
-         required: true,
          permitido: true
         },
         dbo: {
-         required: true,
          permitido: true
         },
         nkjedahl: {
-         required: true,
          permitido: true
         },
         nitritos: {
-         required: true,
          permitido: true
         },
         nitratos: {
-         required: true,
          permitido: true
         },
         nitrogeno: {
-         required: true,
          permitido: true
         },
         fosforo: {
-         required: true,
          permitido: true
         },
         arsenico: {
-         required: true,
          permitido: true
         },
         cadmio: {
-         required: true,
          permitido: true
         },
         cianuros: {
-         required: true,
          permitido: true
         },
         cobre: {
-         required: true,
          permitido: true
         },
         cromo: {
-         required: true,
          permitido: true
         },
         mercurio: {
-         required: true,
          permitido: true
         },
         niquel: {
-         required: true,
          permitido: true
         },
         plomo: {
-         required: true,
          permitido: true
         },
         zinc: {
-         required: true,
          permitido: true
         },
         hdehelminto: {
-         required: true,
          permitido: true
         },
        <?php for ($i=0; $i<$cantidad; $i++) :
         echo "
         'parametros[$i][GyA]':{
-          required: true,
           gya: true
         },
         'parametros[$i][coliformes]':{
-          required: true,
           coliformes: true
         }";
         echo ($i<$cantidad-1)? "," : "";

@@ -3,6 +3,7 @@
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/funcionesecol.inc.php';
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/magicquotes.inc.php';
  require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/acceso.inc.php';
+ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';
 
  if (!usuarioRegistrado())
  {
@@ -36,7 +37,7 @@
 /**************************************************************************************************/
 /* Formulario de parametros de una medicion una orden de trabajo */
 /**************************************************************************************************/
-	if (isset($_POST['accion']) and $_POST['accion']=='no guardar parametros')
+	if (isset($_POST['accion']) and $_POST['accion']=='no guardar parametros' )
 	{
 		header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/generales');
 		exit();
@@ -86,7 +87,7 @@
 
 	    $valores = (isset($_POST['valores'])) ? json_decode($_POST['valores'], TRUE) : "";
 	    $mcompuesta = (isset($_POST['mcompuesta'])) ? json_decode($_POST['mcompuesta'], TRUE) : "";
-		formularioSiralab($_POST['id'], $valores, $mcompuesta, $_POST['cantidad'], 0);
+		formularioSiralab($_POST['muestreoid'], $valores, $mcompuesta, $_POST['cantidad'], 0);
 	}
 
 /**************************************************************************************************/
@@ -94,7 +95,92 @@
 /**************************************************************************************************/
 	if(isset($_POST['accion']) and $_POST['accion']=='volver')
 	{
-		formularioMediciones($_POST['id'], $_POST['cantidad'], '');
+		fijarAccionUrl('volver');
+
+		$cantidad = intval($_POST['cantidad']);
+
+	    if($cantidad === 1){
+	      if($_POST['accion'] == 'volver' AND isset($_POST['coms'])){
+	        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+	        try
+	        {
+	          $sql='SELECT * FROM generalesaguatbl
+	             INNER JOIN muestreosaguatbl ON generalesaguatbl.id=muestreosaguatbl.generalaguaidfk
+	             WHERE generalesaguatbl.id = :id';
+	          $s=$pdo->prepare($sql); 
+	          $s->bindValue(':id',$_POST['id']);
+	          $s->execute();
+	          $linea = $s->fetch();
+
+	          $sql='SELECT descargaen, uso FROM nom01maximostbl WHERE id=:id';
+	          $s=$pdo->prepare($sql); 
+	          $s->bindValue(':id', $linea["nom01maximosidfk"]);
+	          $s->execute();
+	          $nom01maximos = $s->fetch();
+	        }catch (PDOException $e){
+	          $mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
+	          include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+	          exit();
+	        }
+	       
+	        $signatarios = getSignatarios();
+	        $muestreadores = getMuestradores();
+	        $descargaen = getMaximos();
+	        $egiro = getEGiro($linea["ordenaguaidfk"]);
+	        $valores = array("empresagiro" => getEGiro($linea["ordenaguaidfk"]),
+	                   "descargaen" => $nom01maximos["descargaen"],
+	                   "uso" => $nom01maximos["uso"],
+	                   "numedicion" => $linea["numedicion"],
+	                   "lugarmuestreo" => $linea["lugarmuestreo"],
+	                   "descriproceso" => $linea["descriproceso"],
+	                   "tipomediciones" => $linea["tipomediciones"],
+	                   //"proposito" => $linea["proposito"],
+	                   "materiasusadas" => $linea["materiasusadas"],
+	                   "tratamiento" => $linea["tratamiento"],
+	                   "Caracdescarga" => $linea["Caracdescarga"],
+	                   "receptor" => $linea["receptor"],
+	                   "estrategia" => $linea["estrategia"],
+	                   "numuestras" => $linea["numuestras"],
+	                   "observaciones" => $linea["observaciones"],
+	                   "fechamuestreo" => $linea["fechamuestreo"],
+	                   "fechamuestreofin" => $linea["fechamuestreofin"],
+	                   "identificacion" => $linea["identificacion"],
+	                   "temperatura" => $linea["temperatura"],
+	                   "caltermometro" => $linea["caltermometro"],
+	                   "pH" => $linea["pH"],
+	                   "conductividad" => $linea["conductividad"],
+	                   "nombresignatario" => getNombreSignatario($linea["ordenaguaidfk"]),
+	                   "signatario" => getSignatario($linea["ordenaguaidfk"]),
+	                   "responsable" => getResponsables($linea["ordenaguaidfk"], $id),
+	                   "mflotante" => $linea["mflotante"],
+	                   "olor" => $linea["olor"],
+	                   "color" => $linea["color"],
+	                   "turbiedad" => $linea["turbiedad"],
+	                   "GyAvisual" => $linea["GyAvisual"],
+	                   "burbujas" => $linea["burbujas"]);
+	        $pestanapag='Editar medicion';
+	        $titulopagina='Editar medicion';
+	        $accion='';
+	        $boton = 'salvar';
+	        $regreso = 1;
+	        include 'formacapturarmeds.html.php';
+	        exit();
+	      } //cierre de if($_POST['accion'] == 'volvercoms')
+
+	      if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
+	        formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'], TRUE), json_decode($_POST['parametros'], TRUE), json_decode($_POST['adicionales'], TRUE), 1);
+	      }
+	      formularioParametros($_POST['id'], $cantidad, "", "", "", "", 1);
+	    }else{ //cierre de if($cantidad === 1)
+	      if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
+	        $mcompuestas = json_decode($_POST['mcompuestas'], TRUE);
+	        formularioMediciones($id, $cantidad, $mcompuestas, 1);
+	      }else{
+	        formularioMediciones($id, $cantidad, "", 1);
+	      }
+	    }
+	    exit();
+		//formularioMediciones($_POST['id'], $_POST['cantidad'], '');
 	}
 
 
@@ -104,6 +190,7 @@
 	//var_dump($_SESSION['parametros']);
 	//if(!isset($_SESSION['parametros'])){
 		$id = $_SESSION['parametros']['id'];
+		$muestreoid = $_SESSION['parametros']['muestreoid'];
 		$cantidad = $_SESSION['parametros']['cantidad'];
 		$valores = $_SESSION['parametros']['valores'];
 		$parametros = $_SESSION['parametros']['parametros'];
@@ -153,17 +240,15 @@ function insertParametros2($parametros, $idparametro){
 	global $pdo;
 	try{
 		foreach ($parametros as $key => $value) {
-			if($value["GyA"] != "" && $value["coliformes"] != ""){
-				$sql='INSERT INTO parametros2tbl SET
-					parametroidfk=:id,
-					GyA=:GyA,
-					coliformes=:coliformes';
-				$s=$pdo->prepare($sql);
-				$s->bindValue(':id', $idparametro);
-				$s->bindValue(':GyA', $value["GyA"]);
-				$s->bindValue(':coliformes', $value["coliformes"]);
-				$s->execute();
-			}
+			$sql='INSERT INTO parametros2tbl SET
+				parametroidfk=:id,
+				GyA=:GyA,
+				coliformes=:coliformes';
+			$s=$pdo->prepare($sql);
+			$s->bindValue(':id', $idparametro);
+			$s->bindValue(':GyA', $value["GyA"]);
+			$s->bindValue(':coliformes', $value["coliformes"]);
+			$s->execute();
 		}
 	}catch (PDOException $e){
 		$mensaje='Hubo un error al tratar de insertar GyA y coliformes. Favor de intentar nuevamente.';
@@ -177,20 +262,6 @@ function insertParametros2($parametros, $idparametro){
 /**************************************************************************************************/
 function guardarParams($post){
 	global $pdo;
-	try   
-	{
-		$sql='SELECT id FROM muestreosaguatbl WHERE generalaguaidfk = :id';
-		$s=$pdo->prepare($sql); 
-		$s->bindValue(':id',$post['id']);
-		$s->execute();
-		$idmuestreo = $s->fetch();
-	}
-	catch (PDOException $e)
-	{
-		$mensaje='Hubo un error extrayendo la información de parametros.';
-		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-		exit();
-	}
 	try
 	{
 		$pdo->beginTransaction();
@@ -217,7 +288,7 @@ function guardarParams($post){
 		hdehelminto=:hdehelminto,
 		fechareporte=:fechareporte';
 		$s=$pdo->prepare($sql);
-		$s->bindValue(':id', $idmuestreo['id']);
+		$s->bindValue(':id', $post['muestreoid']);
 		$s->bindValue(':ssedimentables', $post['ssedimentables']);
 		$s->bindValue(':ssuspendidos', $post['ssuspendidos']);
 		$s->bindValue(':dbo', $post['dbo']);
