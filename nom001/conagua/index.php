@@ -48,18 +48,19 @@ function verInfoSiralab($otm){
   $datos = explode('-', $otm);
   try   
   {
-    $sql='SELECT plantastbl.*, siralabtbl.*, ordenestbl.ot, ordenestbl.fechalta, ordenestbl.signatario,
+    $sql='SELECT plantastbl.*, siralabtbl.*, ordenestbl.ot, ordenestbl.fechalta,
+          ordenestbl.signatarionombre, ordenestbl.signatarioap, ordenestbl.signatarioam,
           generalesaguatbl.tipomediciones, generalesaguatbl.Caracdescarga, generalesaguatbl.numedicion,
           generalesaguatbl.nom01maximosidfk, muestreosaguatbl.fechamuestreo, muestreosaguatbl.identificacion,
           muestreosaguatbl.id as "muestreoaguaid", muestreosaguatbl.pH, muestreosaguatbl.temperatura,
-          muestreosaguatbl.mflotante
+          muestreosaguatbl.mflotante, generalesaguatbl.id as "generalaguaid"
           FROM clientestbl
           INNER JOIN ordenestbl ON clientestbl.Numero_Cliente = ordenestbl.clienteidfk
           INNER JOIN generalesaguatbl ON ordenestbl.id = generalesaguatbl.ordenaguaidfk
           INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
           INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk
           INNER JOIN siralabtbl ON muestreosaguatbl.id = siralabtbl.muestreoaguaidfk
-          INNER JOIN plantastbl ON clientestbl.Numero_Cliente = plantastbl.Numero_Clienteidfk
+          INNER JOIN plantastbl ON ordenestbl.plantaidfk = plantastbl.id
           WHERE estudiostbl.nombre="NOM 001" AND ordenestbl.ot = :ot AND generalesaguatbl.numedicion = :numedicion;';
     $s=$pdo->prepare($sql);
     $s->bindValue(':ot',$datos[0]);
@@ -119,7 +120,7 @@ function verInfoSiralab($otm){
           FROM mcompuestastbl
           WHERE mcompuestastbl.muestreoaguaidfk = :id";
     $s=$pdo->prepare($sql); 
-    $s->bindValue(':id',$orden['muestreoaguaid']);
+    $s->bindValue(':id', $orden['generalaguaid']);
     $s->execute();
     $mcompuestas = "";
       foreach($s as $linea){

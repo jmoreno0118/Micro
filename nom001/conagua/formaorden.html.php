@@ -164,7 +164,7 @@
             <?php if($i+1<count($mcompuestas)): ?>
               <tr>
                 <td>Signatario</td>
-                <td><?php htmlout($orden['signatario']); ?></td>    
+                <td><?php htmlout($orden['signatarionombre'].' '.$orden['signatarioap'].' '.$orden['signatarioam']); ?></td>    
               </tr>
             <?php endif; ?>
             <tr>
@@ -257,96 +257,150 @@
         <th>Resultado</th>
         <th>LC/LD</th>
       </tr>
-      <tr>
-        <td>Huevos de Helminto</td>
-        <td><?php htmlout($parametros['hdehelminto']); ?></td>
-        <td><?php htmlout($limite['hdehelminto']); ?></td>
-      </tr>
-      <tr>
-        <td>Solidos sedimentables</td>
-        <td><?php htmlout($parametros['ssedimentables']); ?></td>
-        <td><?php htmlout($limite['ssedimentables']); ?></td>
-      </tr>
-      <tr>
-        <td>Solidos suspendidos</td>
-        <td><?php htmlout($parametros['ssuspendidos']); ?></td>
-        <td><?php htmlout($limite['ssuspendidos']); ?></td>
-      </tr>
-      <tr>
-        <td>DBO</td>
-        <td><?php htmlout($parametros['dbo']); ?></td>
-        <td><?php htmlout($limite['dbo']); ?></td>
-      </tr>
-      <tr>
-        <td>Nitrógeno Kjeldahl</td>
-        <td><?php htmlout($parametros['nkjedahl']); ?></td>
-        <td><?php //htmlout($limite['norganico']); ?></td>
-      </tr>
-      <tr>
-        <td>Nitrógeno Nitritos</td>
-        <td><?php htmlout($parametros['nitritos']);?></td>
-        <td><?php //htmlout($limite['nitritos']);?></td>
-      </tr>
-      <tr>
-        <td>Nitrógeno Nitratos</td>
-        <td><?php htmlout($parametros['nitratos']); ?></td>
-        <td><?php //htmlout($limite['nitratos']); ?></td>
-      </tr>
-      <tr>
-        <td>Nitrógeno</td>
-        <td><?php htmlout($parametros['nitrogeno']); ?></td>
-        <td><?php htmlout($limite['nitrogeno']); ?></td>
-      </tr>
-      <tr>
-        <td>Fosforo</td>
-        <td><?php htmlout($parametros['fosforo']); ?></td>
-        <td><?php htmlout($limite['fosforo']); ?></td>
-      </tr>
-      <tr>
-        <td>Arsenico</td>
-        <td><?php htmlout($parametros['arsenico']); ?></td>
-        <td><?php htmlout($limite['arsenico']); ?></td>
-      </tr>
-      <tr>
-        <td>Cadmio</td>
-        <td><?php htmlout($parametros['cadmio']); ?></td>
-        <td><?php htmlout($limite['cadmio']); ?></td>
-      </tr>
-      <tr>
-        <td>Cianuros</td>
-        <td><?php htmlout($parametros['cianuros']); ?></td>
-        <td><?php htmlout($limite['cianuros']); ?></td>
-      </tr>
-      <tr>
-        <td>Cobre</td>
-        <td><?php htmlout($parametros['cobre']); ?></td>
-        <td><?php htmlout($limite['cobre']); ?></td>
-      </tr>
-      <tr>
-        <td>Cromo</td>
-        <td><?php htmlout($parametros['cromo']); ?></td>
-        <td><?php htmlout($limite['cromo']); ?></td>
-      </tr>
-      <tr>
-        <td>Mercurio</td>
-        <td><?php htmlout($parametros['mercurio']); ?></td>
-        <td><?php htmlout($limite['mercurio']); ?></td>
-      </tr>
-      <tr>
-        <td>Niquel</td>
-        <td><?php htmlout($parametros['niquel']); ?></td>
-        <td><?php htmlout($limite['niquel']); ?></td>
-      </tr>
+      <?php if($parametros['hdehelminto'] !== ''): ?>
+        <tr>
+          <td>Huevos de Helminto</td>
+          <td><?php htmlout($parametros['hdehelminto']); ?></td>
+          <td><?php htmlout($limite['hdehelminto']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['ssedimentables'] !== ''): ?>
+        <tr>
+          <td>Solidos sedimentables</td>
+          <td><?php htmlout($parametros['ssedimentables']); ?></td>
+          <td><?php htmlout($limite['ssedimentables']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['ssuspendidos'] !== ''): ?>
+        <tr>
+          <td>Solidos suspendidos</td>
+          <td><?php htmlout($parametros['ssuspendidos']); ?></td>
+          <td><?php htmlout($limite['ssuspendidos']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['dbo'] !== ''): ?>
+        <tr>
+          <td>DBO</td>
+          <td><?php htmlout($parametros['dbo']); ?></td>
+          <td><?php htmlout($limite['dbo']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['nkjedahl'] !== ''): ?>
+        <tr>
+          <td>Nitrógeno Kjeldahl</td>
+          <td><?php htmlout($parametros['nkjedahl']); ?></td>
+          <td><?php htmlout($limite['nkjedahl']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['nitritos'] !== ''): ?>
+        <tr>
+          <td>Nitrógeno Nitritos</td>
+          <td><?php htmlout($parametros['nitritos']);?></td>
+          <td><?php htmlout($limite['nitritos']);?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['nitratos'] !== ''): ?>
+        <tr>
+          <td>Nitrógeno Nitratos</td>
+          <td><?php htmlout($parametros['nitratos']); ?></td>
+          <td><?php htmlout($limite['nitratos']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['nitrogeno'] !== '' AND $parametros['nitrogeno'] !== '0.00'): ?>
+        <tr>
+          <td>Nitrógeno</td>
+          <td><?php htmlout($parametros['nitrogeno']); ?></td>
+          <td><?php htmlout('Calculado');//htmlout($limite['nitrogeno']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['fosforo'] !== ''): ?>
+        <tr>
+          <td>Fosforo</td>
+          <td><?php htmlout($parametros['fosforo']); ?></td>
+          <td><?php htmlout($limite['fosforo']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['arsenico'] !== ''): ?>
+        <tr>
+          <td>Arsenico</td>
+          <td><?php htmlout($parametros['arsenico']); ?></td>
+          <td><?php htmlout($limite['arsenico']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['cadmio'] !== ''): ?>
+        <tr>
+          <td>Cadmio</td>
+          <td><?php htmlout($parametros['cadmio']); ?></td>
+          <td><?php htmlout($limite['cadmio']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['cianuros'] !== ''): ?>
+        <tr>
+          <td>Cianuros</td>
+          <td><?php htmlout($parametros['cianuros']); ?></td>
+          <td><?php htmlout($limite['cianuros']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['cobre'] !== ''): ?>
+        <tr>
+          <td>Cobre</td>
+          <td><?php htmlout($parametros['cobre']); ?></td>
+          <td><?php htmlout($limite['cobre']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['cromo'] !== ''): ?>
+        <tr>
+          <td>Cromo</td>
+          <td><?php htmlout($parametros['cromo']); ?></td>
+          <td><?php htmlout($limite['cromo']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['mercurio'] !== ''): ?>
+        <tr>
+          <td>Mercurio</td>
+          <td><?php htmlout($parametros['mercurio']); ?></td>
+          <td><?php htmlout($limite['mercurio']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['niquel'] !== ''): ?>
+        <tr>
+          <td>Niquel</td>
+          <td><?php htmlout($parametros['niquel']); ?></td>
+          <td><?php htmlout($limite['niquel']); ?></td>
+        </tr>
+      <?php endif; ?>
+      <?php if($parametros['plomo'] !== ''): ?>
       <tr>
         <td>Plomo</td>
         <td><?php htmlout($parametros['plomo']); ?></td>
         <td><?php htmlout($limite['plomo']); ?></td>
       </tr>
+      <?php endif; ?>
+      <?php if($parametros['zinc'] !== ''): ?>
+        <tr>
+          <td>Zinc</td>
+          <td><?php htmlout($parametros['zinc']); ?></td>
+          <td><?php htmlout($limite['zinc']); ?></td>
+        </tr>
+      <?php endif; ?>
+    </table>
+    <br>
+
+    <table style="width:50%">
       <tr>
-        <td>Zinc</td>
-        <td><?php htmlout($parametros['zinc']); ?></td>
-        <td><?php htmlout($limite['zinc']); ?></td>
+        <th style="width:40%;">Nombre de Párametro</th>
+        <th>Unidades</th>
+        <th>Resultado</th>
       </tr>
+      <?php if($parametros['hdehelminto'] !== ''): ?>
+        <?php foreach ($adicionales as $value): ?>
+          <tr>
+            <td><?php htmlout($value['nombre']); ?></td>
+            <td><?php htmlout($value['unidades']); ?></td>
+            <td><?php htmlout($value['resultado']); ?></td>
+          </tr>
+        <?php endforeach; ?>
+      <?php endif; ?>
     </table>
   </div>  <!-- cuerpoprincipal -->
   <div id="footer">
