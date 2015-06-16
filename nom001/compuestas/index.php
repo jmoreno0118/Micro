@@ -20,7 +20,7 @@
 /**************************************************************************************************/
 /* Guardar nuevas muestras compuestas de una orden de trabajo */
 /**************************************************************************************************/
-	if(isset($_POST['accion']) and $_POST['accion']=='guardar')
+	if(isset($_POST['accion']) and $_POST['accion']=='guardar' OR isset($_POST['accion']) and $_POST['accion']=='siguiente')
 	{
 		/*$mensaje='Error Forzado 2.';
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
@@ -36,11 +36,12 @@
 
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 		if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-			formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), 1, $_POST['accionparam']);
+			formularioParametros($_POST['id'], $_POST['muestreoid'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), 1, $_POST['accionparam']);
 		}else{
-			insertMediciones($_POST["mcompuestas"], $_POST['id']);
-
-			formularioParametros($_POST['id'], $_POST['cantidad'], "", "", "", "", 1);
+			if($_POST['accion'] !== 'siguiente'){
+				insertMediciones($_POST["mcompuestas"], $_POST['id']);
+			}
+			formularioParametros($_POST['id'], $_POST['muestreoid'], $_POST['cantidad'], "", "", "", "", 1);
 			exit();
 		}
 	}
@@ -66,7 +67,7 @@
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 
 		if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-			formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), 1, $_POST['accionparam']);
+			formularioParametros($_POST['id'], $_POST['muestreoid'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), 1, $_POST['accionparam']);
 		}
 		try
 		{
@@ -94,7 +95,7 @@
 			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 			exit();
 		}
-		formularioParametros($_POST['id'], $_POST['cantidad'], "", "", "", "", 1);
+		formularioParametros($_POST['id'], $_POST['muestreoid'], $_POST['cantidad'], "", "", "", "", 1);
 	}
 
 /**************************************************************************************************/
@@ -110,6 +111,7 @@
 /* Acción default */
 /**************************************************************************************************/
 	$id = $_SESSION['mediciones']['id'];
+	$muestreoid = $_SESSION['mediciones']['muestreoid'];
 	$mcompuestas = $_SESSION['mediciones']['mcompuestas'];
 	$cantidad = $_SESSION['mediciones']['cantidad'];
 	$boton = $_SESSION['mediciones']['boton'];

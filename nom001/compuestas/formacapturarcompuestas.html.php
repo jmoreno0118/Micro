@@ -48,6 +48,8 @@
                                               "tipo" => 2),
                             "id" => array("variables" => "id",
                                           "tipo" => 0),
+                            "muestreoid" => array("variables" => "muestreoid",
+                                          "tipo" => 0),
                             "regreso" => array("variables" => "id",
                                                 "tipo" => 0,
                                                 "valor" => 2),
@@ -68,6 +70,9 @@
             <?php if(($i+1 === $cantidad+1) AND ($key === "flujo" OR $key === "volumen")):
               continue;
              endif; ?>
+             <?php if(isset($_SESSION['supervisada'])){ ?>
+              <?php $value['atts'] = array('disabled'); ?>
+             <?php } ?>
              <?php crearForma(
                         "Muestra ".(($i < $cantidad) ? $i+1 : "Compuesta"), //Texto del label
                         "mcompuestas[".$i."][".$key."]", //Texto a colocar en los atributos id y name
@@ -88,10 +93,11 @@
        <input type="hidden" name="ot" value="<?php htmlout($_SESSION['OT']); ?>">
       <?php endif;?>
 	    <input type="hidden" name="id" value="<?php htmlout($id); ?>">
+      <input type="hidden" name="muestreoid" value="<?php htmlout($muestreoid); ?>">
 	    <input type="submit" name="accion" value="<?php htmlout($boton); ?>">
 	</form>
   <br>
-  <form action="<?php htmlout($_SESSION['url']); ?>" method="post">
+  <form action="http://<?php echo $_SERVER['HTTP_HOST']; ?>/reportes/nom001/generales/" method="post">
     <input type="hidden" name="regreso" value="1">
     <input type="hidden" name="id" value="<?php htmlout($id); ?>">
     <input type="hidden" name="meds" value="">
