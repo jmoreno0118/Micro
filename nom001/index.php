@@ -21,10 +21,17 @@
 /**************************************************************************************************/
   if (isset($_GET['accion']) and $_GET['accion']=='buscar')
   {
+    if (isset($_SESSION['terminada'])){
+      unset($_SESSION['terminada']);
+    }
+    if (isset($_SESSION['supervisada'])){
+      unset($_SESSION['supervisada']);
+    }
     $tablatitulo = 'Ordenes de noma 001';
     $otsproceso = (isset($_GET['otsproceso']))? TRUE : FALSE;
+    $supervisada = (isset($_GET['supervisada']))? TRUE : FALSE;
     $ot = (isset($_GET['ot']))? $_GET['ot'] : '';
-    $ordenes = buscaordenes($otsproceso, $ot);
+    $ordenes = buscaordenes($otsproceso, $ot, $supervisada);
     include 'formabuscaordenesnom001.html.php';
     exit();
   }
@@ -42,7 +49,13 @@
 /**************************************************************************************************/
 /* Acción por defualt, llevar a búsqueda de ordenes */
 /**************************************************************************************************/
-  $ordenes=buscaordenes(TRUE,'');
+  if (isset($_SESSION['terminada'])){
+    unset($_SESSION['terminada']);
+  }
+  if (isset($_SESSION['supervisada'])){
+    unset($_SESSION['supervisada']);
+  } 
+  $ordenes=buscaordenes(TRUE);
   $tablatitulo = 'Ordenes de noma 001';
   include 'formabuscaordenesnom001.html.php';
   exit();
@@ -50,7 +63,7 @@
 /**************************************************************************************************/
 /* Función para buscar ordenes */
 /**************************************************************************************************/
-  function buscaordenes($otsproceso='', $ot=''){
+  function buscaordenes($otsproceso='', $ot='', $supervisada=''){
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     $usuarioactivo = $_SESSION['usuario'];
     try   
@@ -68,7 +81,12 @@
       if ($otsproceso){
         $where .=' AND fechafin IS NULL';
       }else{
-        $where .=' AND fechafin IS NOT NULL';
+        $_SESSION['terminada'] = 1;
+        $where .=' AND fechafin IS NOT NULL AND fecharevision IS NULL';
+      }
+      if ($supervisada){
+        $_SESSION['supervisada'] = 1;
+        $where =' AND fechafin IS NOT NULL AND fecharevision IS NOT NULL';
       }
       if ($ot !=''){
         $where .='  AND ot=:ot';
@@ -77,7 +95,7 @@
       $sql=$select.$where;
       $placeholders[':usuario']=$usuarioactivo;
       $s=$pdo->prepare($sql); 
-      $s->execute($placeholders);  
+      $s->execute($placeholders);
     }catch (PDOException $e){
       $mensaje='Hubo un error extrayendo la lista de ordenes.'.$e;
       include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php'.$e;

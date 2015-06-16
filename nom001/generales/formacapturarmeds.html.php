@@ -21,6 +21,7 @@
   <div id="cuerpoprincipal">
    <h2><?php htmlout($titulopagina); ?></h2>
    <?php
+    //var_dump($valores);
       $formulario = array(
                   'empresagiro' => array(
                                         'label' => 'Giro de la empresa',
@@ -80,7 +81,8 @@
                                         ),
                   'numuestras' => array(
                                         'label' => 'No. muestras tomadas (13.0)',
-                                        'tipo' => 'text'
+                                        'tipo' => 'text',
+                                        'atts' => array('disabled', 'class' => 'numuestras')
                                         ),
                   'observaciones' => array(
                                         'label' => 'Observaciones (19.0)',
@@ -115,9 +117,42 @@
                                         'label' => 'Conductividad compuesta(Ej. 1234)',
                                         'tipo' => 'text'
                                         ),
-                  'responsable' => array(
-                                        'label' => 'Responsable',
-                                        'tipo' => 'text'
+                  'signatario' => array(
+                                        'label' => 'Signatario',
+                                        'tipo' => 'select',
+                                        'option' => $signatarios
+                                        ),
+                  'responsable[0]' => array(
+                                        'label' => 'Responsable 1*',
+                                        'tipo' => 'select',
+                                        'atts' => array('name' => 'resonsable[0]'),
+                                        'valor' => isset($valores['responsable'][0]) ? $valores['responsable'][0] : '',
+                                        'option' => $muestreadores,
+                                        'extra' => array('disabled' => 'false')
+                                        ),
+                  'responsable[1]' => array(
+                                        'label' => 'Responsable 2',
+                                        'tipo' => 'select',
+                                        'atts' => array('name' => 'resonsable[1]'),
+                                        'valor' => isset($valores['responsable'][1]) ? $valores['responsable'][1] : '',
+                                        'option' => $muestreadores,
+                                        'extra' => array('disabled' => 'false')
+                                        ),
+                  'responsable[2]' => array(
+                                        'label' => 'Responsable 3',
+                                        'tipo' => 'select',
+                                        'atts' => array('name' => 'resonsable[2]'),
+                                        'valor' => isset($valores['responsable'][2]) ? $valores['responsable'][2] : '',
+                                        'option' => $muestreadores,
+                                        'extra' => array('disabled' => 'false')
+                                        ),
+                  'responsable[3]' => array(
+                                        'label' => 'Responsable 4',
+                                        'tipo' => 'select',
+                                        'atts' => array('name' => 'resonsable[3]'),
+                                        'valor' => isset($valores['responsable'][3]) ? $valores['responsable'][3] : '',
+                                        'option' => $muestreadores,
+                                        'extra' => array('disabled' => 'false')
                                         ),
                   'mflotante' => array(
                                         'label' => 'Materia flotante visual',
@@ -151,7 +186,7 @@
                                         )
       );
 
-      $arquitectura = array("valores" => array("variables" => 'empresagiro,descargaen,uso,numedicion,lugarmuestreo,descriproceso,tipomediciones,proposito,materiasusadas,tratamiento,Caracdescarga,receptor,estrategia,numuestras,observaciones,fechamuestreo,fechamuestreofin,identificacion,temperatura,caltermometro,pH,conductividad,responsable,mflotante,olor,color,turbiedad,GyAvisual,burbujas',
+      $arquitectura = array("valores" => array("variables" => 'empresagiro,descargaen,uso,numedicion,lugarmuestreo,descriproceso,tipomediciones,proposito,materiasusadas,tratamiento,Caracdescarga,receptor,estrategia,numuestras,observaciones,fechamuestreo,fechamuestreofin,identificacion,temperatura,caltermometro,pH,conductividad,signatario,nombresignatario,responsable,mflotante,olor,color,turbiedad,GyAvisual,burbujas',
                                               "tipo" => 1),
                             "id" => array("variables" => "id",
                                           "tipo" => 0));
@@ -163,19 +198,40 @@
 
     	<?php foreach($formulario as $key => $value): ?>
     	<div>
+        <?php if(isset($_SESSION['supervisada'])){ ?>
+          <?php $value['atts'] = array('disabled'); ?>
+        <?php } ?>
         <?php if($key === "numedicion" AND isset($valores['numedicion']) AND $valores['numedicion'] !== "" AND !isset($new)): ?>
           <?php $value['atts'] = array('disabled') ?>
           <input type="hidden" name="numedicion" value="<?php htmlout($valores['numedicion']); ?>">
         <?php endif; ?>
 
-        <?php if($key === "tipomediciones"  AND isset($valores['tipomediciones']) AND $valores['tipomediciones'] !== ""): ?>
+        <?php if($key === "tipomediciones" AND isset($valores['tipomediciones']) AND $valores['tipomediciones'] !== ""): ?>
           <?php $value['atts'] = array('disabled') ?>
           <input type="hidden" name="tipomediciones" value="<?php htmlout($valores['tipomediciones']); ?>">
         <?php endif; ?>
-        <?php crearForma(
+
+        <?php if($key === "numuestras"): ?>
+          <input type="hidden" class ="numuestras" name="numuestras" value="<?php isset($valores['numuestras']) ? htmlout($valores['numuestras']) : '';?>">
+        <?php endif; ?>
+
+        <?php if($key === "signatario" AND isset($valores['nombresignatario']) AND trim($valores['nombresignatario']) !== ""): ?>
+          <label for="signatarios">Signatario actual: </label>
+          <input type="text" style="width:250px" value="<?php echo $valores['nombresignatario']; ?>" disabled>
+          <input type="hidden" name="nombresignatario" value="<?php echo $valores['nombresignatario']; ?>">
+          <br><br>
+        <?php endif; ?>
+        <?php 
+              $valor = "";
+              if(isset($value['valor'])){
+                $valor = $value['valor'];
+              }elseif(isset($valores[$key])){
+                $valor = $valores[$key];
+              }
+              crearForma(
                         $value['label'], //Texto del label
                         $key, //Texto a colocar en los atributos id y name
-                        (isset($valores[$key])) ? $valores[$key] : '', //Valor extraido de la bd
+                        $valor, //Valor extraido de la bd
                         (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
                         $value['tipo'], //Tipo de etiqueta
                         (isset($value['option'])) ? $value['option'] : '' //Options para los select
@@ -196,7 +252,6 @@
   </div>  <!-- footer -->
   </div> <!-- contenedor -->
 </body>
-
 <link rel="stylesheet" href="../../includes/jquery-validation-1.13.1/demo/site-demos.css">
 <script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery.js"></script>
 <script type="text/javascript" src="../../includes/jquery-validation-1.13.1/lib/jquery-1.11.1.js"></script>
@@ -204,6 +259,20 @@
 <script type="text/javascript" src="../../includes/jquery-validation-1.13.1/dist/additional-methods.js"></script>
 <script type="text/javascript">
   $(document).ready(function() {
+
+    function numeroMuestras(){
+      if( $("#tipomediciones").val() === '1') {
+        $('.numuestras').val('1');
+      } else if($("#tipomediciones").val() === '4') {
+        $('.numuestras').val('2');
+      } else if($("#tipomediciones").val() === '8') {
+        $('.numuestras').val('4');
+      } else if($("#tipomediciones").val() === '12'){
+        $('.numuestras').val('6');
+      }
+    }
+
+    numeroMuestras();
 
     function listaUso(descarga, uso){
       $.ajax({
@@ -221,6 +290,10 @@
 
     $("#descargaen").change(function(){
       listaUso(<?php echo '"'.$valores["descargaen"].'"' ?>, <?php echo '"'.$valores["uso"].'"' ?>);
+    });
+
+    $("#tipomediciones").change(function(){
+      numeroMuestras();
     });
 
    jQuery.validator.addMethod('uncimal', function (value, element, param) {
@@ -323,7 +396,8 @@
          required: true,
          trescimales: true
         },
-        responsable: "required",
+        signatario: "required",
+        'responsable[0]': "required",
         mflotante: "required",
         olor: "required",
         color: "required",

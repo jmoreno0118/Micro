@@ -3,6 +3,7 @@
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/funcionesecol.inc.php';
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/magicquotes.inc.php';
  require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/acceso.inc.php';
+ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';
 
  if (!usuarioRegistrado())
  {
@@ -32,20 +33,15 @@
       $cantidad = intval($_POST['cantidad']);
       $id = $_POST['id'];
       $mcompuestas = json_decode($_POST['mcompuestas'], TRUE);
+      $muestreoid = $_POST['muestreoid'];
     }else{
       try
       {
         $pdo->beginTransaction();
 
-        $sql='UPDATE clientestbl SET
-              Giro_Empresa=:empresagiro
-              WHERE Numero_Cliente = (SELECT clienteidfk
-                                      FROM ordenestbl
-                                      WHERE id = :id)';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':id',$_POST['id']);
-        $s->bindValue(':empresagiro',$_POST['empresagiro']);
-        $s->execute();
+        setGiroEmpresa($_POST['id'], $_POST['empresagiro']);
+
+        setSignatario($_POST['signatario']);
 
         $sql='SELECT id FROM nom01maximostbl WHERE descargaen =:descargaen AND uso=:uso';
         $s=$pdo->prepare($sql); 
@@ -94,7 +90,6 @@
               caltermometro=:caltermometro,
               pH=:pH,
               conductividad=:conductividad,
-              responsable=:responsable,
               mflotante=:mflotante,
               olor=:olor,
               color=:color,
@@ -102,14 +97,13 @@
               GyAvisual=:GyAvisual,
               burbujas=:burbujas';
         $s=$pdo->prepare($sql);
-        $s->bindValue(':generalaguaidfk',$id);
+        $s->bindValue(':generalaguaidfk', $id);
         $s->bindValue(':fechamuestreo',$_POST['fechamuestreo']);
         $s->bindValue(':identificacion',$_POST['identificacion']);
         $s->bindValue(':temperatura',$_POST['temperatura']);
         $s->bindValue(':caltermometro',$_POST['caltermometro']);
         $s->bindValue(':pH',$_POST['pH']);
         $s->bindValue(':conductividad',$_POST['conductividad']);
-        $s->bindValue(':responsable',$_POST['responsable']);
         $s->bindValue(':mflotante',$_POST['mflotante']);
         $s->bindValue(':olor',$_POST['olor']);
         $s->bindValue(':color',$_POST['color']);
@@ -117,13 +111,16 @@
         $s->bindValue(':GyAvisual',$_POST['GyAvisual']);
         $s->bindValue(':burbujas',$_POST['burbujas']);
         $s->execute();
+        $muestreoid=$pdo->lastInsertid();
+
+        setResponsables($id);
 
         if(isset($_POST['fechamuestreofin']) AND $_POST['fechamuestreofin'] !== ""){
           $sql='UPDATE muestreosaguatbl SET
               fechamuestreofin=:fechamuestreofin
               WHERE generalaguaidfk=:generalaguaidfk';
-          $s = $pdo->prepare($sql);
-          $s->bindValue(':generalaguaidfk', $id);
+          $s=$pdo->prepare($sql);
+          $s->bindValue(':generalaguaidfk', $_POST['id']);
           $s->bindValue(':fechamuestreofin', $_POST['fechamuestreofin']);
           $s->execute();
         }
@@ -146,18 +143,12 @@
           $cantidad = 6;
       }
     }
-    $_SESSION['accion'] = 'guardar';
-    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
-    $host     = $_SERVER['HTTP_HOST'];
-    $script   = $_SERVER['SCRIPT_NAME'];
-    $params   = $_SERVER['QUERY_STRING'];
-    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
-    $_SESSION['url'] = $currentUrl;
+    fijarAccionUrl('guardar');
 
     if($cantidad === 1){
-      formularioParametros($id, $cantidad, "", "", "", "", 1);
+      formularioParametros($id, $muestreoid, $cantidad, "", "", "", "", 1);
     }
-    formularioMediciones($id, $cantidad, $mcompuestas, 2);
+    formularioMediciones($id, $muestreoid, $cantidad, $mcompuestas, 2);
   }
 
 /**************************************************************************************************/
@@ -165,19 +156,15 @@
 /**************************************************************************************************/
 	if (isset($_GET['accion']) and $_GET['accion']=='capturar')
 	{
-    $_SESSION['accion'] = 'parametros';
-    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
-    $host     = $_SERVER['HTTP_HOST'];
-    $script   = $_SERVER['SCRIPT_NAME'];
-    $params   = $_SERVER['QUERY_STRING'];
-    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
-    $_SESSION['url'] = $currentUrl;
+    fijarAccionUrl('capturar');
 
 		$id = $_SESSION['ot'];
 		$pestanapag = 'Agrega medicón';
 		$titulopagina = 'Agregar una nueva medición';
 		$boton = 'guardar';
 		$descargaen = getMaximos();
+    $signatarios = getSignatarios();
+    $muestreadores = getMuestradores();
 		if(isset($_POST['valores'])){
 			$new = "";
 			$valores = json_decode($_POST['valores'],TRUE);
@@ -185,7 +172,8 @@
 			$valores = array("empresagiro" => getEGiro($id),
   				             "descargaen" => "",
   				             "uso" => "",
-  				             "responsable" => getResponsable($id)
+                       "signatario" => getSignatario($id),
+  				             "responsable" => getResponsables($id)
                 );
 		}
 		include 'formacapturarmeds.html.php';
@@ -195,70 +183,78 @@
 /**************************************************************************************************/
 /* Editar reconocimiento inicial de una orden de trabajo */
 /**************************************************************************************************/
-  if((isset($_POST['accion']) and $_POST['accion']=='editar') OR (isset($_POST['accion']) AND $_POST['accion'] == 'volver' AND isset($_POST['meds'])))
+  if((isset($_POST['accion']) and $_POST['accion']=='editar') OR (isset($_POST['accion']) and $_POST['accion']=='ver') OR (isset($_POST['accion']) AND $_POST['accion'] == 'volver' AND isset($_POST['meds'])))
   {
-	$id = $_POST['id'];
-  if(isset($_POST['valores'])){
-    $valores = json_decode($_POST['valores'],TRUE);
-  }else{
-  	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-  	try
-  	{
-  		$sql='SELECT * FROM generalesaguatbl
-  		INNER JOIN muestreosaguatbl ON generalesaguatbl.id=muestreosaguatbl.generalaguaidfk
-  		WHERE generalesaguatbl.id = :id';
-  		$s=$pdo->prepare($sql); 
-  		$s->bindValue(':id',$_POST['id']);
-  		$s->execute();
-  		$linea = $s->fetch();
+    fijarAccionUrl('editar');
 
-  		$sql='SELECT descargaen, uso FROM nom01maximostbl WHERE id=:id';
-  		$s=$pdo->prepare($sql); 
-  		$s->bindValue(':id', $linea["nom01maximosidfk"]);
-  		$s->execute();
-  		$nom01maximos = $s->fetch();
-  	}catch (PDOException $e){
-  		$mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
-  		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-  		exit();
+  	$id = $_POST['id'];
+    if(isset($_POST['valores'])){
+      $valores = json_decode($_POST['valores'],TRUE);
+    }else{
+    	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    	try
+    	{
+    		$sql='SELECT * FROM generalesaguatbl
+    		INNER JOIN muestreosaguatbl ON generalesaguatbl.id=muestreosaguatbl.generalaguaidfk
+    		WHERE generalesaguatbl.id = :id';
+    		$s=$pdo->prepare($sql); 
+    		$s->bindValue(':id', $id);
+    		$s->execute();
+    		$linea = $s->fetch();
+
+    		$sql='SELECT descargaen, uso FROM nom01maximostbl WHERE id=:id';
+    		$s=$pdo->prepare($sql); 
+    		$s->bindValue(':id', $linea["nom01maximosidfk"]);
+    		$s->execute();
+    		$nom01maximos = $s->fetch();
+    	}catch (PDOException $e){
+    		$mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
+    		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+    		exit();
+    	}
+  		$valores = array("empresagiro" => getEGiro($linea["ordenaguaidfk"]),
+  			           "descargaen" => $nom01maximos["descargaen"],
+  			           "uso" => $nom01maximos["uso"],
+  			           "numedicion" => $linea["numedicion"],
+  			           "lugarmuestreo" => $linea["lugarmuestreo"],
+  			           "descriproceso" => $linea["descriproceso"],
+  			           "tipomediciones" => $linea["tipomediciones"],
+  			           //"proposito" => $linea["proposito"],
+  			           "materiasusadas" => $linea["materiasusadas"],
+  			           "tratamiento" => $linea["tratamiento"],
+  			           "Caracdescarga" => $linea["Caracdescarga"],
+  			           "receptor" => $linea["receptor"],
+  			           "estrategia" => $linea["estrategia"],
+  			           "numuestras" => $linea["numuestras"],
+  			           "observaciones" => $linea["observaciones"],
+  			           "fechamuestreo" => $linea["fechamuestreo"],
+                   "fechamuestreofin" => $linea["fechamuestreofin"],
+  			           "identificacion" => $linea["identificacion"],
+  			           "temperatura" => $linea["temperatura"],
+  			           "caltermometro" => $linea["caltermometro"],
+  			           "pH" => $linea["pH"],
+  			           "conductividad" => $linea["conductividad"],
+                   "nombresignatario" => getNombreSignatario($linea["ordenaguaidfk"]),
+                   "signatario" => getSignatario($linea["ordenaguaidfk"]),
+  			           "responsable" => getResponsables($linea["ordenaguaidfk"], $id),
+  			           "mflotante" => $linea["mflotante"],
+  			           "olor" => $linea["olor"],
+  			           "color" => $linea["color"],
+  			           "turbiedad" => $linea["turbiedad"],
+  			           "GyAvisual" => $linea["GyAvisual"],
+  			           "burbujas" => $linea["burbujas"]);
   	}
-		$valores = array("empresagiro" => getEGiro($linea["ordenaguaidfk"]),
-			           "descargaen" => $nom01maximos["descargaen"],
-			           "uso" => $nom01maximos["uso"],
-			           "numedicion" => $linea["numedicion"],
-			           "lugarmuestreo" => $linea["lugarmuestreo"],
-			           "descriproceso" => $linea["descriproceso"],
-			           "tipomediciones" => $linea["tipomediciones"],
-			           //"proposito" => $linea["proposito"],
-			           "materiasusadas" => $linea["materiasusadas"],
-			           "tratamiento" => $linea["tratamiento"],
-			           "Caracdescarga" => $linea["Caracdescarga"],
-			           "receptor" => $linea["receptor"],
-			           "estrategia" => $linea["estrategia"],
-			           "numuestras" => $linea["numuestras"],
-			           "observaciones" => $linea["observaciones"],
-			           "fechamuestreo" => $linea["fechamuestreo"],
-                 "fechamuestreofin" => $linea["fechamuestreofin"],
-			           "identificacion" => $linea["identificacion"],
-			           "temperatura" => $linea["temperatura"],
-			           "caltermometro" => $linea["caltermometro"],
-			           "pH" => $linea["pH"],
-			           "conductividad" => $linea["conductividad"],
-			           "responsable" => $linea["responsable"],
-			           "mflotante" => $linea["mflotante"],
-			           "olor" => $linea["olor"],
-			           "color" => $linea["color"],
-			           "turbiedad" => $linea["turbiedad"],
-			           "GyAvisual" => $linea["GyAvisual"],
-			           "burbujas" => $linea["burbujas"]);
-	}
-  $descargaen = getMaximos();
-	$pestanapag='Editar medicion';
-	$titulopagina='Editar medicion';
-	$boton = 'salvar';
-	$regreso = 1;
-	include 'formacapturarmeds.html.php';
-	exit();
+    $signatarios = getSignatarios();
+    $muestreadores = getMuestradores();
+    $descargaen = getMaximos();
+  	$pestanapag='Editar medicion';
+  	$titulopagina='Editar medicion';
+  	$boton = 'salvar';
+    if($_POST['accion']=='ver')
+      $boton = 'siguiente';
+  	$regreso = 1;
+  	include 'formacapturarmeds.html.php';
+  	exit();
   }
 
 /**************************************************************************************************/
@@ -338,123 +334,112 @@
 /**************************************************************************************************/
 /* Guardar la edición de una orden de trabajo */
 /**************************************************************************************************/
-  if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['accion']) AND $_POST['accion'] == 'volver' AND isset($_POST['coms'])))
+  if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['accion']) AND $_POST['accion'] == 'siguiente') OR (isset($_POST['accion']) AND $_POST['accion'] == 'volver' AND isset($_POST['coms'])))
   {
     /*$mensaje='Error Forzado 1.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();*/
 
-    $_SESSION['accion'] = 'salvar';
-    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
-    $host     = $_SERVER['HTTP_HOST'];
-    $script   = $_SERVER['SCRIPT_NAME'];
-    $params   = $_SERVER['QUERY_STRING'];
-    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
-    $_SESSION['url'] = $currentUrl;
+    fijarAccionUrl('salvar');
 
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     $id = $_POST['id'];
     if(!isset($_POST['regreso'])){
-      try
-      {
-        $pdo->beginTransaction();
-       
-        $sql='UPDATE clientestbl SET
-              Giro_Empresa=:Giro_Empresa
-              WHERE Numero_Cliente = (SELECT clienteidfk
-                                      FROM ordenestbl
-                                      WHERE id = :id)';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':id',$_SESSION['OT']);
-        $s->bindValue(':Giro_Empresa',$_POST['empresagiro']);
-        $s->execute();
+      if($_POST['accion'] !== 'siguiente'){
+        try
+        {
+          $pdo->beginTransaction();
+         
+          setGiroEmpresa($_POST['id'], $_POST['empresagiro']);
 
-        $sql='SELECT id FROM nom01maximostbl WHERE descargaen =:descargaen AND uso=:uso';
-        $s=$pdo->prepare($sql); 
-        $s->bindValue(':descargaen',$_POST['descargaen']);
-        $s->bindValue(':uso',$_POST['uso']);
-        $s->execute();
-        $nom01maximosidfk = $s->fetch();
+          setSignatario($_POST['signatario']);
 
-        $sql='UPDATE generalesaguatbl SET
-              nom01maximosidfk=:nom01maximosidfk,
-              numedicion=:numedicion,
-              lugarmuestreo=:lugarmuestreo,
-              descriproceso=:descriproceso,
-              materiasusadas=:materiasusadas,
-              tratamiento=:tratamiento,
-              Caracdescarga=:Caracdescarga,
-              receptor=:receptor,
-              estrategia=:estrategia,
-              numuestras=:numuestras,
-              observaciones=:observaciones,
-              tipomediciones=:tipomediciones
-              WHERE id=:id';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':id',$_POST['id']);
-        $s->bindValue(':nom01maximosidfk', $nom01maximosidfk['id']);
-        $s->bindValue(':numedicion', intval($_POST['numedicion']), PDO::PARAM_INT );
-        $s->bindValue(':lugarmuestreo', $_POST['lugarmuestreo']);
-        $s->bindValue(':descriproceso', $_POST['descriproceso']);
-        $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
-        $s->bindValue(':tratamiento', $_POST['tratamiento']);
-        $s->bindValue(':Caracdescarga', $_POST['Caracdescarga']);
-        $s->bindValue(':receptor', $_POST['receptor']);
-        $s->bindValue(':estrategia', $_POST['estrategia']);
-        $s->bindValue(':numuestras', $_POST['numuestras']);
-        $s->bindValue(':observaciones', $_POST['observaciones']);
-        $s->bindValue(':tipomediciones', $_POST['tipomediciones']);
-        //$s->bindValue(':proposito', $_POST['proposito']);
-        $s->execute();
+          $sql='SELECT id FROM nom01maximostbl WHERE descargaen =:descargaen AND uso=:uso';
+          $s=$pdo->prepare($sql); 
+          $s->bindValue(':descargaen',$_POST['descargaen']);
+          $s->bindValue(':uso',$_POST['uso']);
+          $s->execute();
+          $nom01maximosidfk = $s->fetch();
 
-        $sql='UPDATE muestreosaguatbl SET
-              fechamuestreo=:fechamuestreo,
-              identificacion=:identificacion,
-              temperatura=:temperatura,
-              caltermometro=:caltermometro,
-              pH=:pH,
-              conductividad=:conductividad,
-              responsable=:responsable,
-              mflotante=:mflotante,
-              olor=:olor,
-              color=:color,
-              turbiedad=:turbiedad,
-              GyAvisual=:GyAvisual,
-              burbujas=:burbujas
-              WHERE generalaguaidfk=:generalaguaidfk';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':generalaguaidfk', $_POST['id']);
-        $s->bindValue(':fechamuestreo', $_POST['fechamuestreo']);
-        $s->bindValue(':identificacion', $_POST['identificacion']);
-        $s->bindValue(':temperatura', $_POST['temperatura']);
-        $s->bindValue(':caltermometro', $_POST['caltermometro']);
-        $s->bindValue(':pH', $_POST['pH']);
-        $s->bindValue(':conductividad', $_POST['conductividad']);
-        $s->bindValue(':responsable', $_POST['responsable']);
-        $s->bindValue(':mflotante', $_POST['mflotante']);
-        $s->bindValue(':olor', $_POST['olor']);
-        $s->bindValue(':color', $_POST['color']);
-        $s->bindValue(':turbiedad', $_POST['turbiedad']);
-        $s->bindValue(':GyAvisual', $_POST['GyAvisual']);
-        $s->bindValue(':burbujas', $_POST['burbujas']);
-        $s->execute();
+          $sql='UPDATE generalesaguatbl SET
+                nom01maximosidfk=:nom01maximosidfk,
+                numedicion=:numedicion,
+                lugarmuestreo=:lugarmuestreo,
+                descriproceso=:descriproceso,
+                materiasusadas=:materiasusadas,
+                tratamiento=:tratamiento,
+                Caracdescarga=:Caracdescarga,
+                receptor=:receptor,
+                estrategia=:estrategia,
+                numuestras=:numuestras,
+                observaciones=:observaciones,
+                tipomediciones=:tipomediciones
+                WHERE id=:id';
+          $s=$pdo->prepare($sql);
+          $s->bindValue(':id',$_POST['id']);
+          $s->bindValue(':nom01maximosidfk', $nom01maximosidfk['id']);
+          $s->bindValue(':numedicion', intval($_POST['numedicion']), PDO::PARAM_INT );
+          $s->bindValue(':lugarmuestreo', $_POST['lugarmuestreo']);
+          $s->bindValue(':descriproceso', $_POST['descriproceso']);
+          $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
+          $s->bindValue(':tratamiento', $_POST['tratamiento']);
+          $s->bindValue(':Caracdescarga', $_POST['Caracdescarga']);
+          $s->bindValue(':receptor', $_POST['receptor']);
+          $s->bindValue(':estrategia', $_POST['estrategia']);
+          $s->bindValue(':numuestras', $_POST['numuestras']);
+          $s->bindValue(':observaciones', $_POST['observaciones']);
+          $s->bindValue(':tipomediciones', $_POST['tipomediciones']);
+          $s->execute();
 
-        if(isset($_POST['fechamuestreofin']) AND $_POST['fechamuestreofin'] !== ""){
           $sql='UPDATE muestreosaguatbl SET
-              fechamuestreofin=:fechamuestreofin
-              WHERE generalaguaidfk=:generalaguaidfk';
+                fechamuestreo=:fechamuestreo,
+                identificacion=:identificacion,
+                temperatura=:temperatura,
+                caltermometro=:caltermometro,
+                pH=:pH,
+                conductividad=:conductividad,
+                mflotante=:mflotante,
+                olor=:olor,
+                color=:color,
+                turbiedad=:turbiedad,
+                GyAvisual=:GyAvisual,
+                burbujas=:burbujas
+                WHERE generalaguaidfk=:generalaguaidfk';
           $s=$pdo->prepare($sql);
           $s->bindValue(':generalaguaidfk', $_POST['id']);
-          $s->bindValue(':fechamuestreofin', $_POST['fechamuestreofin']);
+          $s->bindValue(':fechamuestreo', $_POST['fechamuestreo']);
+          $s->bindValue(':identificacion', $_POST['identificacion']);
+          $s->bindValue(':temperatura', $_POST['temperatura']);
+          $s->bindValue(':caltermometro', $_POST['caltermometro']);
+          $s->bindValue(':pH', $_POST['pH']);
+          $s->bindValue(':conductividad', $_POST['conductividad']);
+          $s->bindValue(':mflotante', $_POST['mflotante']);
+          $s->bindValue(':olor', $_POST['olor']);
+          $s->bindValue(':color', $_POST['color']);
+          $s->bindValue(':turbiedad', $_POST['turbiedad']);
+          $s->bindValue(':GyAvisual', $_POST['GyAvisual']);
+          $s->bindValue(':burbujas', $_POST['burbujas']);
           $s->execute();
-        }
 
-        $pdo->commit();
-      }catch (PDOException $e){
-        $pdo->rollback();
-        $mensaje='Hubo un error al tratar de actulizar la medicion. Favor de intentar nuevamente.'.$e;
-        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-        exit();
+          setResponsables($_POST['id'], true);
+
+          if(isset($_POST['fechamuestreofin']) AND $_POST['fechamuestreofin'] !== ""){
+            $sql='UPDATE muestreosaguatbl SET
+                fechamuestreofin=:fechamuestreofin
+                WHERE generalaguaidfk=:generalaguaidfk';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':generalaguaidfk', $_POST['id']);
+            $s->bindValue(':fechamuestreofin', $_POST['fechamuestreofin']);
+            $s->execute();
+          }
+
+          $pdo->commit();
+        }catch (PDOException $e){
+          $pdo->rollback();
+          $mensaje='Hubo un error al tratar de actulizar la medicion. Favor de intentar nuevamente.'.$e;
+          include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+          exit();
+        }
       }
       $cantidad = 1;
       if($_POST['tipomediciones'] === '4'){
@@ -467,12 +452,14 @@
     }else{ // cierre de if(!isset($_POST['regreso']))
       $cantidad = intval($_POST['cantidad']);
     }
+    //var_dump($cantidad);
+    //exit();
     if($cantidad === 1){
       if($_POST['accion'] == 'volver' AND isset($_POST['coms'])){
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
         try
         {
-          $sql='SELECT * FROM generalesaguatbl
+          $sql='SELECT *, muestreosaguatbl.id as "muestreoid" FROM generalesaguatbl
              INNER JOIN muestreosaguatbl ON generalesaguatbl.id=muestreosaguatbl.generalaguaidfk
              WHERE generalesaguatbl.id = :id';
           $s=$pdo->prepare($sql); 
@@ -491,37 +478,41 @@
           exit();
         }
        
+        $signatarios = getSignatarios();
+        $muestreadores = getMuestradores();
         $descargaen = getMaximos();
         $egiro = getEGiro($linea["ordenaguaidfk"]);
-        $valores = array("empresagiro" => $egiro,
-                        "descargaen" => $nom01maximos["descargaen"],
-                        "uso" => $nom01maximos["uso"],
-                        "numedicion" => $linea["numedicion"],
-                        "lugarmuestreo" => $linea["lugarmuestreo"],
-                        "descriproceso" => $linea["descriproceso"],
-                        "tipomediciones" => $linea["tipomediciones"],
-                        //"proposito" => $linea["proposito"],
-                        "materiasusadas" => $linea["materiasusadas"],
-                        "tratamiento" => $linea["tratamiento"],
-                        "Caracdescarga" => $linea["Caracdescarga"],
-                        "receptor" => $linea["receptor"],
-                        "estrategia" => $linea["estrategia"],
-                        "numuestras" => $linea["numuestras"],
-                        "observaciones" => $linea["observaciones"],
-                        "fechamuestreo" => $linea["fechamuestreo"],
-                        "fechamuestreofin" => $linea["fechamuestreofin"],
-                        "identificacion" => $linea["identificacion"],
-                        "temperatura" => $linea["temperatura"],
-                        "caltermometro" => $linea["caltermometro"],
-                        "pH" => $linea["pH"],
-                        "conductividad" => $linea["conductividad"],
-                        "responsable" => $linea["responsable"],
-                        "mflotante" => $linea["mflotante"],
-                        "olor" => $linea["olor"],
-                        "color" => $linea["color"],
-                        "turbiedad" => $linea["turbiedad"],
-                        "GyAvisual" => $linea["GyAvisual"],
-                        "burbujas" => $linea["burbujas"]);
+        $valores = array("empresagiro" => getEGiro($linea["ordenaguaidfk"]),
+                   "descargaen" => $nom01maximos["descargaen"],
+                   "uso" => $nom01maximos["uso"],
+                   "numedicion" => $linea["numedicion"],
+                   "lugarmuestreo" => $linea["lugarmuestreo"],
+                   "descriproceso" => $linea["descriproceso"],
+                   "tipomediciones" => $linea["tipomediciones"],
+                   //"proposito" => $linea["proposito"],
+                   "materiasusadas" => $linea["materiasusadas"],
+                   "tratamiento" => $linea["tratamiento"],
+                   "Caracdescarga" => $linea["Caracdescarga"],
+                   "receptor" => $linea["receptor"],
+                   "estrategia" => $linea["estrategia"],
+                   "numuestras" => $linea["numuestras"],
+                   "observaciones" => $linea["observaciones"],
+                   "fechamuestreo" => $linea["fechamuestreo"],
+                   "fechamuestreofin" => $linea["fechamuestreofin"],
+                   "identificacion" => $linea["identificacion"],
+                   "temperatura" => $linea["temperatura"],
+                   "caltermometro" => $linea["caltermometro"],
+                   "pH" => $linea["pH"],
+                   "conductividad" => $linea["conductividad"],
+                   "nombresignatario" => getNombreSignatario($linea["ordenaguaidfk"]),
+                   "signatario" => getSignatario($linea["ordenaguaidfk"]),
+                   "responsable" => getResponsables($linea["ordenaguaidfk"], $id),
+                   "mflotante" => $linea["mflotante"],
+                   "olor" => $linea["olor"],
+                   "color" => $linea["color"],
+                   "turbiedad" => $linea["turbiedad"],
+                   "GyAvisual" => $linea["GyAvisual"],
+                   "burbujas" => $linea["burbujas"]);
         $pestanapag='Editar medicion';
         $titulopagina='Editar medicion';
         $accion='';
@@ -532,15 +523,15 @@
       } //cierre de if($_POST['accion'] == 'volvercoms')
 
       if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-        formularioParametros($_POST['id'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'], TRUE), json_decode($_POST['parametros'], TRUE), json_decode($_POST['adicionales'], TRUE), 1);
+        formularioParametros($_POST['id'], $_POST['muestreoid'], intval($_POST['cantidad']), $_POST['idparametro'], json_decode($_POST['valores'], TRUE), json_decode($_POST['parametros'], TRUE), json_decode($_POST['adicionales'], TRUE), 1);
       }
-      formularioParametros($_POST['id'], $cantidad, "", "", "", "", 1);
+      formularioParametros($_POST['id'], $linea["muestreoid"], $cantidad, "", "", "", "", 1);
     }else{ //cierre de if($cantidad === 1)
       if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
         $mcompuestas = json_decode($_POST['mcompuestas'], TRUE);
-        formularioMediciones($id, $cantidad, $mcompuestas, 1);
+        formularioMediciones($id, $_POST['muestreoid'], $cantidad, $mcompuestas, 1);
       }else{
-        formularioMediciones($id, $cantidad, "", 1);
+        formularioMediciones($id, $linea["muestreoid"], $cantidad, "", 1);
       }
     }
     exit();
@@ -551,16 +542,10 @@
 /**************************************************************************************************/
   if (isset($_POST['accion']) and $_POST['accion']=='parametros')
   {
-    $_SESSION['accion'] = 'parametros';
-    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
-    $host     = $_SERVER['HTTP_HOST'];
-    $script   = $_SERVER['SCRIPT_NAME'];
-    $params   = $_SERVER['QUERY_STRING'];
-    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
-    $_SESSION['url'] = $currentUrl;
+    fijarAccionUrl('parametros');
 
     if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-		  formularioParametros($_POST['id'], $_POST['cantidad'], $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['regreso'], $_POST['accionparam']);
+		  formularioParametros($_POST['id'], $_POST['muestreoid'], $_POST['cantidad'], $_POST['idparametro'], json_decode($_POST['valores'],TRUE), json_decode($_POST['parametros'],TRUE), json_decode($_POST['adicionales'],TRUE), $_POST['regreso'], $_POST['accionparam']);
     }else{
   		$cantidad = 1;
       if($_POST['tipomedicion'] === '4'){
@@ -572,9 +557,9 @@
       }
     }
     if(isset($_POST['idparametro']) AND $_POST['idparametro'] !== ""){
-		  formularioParametros($_POST['id'], $cantidad, $_POST['idparametro']);
+		  formularioParametros($_POST['id'], $_POST['muestreoid'], $cantidad, $_POST['idparametro']);
     }else{
-      formularioParametros($_POST['id'], $cantidad);
+      formularioParametros($_POST['id'], $_POST['muestreoid'], $cantidad);
     }
   }
 
@@ -583,16 +568,10 @@
 /**************************************************************************************************/
   if (isset($_POST['accion']) and $_POST['accion']=='captura siralab')
   {
-    $_SESSION['accion'] = 'captura siralab';
-    $protocol = strpos(strtolower($_SERVER['SERVER_PROTOCOL']),'https') === FALSE ? 'http' : 'https';
-    $host     = $_SERVER['HTTP_HOST'];
-    $script   = $_SERVER['SCRIPT_NAME'];
-    $params   = $_SERVER['QUERY_STRING'];
-    $currentUrl = $protocol . '://' . $host . $script . '?' . $params;
-    $_SESSION['url'] = $currentUrl;
+    fijarAccionUrl('captura siralab');
 
     if(isset($_POST['regreso']) AND $_POST['regreso'] === '2'){
-      formularioSiralab($_POST['id'], json_decode($_POST['valores'], TRUE), json_decode($_POST['mcompuestas'], TRUE), $_POST['cantidad'], $_POST['regreso']);
+      formularioSiralab($_POST['id'], json_decode($_POST['valores'], TRUE), json_decode($_POST['mcompuestas'], TRUE), $_POST['cantidad'], $_POST['regreso'], $_POST['accion']);
     }else{
       $cantidad = 1;
       if($_POST['tipomedicion'] === '4'){
@@ -616,8 +595,8 @@
       try
       {
         $sql='UPDATE ordenestbl SET
-          fechafin=CURDATE()
-          WHERE id=:id';
+          fechafin = CURDATE()
+          WHERE id = :id';
         $s=$pdo->prepare($sql);
         $s->bindValue(':id',$_POST['ot']);
         $s->execute();
@@ -632,8 +611,9 @@
       try
       {
         $sql='UPDATE ordenestbl SET
-          fechafin = NULL
-          WHERE id=:id';
+          fechafin = NULL,
+          fecharevision  = NULL
+          WHERE id = :id';
         $s=$pdo->prepare($sql);
         $s->bindValue(':id',$_POST['ot']);
         $s->execute();
@@ -645,7 +625,102 @@
         exit(); 
       }
     }
-    verMeds($_POST['ot']);
+    $_SESSION['ot'] = $_POST['ot'];
+    header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/');
+    exit();
+  }
+
+/**************************************************************************************************/
+/* Dar visto bueno a una orden */
+/**************************************************************************************************/
+  if(isset($_POST['accion']) and $_POST['accion']=='Vo. Bo.')
+  {
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try
+    {
+      if (isset($_POST['comentario']) AND $_POST['comentario'] !== '') {
+        $sql= 'SELECT nombre, apellido FROM usuariostbl
+                WHERE usuario = :usuario';
+        $s = $pdo->prepare($sql);
+        $s->bindValue(':usuario', $_SESSION['usuario']);
+        $s->execute();
+        $e = $s->fetch();
+
+        $sql='INSERT INTO  001obstbl SET
+          ordenesidfk = :id,
+          observacion = :observacion,
+          fecha = CURDATE(),
+          supervisor = :supervisor';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $_POST['ot']);
+        $s->bindValue(':observacion', $_POST['comentario']);
+        $s->bindValue(':supervisor', $e['nombre'].' '.$e['apellido']);
+        $s->execute();
+      }
+      
+      $sql='UPDATE ordenestbl SET
+        fecharevision = CURDATE()
+        WHERE id = :id';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':id',$_POST['ot']);
+      $s->execute();
+    }
+    catch(PDOException $e)
+    {
+      $mensaje='Hubo un error al tratar de terminar la orden. Intentar nuevamente y avisar de este error a sistemas.';
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
+    }
+    $_SESSION['ot'] = $_POST['ot'];
+    header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/');
+    exit();
+  }
+
+/**************************************************************************************************/
+/* Poner comentarios a una orden */
+/**************************************************************************************************/
+  if(isset($_POST['accion']) and $_POST['accion']=='Comentar y Regresar Orden')
+  {
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try
+    {
+      if (isset($_POST['comentario']) AND $_POST['comentario'] !== '') {
+        $sql= 'SELECT nombre, apellido FROM usuariostbl
+                WHERE usuario = :usuario';
+        $s = $pdo->prepare($sql);
+        $s->bindValue(':usuario', $_SESSION['usuario']);
+        $s->execute();
+        $e = $s->fetch();
+
+        $sql='INSERT INTO  001obstbl SET
+          ordenesidfk = :id,
+          observacion = :observacion,
+          fecha = CURDATE(),
+          supervisor = :supervisor';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $_POST['ot']);
+        $s->bindValue(':observacion', $_POST['comentario']);
+        $s->bindValue(':supervisor', $e['nombre'].' '.$e['apellido']);
+        $s->execute();
+      }
+
+      $sql='UPDATE ordenestbl SET
+            fechafin = NULL,
+            fecharevision  = NULL
+            WHERE id = :id';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':id', $_POST['ot']);
+      $s->execute();
+    }
+    catch(PDOException $e)
+    {
+      $mensaje='Hubo un error al tratar de terminar la orden. Intentar nuevamente y avisar de este error a sistemas.'.$e;
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
+    }
+    $_SESSION['ot'] = $_POST['ot'];
+    header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/');
+    exit();
   }
 
 /**************************************************************************************************/
@@ -685,6 +760,16 @@ verMeds($_SESSION['ot']);
 		$s=$pdo->prepare($sql); 
 		$s->bindValue(':id',$ot);
 		$s->execute();
+
+    $sql='SELECT id, observacion, fecha, supervisor
+      FROM 001obstbl
+      WHERE ordenesidfk = :id
+      ORDER BY id DESC';
+    $c=$pdo->prepare($sql); 
+    $c->bindValue(':id',$ot);
+    $c->execute();
+    $comentarios = $c->fetchAll();
+
 	}catch (PDOException $e){
 		$mensaje='Hubo un error extrayendo la lista de ordenes de agua.'.$e;
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
@@ -763,20 +848,212 @@ verMeds($_SESSION['ot']);
 /**************************************************************************************************/
 /* Función para obtener el responsable de la medición */
 /**************************************************************************************************/
-	function getResponsable($ot){
+	function getResponsables($ot, $id = ''){
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 		try{
-			$sql='SELECT generalesaguatbl.id, muestreosaguatbl.responsable
-				FROM  generalesaguatbl 
-				INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
-				WHERE  generalesaguatbl.ordenaguaidfk = :id
-				ORDER BY id ASC LIMIT 1';
-			$s=$pdo->prepare($sql); 
-			$s->bindValue(':id',$ot);
-			$s->execute();
-			$e = $s->fetch();
-			return ($e['responsable'])? $e['responsable'] : "";
+			$sql='SELECT muestreadoridfk
+            FROM responsables
+            INNER JOIN muestreosaguatbl ON muestreosaguatbl.id = responsables.muestreoaguaidfk
+            INNER JOIN generalesaguatbl ON muestreosaguatbl.generalaguaidfk = generalesaguatbl.id
+            WHERE generalesaguatbl.ordenaguaidfk = :ot AND generalesaguatbl.id = :id';
+      if($id != ''){
+        $placeholders[':id'] = $id;
+      }else{
+        $sql1 = 'SELECT id
+          FROM generalesaguatbl
+          WHERE ordenaguaidfk = :ot
+          ORDER BY id DESC';
+        $s=$pdo->prepare($sql1); 
+        $s->bindValue(':ot', $ot);
+        $s->execute();
+        $e = $s->fetch();
+
+        $placeholders[':id'] = $e['id'];
+      }
+			$s=$pdo->prepare($sql);
+      $placeholders[':ot'] = $ot;
+      $s->execute($placeholders);
+
+      $responsables = "";
+			foreach ($s as $value) {
+        $responsables[] = $value['muestreadoridfk'];
+      }
+			return $responsables;
 		}catch (PDOException $e){
 			return "";
 		}
 	}
+
+/**************************************************************************************************/
+/* Función para obtener el responsable de la medición */
+/**************************************************************************************************/
+  function getMuestradores(){
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try{
+      $sql='SELECT muestreadorestbl.id, nombre, ap, am
+        FROM  muestreadorestbl
+        INNER JOIN estudiosmuestreadortbl ON muestreadorestbl.id = estudiosmuestreadortbl.muestreadoridfk
+        WHERE estudiosmuestreadortbl.estudio = "NOM 001"';
+      $s=$pdo->prepare($sql); 
+      $s->execute();
+      $signatarios = '';
+      foreach ($s as $value) {
+        $signatarios[$value['id']] = $value['nombre'].' '.$value['ap'].' '.$value['am'];
+      }
+      return $signatarios;
+    }catch (PDOException $e){
+      return "";
+    }
+  }
+
+/**************************************************************************************************/
+/* Función para obtener el listado de signatarios */
+/**************************************************************************************************/
+  function getSignatarios(){
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try{
+      $sql='SELECT muestreadorestbl.id, nombre, ap, am
+        FROM  muestreadorestbl
+        INNER JOIN estudiossignatariotbl ON muestreadorestbl.id = estudiossignatariotbl.muestreadoridfk
+        WHERE  muestreadorestbl.signatario = 1 AND estudiossignatariotbl.estudio = "NOM 001"';
+      $s=$pdo->prepare($sql); 
+      $s->execute();
+      $signatarios = '';
+      foreach ($s as $value) {
+        $signatarios[$value['id']] = $value['nombre'].' '.$value['ap'].' '.$value['am'];
+      }
+      return $signatarios;
+    }catch (PDOException $e){
+      return "";
+    }
+  }
+
+/**************************************************************************************************/
+/* Función para obtener el signatario de la orden */
+/**************************************************************************************************/
+  function getNombreSignatario($ot){
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try{
+      $sql='SELECT signatarionombre, signatarioap, signatarioam
+        FROM  ordenestbl
+        WHERE id=:id';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':id', $ot);
+      $s->execute();
+      $value = $s->fetch();
+
+      return $value['signatarionombre'].' '.$value['signatarioap'].' '.$value['signatarioam'];
+    }catch (PDOException $e){
+      return "";
+    }
+  }
+
+/**************************************************************************************************/
+/* Función para obtener el signatario de la orden */
+/**************************************************************************************************/
+  function getSignatario($ot){
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try{
+      $sql='SELECT signatarioidfk
+        FROM  ordenestbl
+        WHERE id=:id';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':id', $ot);
+      $s->execute();
+      $value = $s->fetch();
+
+      return $value['signatarioidfk'];
+    }catch (PDOException $e){
+      return "";
+    }
+  }
+
+/**************************************************************************************************/
+/* Función para obtener el signatario de la orden */
+/**************************************************************************************************/
+  function setSignatario($signatarioid){
+    global $pdo;
+    $sql='SELECT nombre, ap, am
+          FROM  muestreadorestbl
+          WHERE id =:id';
+    $s=$pdo->prepare($sql); 
+    $s->bindValue(':id', $signatarioid);
+    $s->execute();
+    $signatario = $s->fetch();
+
+    $sql='UPDATE ordenestbl SET
+          signatarionombre = :nombre,
+          signatarioap = :ap,
+          signatarioam = :am,
+          signatarioidfk = :signatarioidfk
+          WHERE id = :id';
+    $s=$pdo->prepare($sql);
+    $s->bindValue(':id', $_SESSION['OT']);
+    $s->bindValue(':nombre', $signatario['nombre']);
+    $s->bindValue(':ap', $signatario['ap']);
+    $s->bindValue(':am', $signatario['am']);
+    $s->bindValue(':signatarioidfk', $signatarioid);
+    $s->execute();
+  }
+
+/**************************************************************************************************/
+/* Función para obtener el signatario de la orden */
+/**************************************************************************************************/
+  function setGiroEmpresa($id, $giro){
+    global $pdo;
+    $sql='UPDATE clientestbl SET
+          Giro_Empresa=:empresagiro
+          WHERE Numero_Cliente = (SELECT clienteidfk
+                                  FROM ordenestbl
+                                  WHERE id = :id)';
+    $s=$pdo->prepare($sql);
+    $s->bindValue(':id', $id);
+    $s->bindValue(':empresagiro', $giro);
+    $s->execute();
+  }
+
+/**************************************************************************************************/
+/* Función para obtener el signatario de la orden */
+/**************************************************************************************************/
+  function setResponsables($id, $delete = false){
+    global $pdo;
+    $sql='SELECT id FROM muestreosaguatbl WHERE generalaguaidfk=:generalaguaidfk';
+    $s=$pdo->prepare($sql); 
+    $s->bindValue(':generalaguaidfk', $id);
+    $s->execute();
+    $muestreoagua = $s->fetch();
+
+    if($delete){
+      $sql='DELETE FROM responsables WHERE muestreoaguaidfk = :id';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':id', $muestreoagua['id']);
+      $s->execute();
+    }
+
+    foreach ($_POST['responsable'] as $value) {
+      if($value != ''){
+        $sql='SELECT nombre, ap, am
+              FROM  muestreadorestbl
+              WHERE id =:id';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $value);
+        $s->execute();
+        $muestreador = $s->fetch();
+
+      
+        $sql='INSERT INTO responsables SET
+            muestreoaguaidfk=:muestreoaguaidfk,
+            muestreadoridfk=:muestreadoridfk,
+            nombre=:nombre,
+            ap=:ap,
+            am=:am';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':muestreoaguaidfk', $muestreoagua['id']);
+        $s->bindValue(':muestreadoridfk', $value);
+        $s->bindValue(':nombre', $muestreador['nombre']);
+        $s->bindValue(':ap', $muestreador['ap']);
+        $s->bindValue(':am', $muestreador['am']);
+        $s->execute();
+      }
+    }
+  }

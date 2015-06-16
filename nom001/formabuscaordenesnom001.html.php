@@ -5,6 +5,7 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';?>
 <head>
 <title>Captura</title>
   <meta charset="utf-8" />
+   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <!--[if lt IE 9]>
    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
   <![endif]--> 
@@ -25,9 +26,18 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';?>
       <label for="ot">Núm de OT:</label>
       <input type="text" name="ot" id="ot">
      </div>
+     <?php  if(usuarioConPermiso('Supervisor')){ ?>
      <div>
       <input type="checkbox" name="otsproceso" id="otsproceso" checked>
       <label for="otsproceso">Ordenes en proceso</label>
+     </div>
+     <div>
+     <?php }else{ ?>
+      <input type="hidden" name="otsproceso" id="otsproceso">
+     <?php } ?>
+     <div>
+      <input type="checkbox" name="supervisada" id="supervisada">
+      <label for="supervisada">Ordenes revisadas</label>
      </div>
      <div>
        <input type="hidden" name="accion" value="buscar">
