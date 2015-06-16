@@ -338,7 +338,8 @@
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
         try   
         {
-            $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.signatario, ordenestbl.ot, ordenestbl.fechalta, muestreosaguatbl.responsable,
+            $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.ot, ordenestbl.fechalta, muestreosaguatbl.id as "muestreoaguaid",
+                        ordenestbl.signatarionombre, ordenestbl.signatarioap, ordenestbl.signatarioam,
                         muestreosaguatbl.fechamuestreo, ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion
                     FROM  ordenestbl
                     INNER JOIN generalesaguatbl ON ordenestbl.id = generalesaguatbl.ordenaguaidfk
@@ -359,7 +360,21 @@
                 $orden = $s->fetch();
             }
 
-            //var_dump($orden);
+            $sql='SELECT nombre, ap, am
+                FROM responsables
+                WHERE muestreoaguaidfk = :id';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':id', $orden['muestreoaguaid']);
+            $s->execute();
+            $responsables = $s->fetchAll();
+
+            $sql='SELECT fechamuestreo, fechamuestreofin
+                FROM muestreosaguatbl
+                WHERE id = :id';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':id', $orden['muestreoaguaid']);
+            $s->execute();
+            $fechasmuestreo = $s->fetchAll();
 
             if($orden['plantaidfk'] !== NULL){
                 $sql='SELECT plantastbl.razonsocial, plantastbl.calle, plantastbl.colonia, plantastbl.ciudad, 
@@ -510,15 +525,28 @@
         }
         $ident = rtrim($ident, ", ");
 
+        $responsable = '';
+        foreach ($responsables as $value) {
+            $responsable = $value['nombre'].' '.$value['ap'].' '.$value['am'].', ';
+        }
+        $responsable = rtrim($responsable, ', ');
+
+        $responsable = '';
+        foreach ($responsables as $value) {
+            $responsable = $value['nombre'].' '.$value['ap'].' '.$value['am'].', ';
+        }
+        $responsable = rtrim($responsable, ', ');
+
         $pdf->SetFont('Arial', '', 11);
+        
         if(count($identificaciones) > 1){
-            $pdf->MultiCell(0, 5, utf8_decode('Con relación a las determinaciones analíticas practicadas a las muestras de agua identificadas como: '.$ident.', tomadas por '.$orden['responsable'].' el día '. date('d', strtotime($orden['fechalta']))." de ".$meses[date('n', strtotime($orden['fechalta']))-1]. " del ".date('Y',strtotime($orden['fechalta'])).', nos permitimos informarle lo siguiente:'), 0, 'J');
+            $pdf->MultiCell(0, 5, utf8_decode('Con relación a las determinaciones analíticas practicadas a las muestras de agua identificadas como: '.$ident.', tomadas por '.$responsable.' el día '. date('d', strtotime($orden['fechalta']))." de ".$meses[date('n', strtotime($orden['fechalta']))-1]. " del ".date('Y',strtotime($orden['fechalta'])).', nos permitimos informarle lo siguiente:'), 0, 'J');
         }else{
-            $pdf->MultiCell(0, 5, utf8_decode('Con relación a las determinaciones analíticas practicadas a la muestra de agua identificada como: '.$ident.', tomada por '.$orden['responsable'].' el día '. date('d', strtotime($orden['fechalta']))." de ".$meses[date('n', strtotime($orden['fechalta']))-1]. " del ".date('Y',strtotime($orden['fechalta'])).', nos permitimos informarle lo siguiente:'), 0, 'J');
+            $pdf->MultiCell(0, 5, utf8_decode('Con relación a las determinaciones analíticas practicadas a la muestra de agua identificada como: '.$ident.', tomada por '.$responsable.' el día '. date('d', strtotime($orden['fechalta']))." de ".$meses[date('n', strtotime($orden['fechalta']))-1]. " del ".date('Y',strtotime($orden['fechalta'])).', nos permitimos informarle lo siguiente:'), 0, 'J');
         }
         $pdf->Ln();
 
-        $pdf->MultiCell(0, 5, utf8_decode('La muestra fué analizada por el Laboratorio del Grupo Microanálisis,  S.A. de C.V.,  el cual cuenta con acreditación ante la Entidad Mexicana de Acreditación (EMA).'), 0, 'J');
+        $pdf->MultiCell(0, 5, utf8_decode('La muestra fue analizada por el Laboratorio del Grupo Microanálisis,  S.A. de C.V.,  el cual cuenta con acreditación ante la Entidad Mexicana de Acreditación (EMA).'), 0, 'J');
         $pdf->Ln();
 
         $pdf->MultiCell(0, 5, utf8_decode('Los métodos de muestreo y análisis, están referenciados en la Normatividad Nacional, los cuales son indicados en los resultados de laboratorio para cada sustancia.'), 0, 'J');
@@ -540,7 +568,7 @@
         $pdf->Ln(20);
 
         $pdf->SetFont('Arial', 'B', 11);
-        $pdf->Cell(0, 5, utf8_decode('Víctor Manuel Hernández Soria.'));
+        $pdf->Cell(0, 5, utf8_decode($orden['signatarionombre'].' '.$orden['signatarioap'].' '.$orden['signatarioam']));
         $pdf->Ln();
 
         $pdf->SetFont('Arial', '', 11);
@@ -574,11 +602,11 @@
 
         foreach ($muestras as $muestra) {
             $cantidad = 1;
-            if($_POST['tipomediciones'] === '4'){
+            if($muestra['tipomediciones'] === '4'){
                 $cantidad = 2;
-            }else if($_POST['tipomediciones'] === '8'){
+            }else if($muestra['tipomediciones'] === '8'){
                 $cantidad = 4;
-            }else if($_POST['tipomediciones'] === '12'){
+            }else if($muestra['tipomediciones'] === '12'){
                 $cantidad = 6;
             }
             
@@ -632,7 +660,7 @@
                     FROM mcompuestastbl
                     WHERE mcompuestastbl.muestreoaguaidfk = :id";
               $s=$pdo->prepare($sql); 
-              $s->bindValue(':id', $muestra['muestreoaguaid']);
+              $s->bindValue(':id', $muestra['generalaguaid']);
               $s->execute();
               $mcompuestas = "";
               foreach($s as $linea){
@@ -918,11 +946,19 @@
                     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
                     exit();
                 }
-                $promcoliformes = 0;
+                $promcoliformes = 1;
+                $raiz = 0;
                 for ($i=0; $i < $cantidad; $i++) {
-                    $promcoliformes += $parametros2[$i]['coliformes'];
+                    if( strcmp($parametros2[$i]['coliformes'], "") !== 0 AND strcmp($parametros2[$i]['coliformes'], "0") !== 0  ){
+                        $dato[1] = $parametros2[$i]['coliformes'];
+                        if( strpos($parametros2[$i]['coliformes'], "<") !== FALSE){
+                            $dato = explode("<", $parametros2[$i]['coliformes']);
+                        }
+                        $promcoliformes = $promcoliformes * $dato[1];
+                        $raiz++;
+                    }
                 }
-                $promcoliformes /= $cantidad;
+                $promcoliformes = pow($promcoliformes, (1/$raiz) );
 
                 if($cantidad === 1){
                     parametrosPDF($pdf, $muestra, $parametros, $maximos, $cantidad, $parametros2, '', $promcoliformes);
@@ -936,13 +972,13 @@
                 if($cantidad === 1){
                     if($adicionales === ''){
                         hojaNueva($pdf, $orden, '3', '3');
-                        croquisPDF($pdf, $cantidad, $croquis);
+                        croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables);
                     }else{
                         hojaNueva($pdf, $orden, '3', '4');
                         adicionalesPDF($pdf, $adicionales);
 
                         hojaNueva($pdf, $orden, '4', '4');
-                        croquisPDF($pdf, $cantidad, $croquis);
+                        croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables);
                     }
                 }else{
                     if($adicionales === ''){
@@ -972,9 +1008,11 @@
                     $flujototal = 0;
                     $gyatotal = 0;
                     $totalconcentracion = 0;
+                    //var_dump($parametros2);
                     for ($i=0; $i < $cantidad; $i++) {
-                      $pdf->Cell(35, 5, $parametros2[$i]['GyA'], 1, 0, 'C');
-                      $gyatotal += floatval($parametros2[$i]['GyA']);
+                      $gya = (strcmp($parametros2[$i]['GyA'], "") !== 0 )? $parametros2[$i]['GyA'] : 0; 
+                      $pdf->Cell(35, 5, $gya, 1, 0, 'C');
+                      $gyatotal += floatval($gya);
 
                       $pdf->Cell(40, 5, $mcompuestas[$i]['flujo'], 1, 0, 'C');
                       $flujototal += floatval($mcompuestas[$i]['flujo']);
@@ -1064,21 +1102,22 @@
                       $pdf->Cell(20, 5, utf8_decode($mcompuestas[$i]['hora']), 1, 0, 'C');
                       $pdf->Cell(30, 5, $mcompuestas[$i]['flujo'], 1, 0, 'C');
 
-                      $poralicuota = "S/F";
+                      $imprimirtotalporalicuota = "S/F";
                       if($mcompuestas[$i]['flujo'] !== "S/F"){
                         $poralicuota = ($mcompuestas[$i]['flujo'] * 100)/$flujototal;
                         $totalporalicuota += $poralicuota;
+                        $imprimirtotalporalicuota = number_format(doubleval($poralicuota), 5);
                       }
-
-                      $pdf->Cell(35, 5, utf8_decode($poralicuota), 1, 0, 'C');
+                      $pdf->Cell(35, 5, utf8_decode($imprimirtotalporalicuota), 1, 0, 'C');
                       $pdf->Cell(35, 5, utf8_decode($mcompuestas[$i]['volumen']), 1, 0, 'C');
 
-                      $volalicuota = "S/F";
+                      $imprimirvolalicuota = "S/F";
                       if($mcompuestas[$i]['flujo'] !== "S/F"){
                         $volalicuota = ($mcompuestas[$i]['volumen'] * $poralicuota)/100;
                         $totalvolalicuota += $volalicuota;
+                        $imprimirvolalicuota = number_format(doubleval($volalicuota), 5);
                       }
-                      $pdf->Cell(30, 5, utf8_decode($volalicuota), 1, 1, 'C');
+                      $pdf->Cell(30, 5, utf8_decode($imprimirvolalicuota), 1, 1, 'C');
                     }
 
                     $pdf->SetFont('Arial', 'B', 8);
@@ -1093,16 +1132,16 @@
                     $pdf->Cell(30, 8, utf8_decode($flujototal), 1, 0, 'C');
                     $x = $pdf->GetX();
                     $y = $pdf->GetY();
-                    $pdf->Cell(35, 8, utf8_decode($totalporalicuota), 1, 0, 'C');
+                    $pdf->Cell(35, 8, utf8_decode(number_format(doubleval($totalporalicuota), 5)), 1, 0, 'C');
                     $pdf->SetXY($x + 35, $y);
                     $x = $pdf->GetX();
                     $y = $pdf->GetY();
                     $pdf->MultiCell(35, 4, utf8_decode('Volumen total de la muestra compuesta'), 1, 'C');
                     $pdf->SetXY($x + 35, $y);
-                    $pdf->Cell(30, 8, utf8_decode($totalvolalicuota), 1, 1, 'C');
+                    $pdf->Cell(30, 8, utf8_decode(number_format(doubleval($totalvolalicuota), 5)), 1, 1, 'C');
                     $pdf->Ln(4);
 
-                    croquisPDF($pdf, $cantidad, $croquis);
+                    croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables);
                 }
         }
         $pdf->Output();
@@ -1266,6 +1305,12 @@
         
         $pdf->SetFont('Arial', '', 9);
         foreach ($params as $key => $value) {
+            if($value !== "GyA" AND $value !== "coliformes"){
+                if($parametros[$value] === '' OR $parametros[$value] === '0.00'){
+                    continue;
+                }
+            }
+
             $pdf->Cell(45, 6, utf8_decode($key), 1, 0, 'L');
 
             if($value == "coliformes"):
@@ -1364,7 +1409,7 @@
 /* Función para dibujar el croquis */
 /**************************************************************************************************/
 //Recibe el objeto de pdf, el valor de cantidad y la imagen del croquis
-    function croquisPDF($pdf, $cantidad, $croquis){
+    function croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables){
         //var_dump($croquis);
         $imagen = $_SERVER['DOCUMENT_ROOT'].'/reportes/nom001/croquis/'.$croquis['nombrearchivado'];
         $pdf->Cell(0, 5, utf8_decode('Croquis del lugar donde se tomó la muestra'), 1, 1, 'C', true);
@@ -1396,9 +1441,9 @@
         $pdf->SetFont('Arial', 'B', 8);
         $x = $pdf->GetX();
         $y = $pdf->GetY();
-        $pdf->Cell(60, 4, utf8_decode('Tec. Leopoldo Sánchez Bautista'), 0, 0, 'C');
+        $pdf->Cell(60, 4, utf8_decode($responsables[0]['nombre'].' '.$responsables[0]['ap'].' '.$responsables[0]['am']), 0, 0, 'C');
         $pdf->SetXY($x + 105, $y);
-        $pdf->MultiCell(60, 4, utf8_decode("Víctor Manuel Hernández Soria. \n Signatario Autorizado por la E.M.A."), 0, 'C');
+        $pdf->MultiCell(60, 4, utf8_decode($orden['signatarionombre'].' '.$orden['signatarioap'].' '.$orden['signatarioam']), 0, 'C');
     }
 
 
