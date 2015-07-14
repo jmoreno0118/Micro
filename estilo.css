@@ -3,7 +3,7 @@ body {
 	margin: 0;
 	padding: 0;
 	background-color: #EEEEE0;
-	//color: white;
+	color: white;
 	font: small Arial, Helvetica, Verdana, sans-serif;
     }
 #contenedor {
@@ -94,6 +94,7 @@ font-size: 90%;
 	font-size: 90%;
 	color: #1e4c82;
 	}      **********************/
+/********** menu ***********/
 nav {
 	position: absolute;
 	top: 0;
@@ -123,9 +124,7 @@ nav h3 {
 	font-weight: bold;
 	color:white;
 }
-nav ul ul{
-	display: none;
-}
+
 nav ul li:hover > ul {
 	display: block;
 	}
@@ -133,13 +132,17 @@ nav ul {
 	margin-left: 0;
 	padding-left: 30px;
 	list-style:none;
-	position: relative;  /*Nos pertmitira posicionar los submenus */ 
-	display:inline-table /* se ajustará el ancho del menú para encajar */
+    position: relative;		/*Nos pertmitira posicionar los submenus */
+    float: left;			/*Recorre el submenu a donde termina la palabra mas larga*/
 	}
 nav li {
 	font-size: 90%;
 	line-height: 1.4em;
 	}
+nav ul li{
+  vertical-align: middle; 
+  position: relative;
+  }
 nav ul li a {
 	text-decoration: none;
 	} 
@@ -152,10 +155,14 @@ nav ul li:hover {
 nav ul li:hover a {
 	color: #ffffff;
 	}
+/******** submenu ********/
+nav ul ul{
+	display: none;
+}
 nav ul ul {
 	position: absolute;
-	left: 95%;
-	/* top:0;  el submenu se posiciona a la misma altura que el manu */
+	left: 100%;   
+	top:0;  /*el submenu se posiciona a la misma altura que el manu */
 	}
 nav ul ul {
 	background-color: #666633;
@@ -174,9 +181,17 @@ nav ul ul li {
 nav ul ul li:hover {
 	background-color: #CCCC99;
 	}  
-nav ul ul li:hover  a{
+nav ul ul li:hover a{
 	color: #990033;  /* color ladrillo */
 	}
+/******** sub-submenu ********/
+nav ul ul ul li:hover a{
+	color: #990033;  /* color ladrillo */
+	}
+nav ul ul ul a:link,nav ul ul ul a:visited{
+	color:white;
+	} 
+/********* fin menus ************/
 #footer {
 	clear: both;
 	margin:10px 0 0 0;
