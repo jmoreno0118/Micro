@@ -70,13 +70,40 @@ function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idpar
 									"fechareporte" => $param1["fechareporte"]);
 
 				try{
+					$sql='SELECT * FROM metodosparametrostbl WHERE parametrosidfk = :id';
+					$s=$pdo->prepare($sql);
+					$s->bindValue(':id',$param1['id']);
+					$s->execute();
+					$mets = $s->fetch();
+					$metodos = array("ssedimentables" => $mets["ssedimentables"],
+									"ssuspendidos" => $mets["ssuspendidos"],
+									"dbo" => $mets["dbo"],
+									"nkjedahl" => $mets["nkjedahl"],
+									"nitritos" => $mets["nitritos"],
+									"nitratos" => $mets["nitratos"],
+									"nitrogeno" => $mets["nitrogeno"],
+									"fosforo" => $mets["fosforo"],
+									"arsenico" => $mets["arsenico"],
+									"cadmio" => $mets["cadmio"],
+									"cianuros" => $mets["cianuros"],
+									"cobre" => $mets["cobre"],
+									"cromo" => $mets["cromo"],
+									"mercurio" => $mets["mercurio"],
+									"niquel" => $mets["niquel"],
+									"plomo" =>$mets["plomo"],
+									"zinc" => $mets["zinc"],
+									"hdehelminto" => $mets["hdehelminto"],
+									"GyA" => $mets["GyA"],
+									"coliformes" => $mets["coliformes"]);
+
 					$sql='SELECT * FROM parametros2tbl WHERE parametroidfk = :id';
 					$s=$pdo->prepare($sql);
 					$s->bindValue(':id',$param1['id']);
 					$s->execute();
-					foreach ($s as $linea) {
-						$parametros[]=array("GyA" => $linea["GyA"],
-											"coliformes" => $linea["coliformes"]);
+					foreach ($s as $key => $linea) {
+						$parametros[$key] = array("GyA" => $linea["GyA"],
+													"coliformes" => $linea["coliformes"],
+													"enabled" => FALSE);
 					}
 
 					$sql='SELECT * FROM adicionalestbl WHERE parametroidfk = :id';
@@ -86,7 +113,8 @@ function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idpar
 					foreach ($s as $linea) {
 						$adicionales[]=array("nombre" => $linea["nombre"],
 											"unidades" => $linea["unidades"],
-											"resultado" => $linea["resultado"]);
+											"resultado" => $linea["resultado"],
+											"metodo" => $linea["metodo"]);
 					}
 		        }catch (PDOException $e){
 			        $mensaje='Hubo un error extrayendo la información de parametros y adicionales.';
@@ -105,6 +133,18 @@ function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idpar
 		}
 	}
 
+	$sql="SELECT  mcompuestastbl.flujo
+            FROM  mcompuestastbl
+            WHERE mcompuestastbl.muestreoaguaidfk  = :id";
+	$s=$pdo->prepare($sql);
+	$s->bindValue(':id', $muestreoid);
+	$s->execute();
+	foreach ($s as $key => $linea) {
+		if( strcmp($linea['flujo'], "S/F") !== 0 AND strcmp($linea['flujo'], "s/f") !== 0 ){
+			$parametros[$key]['enabled'] = TRUE;
+		}
+	}
+
 	if(isset($_SESSION['supervisada'])){
 		$pestanapag='Parametros';
 		$titulopagina='Parametros';
@@ -114,6 +154,7 @@ function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idpar
 									'muestreoid' => $muestreoid,
 									'cantidad' => $cantidad,
 									'valores' => $valores,
+									'metodos' => $metodos,
 									'parametros' => $parametros,
 									'adicionales' =>$adicionales,
 									'idparametro' => $idparametro,
@@ -143,12 +184,12 @@ function formularioMediciones($id = "", $muestreoid = "", $cantidad = "", $mcomp
 		try
 	    {
 	    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-	      $sql="SELECT DATE_FORMAT(mcompuestastbl.hora, '%H:%i') as 'hora', mcompuestastbl.flujo, mcompuestastbl.volumen, mcompuestastbl.observaciones,
+	      $sql="SELECT id, DATE_FORMAT(mcompuestastbl.hora, '%H:%i') as 'hora', mcompuestastbl.flujo, mcompuestastbl.volumen, mcompuestastbl.observaciones,
 	            mcompuestastbl.caracteristicas
 	            FROM  mcompuestastbl
 	            WHERE mcompuestastbl.muestreoaguaidfk  = :id";
 	      $s=$pdo->prepare($sql);
-	      $s->bindValue(':id', $id);
+	      $s->bindValue(':id', $muestreoid);
 	      $s->execute();
 	    }catch (PDOException $e){
 	      $mensaje='Hubo un error extrayendo la información de parametros.';
@@ -157,7 +198,8 @@ function formularioMediciones($id = "", $muestreoid = "", $cantidad = "", $mcomp
 	    }
 	    if($param1 = $s->fetchAll()){
 	    	foreach($param1 as $linea){
-				$mcompuestas[] = array("hora" => $linea["hora"],
+				$mcompuestas[] = array("id" => $linea["id"],
+										"hora" => $linea["hora"],
 										"flujo" => $linea["flujo"],
 										"volumen" => $linea["volumen"],
 										"observaciones" => $linea["observaciones"],
@@ -229,9 +271,9 @@ function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad
 	    {
 	    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 	      $sql="SELECT mcompuestastbl.id, mcompuestastbl.fecharecepcion, DATE_FORMAT(mcompuestastbl.horarecepcion, '%H:%i') as 'horarecepcion',
-	      				mcompuestastbl.identificacion
+	      				mcompuestastbl.identificacion, mcompuestastbl.temperatura, mcompuestastbl.pH
 	            FROM  mcompuestastbl
-	            INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.generalaguaidfk
+	            INNER JOIN muestreosaguatbl ON mcompuestastbl.muestreoaguaidfk = muestreosaguatbl.id
 	            WHERE muestreosaguatbl.id = :id";
 	      $s=$pdo->prepare($sql);
 	      $s->bindValue(':id', $id);
@@ -246,7 +288,9 @@ function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad
 				$mcompuestas[] = array("id" => $linea["id"],
 										"fechalab" => $linea["fecharecepcion"],
 										"horalab" => $linea["horarecepcion"],
-										"identificacion" => $linea["identificacion"]);
+										"identificacion" => $linea["identificacion"],
+										"temperatura" => $linea["temperatura"],
+										"pH" => $linea["pH"]);
 			}
 	    }
 	}

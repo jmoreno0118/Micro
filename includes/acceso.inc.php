@@ -1,49 +1,51 @@
 <?php
 function usuarioRegistrado()
 {
- if (isset($_POST['accion']) and $_POST['accion'] == 'registro')
- {
-  if (!isset($_POST['usuario']) or $_POST['usuario'] == '' or
-      !isset($_POST['clave']) or $_POST['clave'] == '')
-  {
-   $GLOBALS['loginError'] = 'Verifique que la información de los 2 campos este llena';
-   return FALSE;
-  }
-  $clave = md5($_POST['clave'] . 'ravol');
-  if (BDcontieneAutor($_POST['usuario'], $clave))
-  {
+   if (isset($_POST['accion']) and $_POST['accion'] == 'registro')
+   {
+      if (!isset($_POST['usuario']) or $_POST['usuario'] == '' or
+          !isset($_POST['clave']) or $_POST['clave'] == '')
+      {
+         $GLOBALS['loginError'] = 'Verifique que la información de los 2 campos este llena';
+         return FALSE;
+      }
+      $clave = md5($_POST['clave'] . 'ravol');
+      if (BDcontieneAutor($_POST['usuario'], $clave))
+      {
+         session_start();
+         $_SESSION['registrado'] = TRUE;
+         $_SESSION['usuario'] = $_POST['usuario'];
+         $_SESSION['clave'] = $clave;
+         return TRUE;
+      }
+      else
+      {
+         session_start();
+         unset($_SESSION['registrado']);
+         unset($_SESSION['usuario']);
+         unset($_SESSION['clave']);
+         $GLOBALS['loginError'] =
+             'El usuario o la clave es incorrecta.';
+         return FALSE;
+      }
+   }
+   if (isset($_POST['accion']) and $_POST['accion'] == 'salir')
+   {
+      session_start();
+      unset($_SESSION['registrado']);
+      unset($_SESSION['usuario']);
+      unset($_SESSION['clave']);
+      header('Location: ' . $_POST['goto']);
+      exit();
+   }
    session_start();
-   $_SESSION['registrado'] = TRUE;
-   $_SESSION['usuario'] = $_POST['usuario'];
-   $_SESSION['clave'] = $clave;
-   return TRUE;
-  }
-  else
-  {
-   session_start();
-   unset($_SESSION['registrado']);
-   unset($_SESSION['usuario']);
-   unset($_SESSION['clave']);
-   $GLOBALS['loginError'] =
-       'El usuario o la clave es incorrecta.';
-   return FALSE;
-  }
- }
- if (isset($_POST['accion']) and $_POST['accion'] == 'salir')
- {
-  session_start();
-  unset($_SESSION['registrado']);
-  unset($_SESSION['usuario']);
-  unset($_SESSION['clave']);
-  header('Location: ' . $_POST['goto']);
-  exit();
- }
- session_start();
- if (isset($_SESSION['registrado']))
- {
-  return BDcontieneAutor($_SESSION['usuario'], $_SESSION['clave']);
- }
+   if (isset($_SESSION['registrado']))
+   {
+      return BDcontieneAutor($_SESSION['usuario'], $_SESSION['clave']);
+   }
 }
+
+
 function BDcontieneAutor($usuario, $clave)
 {
  include 'conectadb.inc.php';
@@ -72,6 +74,8 @@ function BDcontieneAutor($usuario, $clave)
   return FALSE;
  }
 }
+
+
 function usuarioConPermiso($actividad)
 {
  include 'conectadb.inc.php';

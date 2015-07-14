@@ -65,7 +65,11 @@
             <input type="submit" value="Regresar">
           </form>
         <?php else: ?>
-          <a href="javascript:closeWindow();">Close Window</a>
+          <?php if(isset($errorlink)): ?>
+            <a href="<?php echo $errorlink; ?>"><?php echo $errornav; ?></a>
+          <?php else:?>
+            <a href="http://<?php echo $_SERVER['HTTP_HOST']; ?>/reportes">Volver a sistema</a>
+          <?php endif; ?>
         <?php endif; ?>
       </fieldset>
     </div>  <!-- cuerpoprincipal -->
@@ -74,10 +78,4 @@
     </div>  <!-- footer -->
   </div> <!-- contenedor -->
 </body>
-<script language="javascript" type="text/javascript">
-function closeWindow() {
-  window.open('','_parent','');
-  window.close();
-}
-</script> 
 </html>

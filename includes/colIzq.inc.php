@@ -14,14 +14,17 @@
 		 <li><a href="">Vibraciones cuerpo completo</a></li>
 		 <li><a href="">Radiaciones ionizantes</a></li>
 	   </ul></li>
-     <li><a href="#">Ecologia industrial</a>
+     <li><a href="#">Ecologia industrial </a>
 	   <ul>
-	     <li><a href="nom001/">NOM 001 semarnat</a></li>
-		 <li><a href="">NOM 002 semarnat</a></li>
+	     <li><a href="#">Aguas residuales</a>
+		   <ul>
+			 <li><a href="nom001/">NOM 001 semarnat</a></li>
+			 <li><a href="">NOM 002 semarnat</a></li>
+		   </ul></li> 
+		 <li><a href="">Aguas potables</a></li>
+		 <li><a href="">Residuos</a></li>
 		 <li><a href="">Fuentes fijas</a></li>
-		 <li><a href="">Ruido periferico</a></li>
-		 <li><a href="">suelos</a></li>
-		 <li><a href="">CRETIB</a></li>
+		 <li><a href="">Ruido perimetral</a></li>
 	   </ul></li>
      <li><a href="">salud ocupacional</a>
 	   <ul>
@@ -39,11 +42,18 @@
      <li><a href="representantes/">Representantes</a></li>
      <li><a href="usuarios/">Usuarios</a></li>
      <li><a href="ordenes/">OT's</a></li>
-     <li><a href="clientes/">clientes</a></li>
+     <li><a href="clientes/">Clientes</a></li>
+	 <li><a href="plantas/">Plantas</a></li>
      <li><a href="">Normas</a>
      	<ul>
-     		<li><a href="nom001/mnom001">Máximos NOM001</a></li>
-     		<li><a href="nom001/limnom001">Límites NOM001</a></li>
+     		<li><a href="">NOM001</a>
+	     		<ul>
+		     		<a href="nom001/mnom001"><li>Máximos</li></a>
+		     		<a href="nom001/limnom001"><li>Límites</li></a>
+		     		<a href="nom001/metodos"><li>Metodos</li></a>
+		     		<a href="nom001/acreditacion"><li>Acreditación</li></a>
+		     	</ul>
+	     	</li>
      	</ul>
      </li>
      <li><a href="muestreadores">Muestreadores/Signatarios</a></li>

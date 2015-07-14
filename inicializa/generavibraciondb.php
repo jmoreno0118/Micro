@@ -1,5 +1,5 @@
 ﻿<?php
- 
+  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 //  **** crea usuarios ***
   echo 'estoy en generacion de base de datos de vibraciones';
   try

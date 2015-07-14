@@ -130,6 +130,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='subir')
 	header('Location: .');
    exit();
 }
+
 function datostabla(){
  global $piniciales, $pmediciones, $idot, $pdo; 
  $estudio=$_SESSION['quien'];
@@ -144,7 +145,7 @@ function datostabla(){
   }
   catch (PDOException $e)
   {
-    $mensaje='Hubo un error al tratar de mostrar los planos existentes.';
+    $mensaje='Hubo un error al tratar de mostrar los planos existentes.'.$e;
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();
   }

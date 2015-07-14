@@ -166,4 +166,25 @@
     $_SESSION['url'] = $currentUrl;
   }
 
+/**************************************************************************************************/
+/* Función para obtener la acreditacion de la orden */
+/**************************************************************************************************/
+  function getCorreccion($idequipo){
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try{
+      $sql='SELECT correccion
+          FROM calibracionestbl
+          WHERE equipoidfk=:id';
+      $s=$pdo->prepare($sql);
+      $s->bindValue(':id', $idequipo);
+      $s->execute();
+      $correccion = $s->fetch();
+      return $correccion['correccion'];
+    }catch (PDOException $e){
+      //return "";
+      $mensaje='Hubo un error getCorreccion '.$e;
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
+    }
+  }
 ?>
