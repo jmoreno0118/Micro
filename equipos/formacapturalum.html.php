@@ -116,7 +116,8 @@ function agregarIntervalo(rango, fcorreccion1, fcorreccion2){
       <input type="button" id="agregar" value="Agregar nuevo intervalo">
       
       <?php if(isset($luminometro)): ?>
-        <?php $intervalos = json_decode($luminometro['intervalos'], true); ?>
+        <?php $intervalos = json_decode($luminometro['intervalos'], true); 
+        var_dump($intervalos); ?>
       <?php endif; ?>
       <div id="intervalos">
         <div>
@@ -125,7 +126,7 @@ function agregarIntervalo(rango, fcorreccion1, fcorreccion2){
           <label for="fcorreccion2[]">Factor de Corrección 2:</label><input name="fcorreccion2[0]" id="fcorreccion2[0]" value="<?php htmlout((isset($luminometro)) ? $intervalos[0]['Correccion2'] : "0"); ?>" required>
         </div>
         <?php if(isset($luminometro)): ?>
-          <?php for ($i=1; $i < count($intervalos)-1; $i++): ?>
+          <?php for ($i=1; $i <= count($intervalos)-1; $i++): ?>
             <script>
               agregarIntervalo(<?php echo $intervalos[$i]['Rango']; ?>, <?php echo $intervalos[$i]['Correccion1']; ?>, <?php echo $intervalos[$i]['Correccion2']; ?>);
             </script>

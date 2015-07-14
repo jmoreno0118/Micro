@@ -216,7 +216,8 @@ function verPlantas(){
 	try   
 	{
 		$sql='SELECT id, razonsocial, planta, ciudad, estado
-		    FROM plantastbl';
+		    FROM plantastbl
+		    ORDER BY razonsocial ASC';
 		$s=$pdo->prepare($sql); 
 		$s->execute();
 		$plantas = $s->fetchAll();

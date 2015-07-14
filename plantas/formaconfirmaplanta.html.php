@@ -20,7 +20,7 @@
   </header>
   <div id="cuerpoprincipal">
     <div id="confirma">
-     <h2>Confirmación de borrado de la medición</h2>
+     <h2>Confirmación de borrado de la planta</h2>
      <fieldset>
       <legend>Borrar</legend>
 	   <form action="" method="post">
