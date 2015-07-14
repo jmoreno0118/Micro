@@ -2,6 +2,7 @@
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/magicquotes.inc.php';
  require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/acceso.inc.php';
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/funcioneshig.inc.php';
+ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';
 
  if (!usuarioRegistrado())
  {
@@ -15,22 +16,36 @@
   exit();
  }
 
-/* ************************************************************************* */
-/* ****** Capturar reconocimientos iniciales de una orden de trabajo ******* */
-/* ************************************************************************* */
+/**************************************************************************************************/
+/* Capturar reconocimientos iniciales de una orden de trabajo */
+/**************************************************************************************************/
   if(isset($_GET['accion']) and $_GET['accion']=='capturarci')
   {
-    ininuevorci();
+  	fijarAccionUrl('capturarci');
+
+    $pestanapag='Agrega Reconocimiento Inicial';
+    $titulopagina='Agregar un nuevo reconocimiento inicial';
+    $boton = 'guardarrci';
     $idot=$_GET['idot'];
+    if(isset($_POST['valores'])){
+		$valores = json_decode($_POST['valores'],TRUE);
+	}
+	if(isset($_POST['puestos'])){
+		$puestos = json_decode($_POST['puestos'],TRUE);
+	}
   	include 'formacapturarci.html.php';
   	exit();
   }
 
-/* ************************************************************************* */
-/* ******** Guarda reconocimiento inicial de una orden de trabajo ********** */
-/* ************************************************************************* */
+/**************************************************************************************************/
+/* Guarda reconocimiento inicial de una orden de trabajo */
+/**************************************************************************************************/
   if(isset($_POST['accion']) and $_POST['accion']=='guardarrci')
   {
+  	/*$mensaje='Error Forzado 1.';
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+    exit();*/
+
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 	$idot=$_POST['idot'];
 	try
@@ -90,7 +105,7 @@
 		$s->bindValue(':recilumidfk',$rcid);
 		$s->execute();
 
-		foreach ($_POST["descpuestos"] as $key => $value) {
+		foreach ($_POST["puestos"] as $key => $value) {
 			if($value["puesto"] != "" && $value["numtrabajadores"] != "" && $value["actividades"]!="")
 			{
 				$sql='INSERT INTO descripuestostbl SET
@@ -117,139 +132,162 @@
 	}
 	$pestanapag='Agrega Reconocimiento Inicial';
 	$titulopagina='Agregar un nuevo reconocimiento inicial';
-	$accion='';
 	$boton = 'guardarrci';
-	$valores = array("fecha" => "",
-					"departamento" => $_POST["departamento"],
-					"area" => $_POST["area"],
-					"descriproceso" => "",
-					"largo" => "",
-					"ancho" => "",
-					"alto" => "",
-					"tipolampara" => "",
-					"potencialamp" => "",
-					"numlamp" => "",
-					"alturalamp" => "",
-					"techocolor" => "",
-					"paredcolor" => "",
-					"pisocolor" => "",
-					"influencia" => "",
-					"percepcion" => "",
-					"mantenimiento" => "");
+	$valores = array("departamento" => $_POST["departamento"],
+					"area" => $_POST["area"]);
 	include 'formacapturarci.html.php';
 	exit();
   }
-/* *********************************************************** */
-/* ** Editar reconocimiento inicial de una orden de trabajo ** */
+
+/**************************************************************************************************/
+/* Editar reconocimiento inicial de una orden de trabajo */
+/**************************************************************************************************/
   if(isset($_POST['accion']) and $_POST['accion']=='editarci')
   {
+  	fijarAccionUrl('editarci');
+
 	$id = $_POST['id'];
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-	try   
-	{
-		$sql='SELECT * FROM recsilumtbl
-		   INNER JOIN deptorecilumtbl ON recsilumtbl.id=deptorecilumtbl.deptoidfk
-		   INNER JOIN deptostbl ON deptorecilumtbl.deptoidfk=deptostbl.id
-		   WHERE recsilumtbl.id = :id';
-		$s=$pdo->prepare($sql); 
-		$s->bindValue(':id',$_POST['id']);
-		$s->execute();
+
+	if(isset($_POST['valores'])){
+		$valores = json_decode($_POST['valores'],TRUE);
+	}else{
+		try{
+			$sql='SELECT * FROM recsilumtbl
+				   INNER JOIN deptorecilumtbl ON recsilumtbl.id=deptorecilumtbl.deptoidfk
+				   INNER JOIN deptostbl ON deptorecilumtbl.deptoidfk=deptostbl.id
+				   WHERE recsilumtbl.id = :id';
+			$s=$pdo->prepare($sql); 
+			$s->bindValue(':id',$_POST['id']);
+			$s->execute();
+		}catch (PDOException $e){
+			$mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
+			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+			exit();
+		}
+
+		foreach ($s as $linea){
+			$valores = array("fecha" => $linea["fecha"],
+						"departamento" => $linea["departamento"],
+						"area" => $linea["area"],
+						"descriproceso" => $linea["descriproceso"],
+						"largo" => $linea["largo"],
+						"ancho" => $linea["ancho"],
+						"alto" => $linea["alto"],
+						"tipolampara" => $linea["tipolampara"],
+						"potencialamp" => $linea["potencialamp"],
+						"numlamp" => $linea["numlamp"],
+						"alturalamp" => $linea["alturalamp"],
+						"techocolor" => $linea["techocolor"],
+						"paredcolor" => $linea["paredcolor"],
+						"pisocolor" => $linea["pisocolor"],
+						"influencia" => $linea["influencia"],
+						"percepcion" => $linea["percepcion"],
+						"mantenimiento" => $linea["mantenimiento"]);
+			$idot=$linea["ordenidfk"];
+		}
 	}
-	catch (PDOException $e)
-	{
-		$mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
-		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-		exit();
+
+	if(isset($_POST['puestos'])){
+		$puestos = json_decode($_POST['puestos'],TRUE);
+	}else{
+		try{
+			$sql='SELECT descripuestostbl.puesto, descripuestostbl.numtrabajadores, descripuestostbl.actividades
+					FROM descripuestostbl
+					INNER JOIN deptostbl ON descripuestostbl.deptoidfk = deptostbl.id
+					INNER JOIN deptorecilumtbl ON deptostbl.id = deptorecilumtbl.deptoidfk
+					WHERE deptorecilumtbl.recilumidfk = :id';
+			$s=$pdo->prepare($sql); 
+			$s->bindValue(':id',$_POST['id']);
+			$s->execute();
+		}catch (PDOException $e){
+			$mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
+			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+			exit();
+		}
+
+		foreach($s as $linea){
+			$puestos[] = array("puesto" => $linea["puesto"],
+								"numtrabajadores" => $linea["numtrabajadores"],
+								"actividades" => $linea["actividades"]);
+		}
 	}
-	foreach ($s as $linea)
-	{
-		$valores = array("fecha" => $linea["fecha"],
-					"departamento" => $linea["departamento"],
-					"area" => $linea["area"],
-					"descriproceso" => $linea["descriproceso"],
-					"largo" => $linea["largo"],
-					"ancho" => $linea["ancho"],
-					"alto" => $linea["alto"],
-					"tipolampara" => $linea["tipolampara"],
-					"potencialamp" => $linea["potencialamp"],
-					"numlamp" => $linea["numlamp"],
-					"alturalamp" => $linea["alturalamp"],
-					"techocolor" => $linea["techocolor"],
-					"paredcolor" => $linea["paredcolor"],
-					"pisocolor" => $linea["pisocolor"],
-					"influencia" => $linea["influencia"],
-					"percepcion" => $linea["percepcion"],
-					"mantenimiento" => $linea["mantenimiento"]);
-		$idot=$linea["ordenidfk"];
-	}
-	try   
-	{
-		$sql='SELECT descripuestostbl.puesto, descripuestostbl.numtrabajadores, descripuestostbl.actividades
-				 FROM descripuestostbl
-				 INNER JOIN deptostbl ON descripuestostbl.deptoidfk = deptostbl.id
-				 INNER JOIN deptorecilumtbl ON deptostbl.id = deptorecilumtbl.deptoidfk
-				  WHERE deptorecilumtbl.recilumidfk = :id';
-		$s=$pdo->prepare($sql); 
-		$s->bindValue(':id',$_POST['id']);
-		$s->execute();
-	}
-	catch (PDOException $e)
-	{
-		$mensaje='Hubo un error extrayendo la información de reconocimiento inicial.';
-		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-		exit();
-	}
-	foreach($s as $linea){
-		$puestos[] = array("puesto" => $linea["puesto"],
-					   "numtrabajadores" => $linea["numtrabajadores"],
-					    "actividades" => $linea["actividades"]);
-	}
+	
 	$pestanapag='Editar Reconocimiento Inicial';
 	$titulopagina='Editar reconocimiento inicial';
-	$accion='';
 	$boton = 'salvarci';
 	include 'formacapturarci.html.php';
 	exit();
   }
-/**************************************************************/
-/* **** Guardar la edición de un reconocimiento inicial ***** */
-/* ********************************************************** */
-  if(isset($_POST['accion']) and $_POST['accion']=='salvarci')
+
+/**************************************************************************************************/
+/* Guardar la edición de un reconocimiento inicial */
+/**************************************************************************************************/
+  if(isset($_POST['accion']) AND ($_POST['accion']=='salvarci' OR $_POST['accion']=='Continua cambio'))
   {
+  	/*$mensaje='Error Forzado 2.';
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+    exit();*/
+
 	$id = $_POST['id'];
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 	$pestanapag='Editar Reconocimiento Inicial';
 	$titulopagina='Editar reconocimiento inicial';
-	$accion='';
 	$boton = 'salvarci';
 
-/* *******************
-  inicia modificacion
-******************** */
-	try
-	{
-		$sql='SELECT influencia FROM recsilumtbl where id=:id';
-		$s=$pdo->prepare($sql);
-		$s->bindValue(':id',$id);
-		$s->execute();
-	}
-	catch(PDOException $e)
-	{
-		$mensaje='Hubo un error al tratar de editar el reconocimiento inicial. Favor de intentar nuevamente.';
-		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-		exit();	
-	}
-	$influencianterior=$s->fetch();
-	if ($influencianterior==True and $_POST['influencia']==false)
-	{
-		desglosapost($_POST);
-		include 'formaconfirmacambiorci.html.php';
-		exit();
+
+	if($_POST['accion']=='salvarci'){
+		try
+		{
+			$sql='SELECT influencia FROM recsilumtbl where id=:id';
+			$s=$pdo->prepare($sql);
+			$s->bindValue(':id',$id);
+			$s->execute();
+		}
+		catch(PDOException $e)
+		{
+			$mensaje='Hubo un error al tratar de editar el reconocimiento inicial. Favor de intentar nuevamente.';
+			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+			exit();	
+		}
+
+		$influencianterior = $s->fetch();
+		if ($influencianterior['influencia'] == TRUE AND $_POST['influencia'] == FALSE){
+			desglosapost($_POST);
+			include 'formaconfirmacambiorci.html.php';
+			exit();
+		}
 	}
 
-/* *******************
-  termina modificacion
-******************** */
+	if($_POST['accion']=='Continua cambio'){
+		try
+		{
+			$pdo->beginTransaction(); 
+			$sql='SELECT puntoidfk FROM puntorecilumtbl
+					WHERE recilumidfk = :id';
+			$s=$pdo->prepare($sql);
+			$s->bindValue(':id',$_POST['id']);
+			$s->execute();
+			foreach ($s as $linea)
+			{
+				$sql='DELETE FROM medsilumtbl
+					WHERE puntoidfk=:puntoid
+					ORDER BY id DESC LIMIT 2';
+				$s=$pdo->prepare($sql);
+				$s->bindValue(':puntoid',$linea['puntoidfk']);
+				$s->execute();
+			}		
+			$pdo->commit();
+		}
+		catch (PDOException $e)
+		{
+			$pdo->rollback();
+			$mensaje='Hubo un error al seleccionar las mediciones que se borrarán. '.$e;
+			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+			exit();	
+		}
+	}
+
 	try
 	{
 		$sql='UPDATE recsilumtbl SET
@@ -292,6 +330,7 @@
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();
 	}
+
 	try
 	{
 		$sql='UPDATE deptostbl 
@@ -314,6 +353,7 @@
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();
 	}
+	
 	try
 	{
 		$sql="DELETE descripuestostbl FROM descripuestostbl
@@ -330,6 +370,7 @@
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();
 	}
+
 	try
 	{
 		$sql="SELECT deptostbl.id FROM deptostbl 
@@ -338,8 +379,8 @@
 		$s->bindValue(':id',$_POST['id']);
 		$s->execute();
 		$resultado=$s->fetch();
-		foreach ($_POST["descpuestos"] as $key => $value) {
-			if($value["puesto"] != "" && $value["numtrabajadores"] != "" && $value["actividades"]!="")
+		foreach ($_POST["puestos"] as $key => $value) {
+			if($value["puesto"] != "" && $value["numtrabajadores"] != "" && $value["actividades"]!= "")
 			{
 				$sql='INSERT INTO descripuestostbl SET
 					deptoidfk=:deptoidfk,
@@ -366,9 +407,9 @@
 	exit();
   }
 
-/******************************************************************/
-/* ** Borrar un reconocimiento inicial de una orden de trabajo ** */
-/******************************************************************/
+/**************************************************************************************************/
+/* Borrar un reconocimiento inicial de una orden de trabajo */
+/**************************************************************************************************/
   if (isset($_POST['accion']) and $_POST['accion']=='borrarci')
   {
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
@@ -387,8 +428,11 @@
 		exit();
 	}
 	$cuenta = $s->fetch();
+	
 	if($cuenta["Puntos"] > 0){
 		$mensaje='Este reconocimiento inicial no puede ser borrado ya que tiene puntos. ';
+		$errorlink = 'http://'.$_SERVER['HTTP_HOST'].'/reportes/iluminacion';
+		$errornav = 'Volver a iluminación';
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();
 	}else{
@@ -410,9 +454,9 @@
 	  }
 	}
 
-/***********************************************************************/
-/******** Confirmación de borrado de un reconocimiento inicial *********/
-/***********************************************************************/
+/**************************************************************************************************/
+/* Confirmación de borrado de un reconocimiento inicial */
+/**************************************************************************************************/
   if (isset($_POST['accion']) and $_POST['accion']=='Continuar borrando')
   {
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
@@ -428,7 +472,6 @@
 		$resultado=$s->fetch();
 		$ot=$resultado['ordenidfk'];
 
-		// fin de la modificacion
 		$sql='DELETE FROM descripuestostbl WHERE deptoidfk IN (SELECT deptoidfk FROM deptorecilumtbl WHERE recilumidfk = :id)';
 		$s=$pdo->prepare($sql);
 		$s->bindValue(':id',$_POST['id']);
@@ -460,169 +503,18 @@
 	verRecs($ot);
   }
 
-/* **************************************************************************
-**  Se continua con el cambio de influencia.                               **
-*****************************************************************************/
- if(isset($_POST['accion']) and $_POST['accion']=='Continua cambio')
- {
-   $id = $_POST['id'];
-   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-
-   try
-   {
-    $sql='UPDATE recsilumtbl SET
-          fecha=:fecha,
-		  largo=:largo,
-		  ancho=:ancho,
-		  alto=:alto,
-		  tipolampara=:tipolampara,
-		  potencialamp=:potencialamp,
-		  numlamp=:numlamp,
-		  alturalamp=:alturalamp,
-		  techocolor=:techocolor,
-		  paredcolor=:paredcolor,
-		  pisocolor=:pisocolor,
-		  influencia=:influencia,
-		  percepcion=:percepcion,
-		  mantenimiento=:mantenimiento
-		 WHERE id=:id';
-	$s=$pdo->prepare($sql);
-	$s->bindValue(':id',$_POST['id']);
-	$s->bindValue(':fecha',$_POST['fecha']);
-	$s->bindValue(':largo',$_POST['largo']);
-	$s->bindValue(':ancho',$_POST['ancho']);
-	$s->bindValue(':alto',$_POST['alto']);
-	$s->bindValue(':tipolampara',$_POST['tipolampara']);
- 	$s->bindValue(':potencialamp',$_POST['potencialamp']);
-	$s->bindValue(':numlamp',$_POST['numlamp']);
-	$s->bindValue(':alturalamp',$_POST['alturalamp']);
-	$s->bindValue(':techocolor',$_POST['techocolor']);
-	$s->bindValue(':paredcolor',$_POST['paredcolor']);
-	$s->bindValue(':pisocolor',$_POST['pisocolor']);
-	$s->bindValue(':influencia',$_POST['influencia']);
-	$s->bindValue(':percepcion',$_POST['percepcion']);
-	$s->bindValue(':mantenimiento',$_POST['mantenimiento']);
-	$s->execute();
-   }
-   catch (PDOException $e)
-   {
-    $mensaje='Hubo un error al tratar de editar el reconocimiento inicial. Favor de intentar nuevamente.';
-    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-    exit();
-   }
-   try
-   {
-    $sql='UPDATE deptostbl 
-    	 INNER JOIN deptorecilumtbl ON deptostbl.id=deptorecilumtbl.deptoidfk
-    	 SET
-          departamento=:departamento,
-		  area=:area,
-		  descriproceso=:descriproceso
-		 WHERE deptorecilumtbl.recilumidfk=:id';
-	$s=$pdo->prepare($sql);
-	$s->bindValue(':id',$_POST['id']);
-	$s->bindValue(':departamento',$_POST['departamento']);
-	$s->bindValue(':area',$_POST['area']);
-	$s->bindValue(':descriproceso',$_POST['descriproceso']);
-	$s->execute();
-    }
-    catch (PDOException $e)
-    {
-     $mensaje='Hubo un error al tratar de editar el departamento. Favor de intentar nuevamente.';
-     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-     exit();
-    }
-    try
-    {
-     $sql="DELETE descripuestostbl FROM descripuestostbl
-	 	  INNER JOIN deptostbl ON descripuestostbl.deptoidfk = deptostbl.id
-	 	  INNER JOIN deptorecilumtbl ON deptostbl.id = deptorecilumtbl.deptoidfk
-	 	  WHERE deptorecilumtbl.recilumidfk = :id";
-	 $s=$pdo->prepare($sql);
-	 $s->bindValue(':id',$_POST['id']);
-	 $s->execute();
-    }
-    catch (PDOException $e)
-    {
-     $mensaje='Hubo un error al tratar de eliminar los puestos. Favor de intentar nuevamente.';
-     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-     exit();
-    }
-    try
-    {
-     $sql="SELECT deptostbl.id FROM deptostbl 
-	 INNER JOIN deptorecilumtbl ON deptostbl.id = deptorecilumtbl.deptoidfk WHERE deptorecilumtbl.recilumidfk = :id";
-	 $s=$pdo->prepare($sql);
-	 $s->bindValue(':id',$_POST['id']);
-	 $s->execute();
-	 $resultado=$s->fetch();
-     foreach ($_POST["descpuestos"] as $key => $value) {
-      if($value["puesto"] != "" && $value["numtrabajadores"] != "" && $value["actividades"]!="")
-      {
-	   $sql='INSERT INTO descripuestostbl SET
-	         deptoidfk=:deptoidfk,
-			 puesto=:puesto,
-			 numtrabajadores=:numtrabajadores,
-			 actividades=:actividades';
-	   $s=$pdo->prepare($sql);
-	   $s->bindValue(':deptoidfk', $resultado["id"]);
-	   $s->bindValue(':puesto', $value["puesto"]);
-	   $s->bindValue(':numtrabajadores', $value["numtrabajadores"]);
-	   $s->bindValue(':actividades', $value["actividades"]);
-	   $s->execute();
-      }
-     }
-    }
-    catch (PDOException $e)
-    {
-     $mensaje='Hubo un error al tratar de agregar los puestos. Favor de intentar nuevamente.';
-     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-     exit();
-    }
-	try
-    {
-	$pdo->beginTransaction(); 
-     $sql='SELECT puntoidfk FROM puntorecilumtbl
-	 WHERE recilumidfk = :id';
-	 $s=$pdo->prepare($sql);
-	 $s->bindValue(':id',$_POST['id']);
-	 $s->execute();
-	 $resultado=array();
-	 foreach ($s as $linea)
-	  {
-		$sql='DELETE FROM medsilumtbl WHERE puntoidfk=:puntoid
-			ORDER BY id DESC LIMIT 2';
-		$s=$pdo->prepare($sql);
-		$s->bindValue(':puntoid',$linea['puntoidfk']);
-		$s->execute();
-	 }		
-	$pdo->commit();
-	}
-	catch (PDOException $e)
-	{
-     $pdo->rollback();
-	 $mensaje='Hubo un error al seleccionar las mediciones que se borrarán. '.$e;
-     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-     exit();	
-	}
-   $idot=$_POST['idot'];
-   verRecs($idot);
-   exit();
- }
-
-/* *****************************************************************************
-**  Se cancela cambio de influencia.                                          **
-*******************************************************************************/
+/**************************************************************************************************/
+/*  Se cancela cambio de influencia */
+/**************************************************************************************************/
  if(isset($_POST['accion']) and $_POST['accion']=='Cancela cambio')
  {
    $pestanapag='Editar Reconocimiento Inicial';
    $titulopagina='Editar reconocimiento inicial';
-   $accion='';
    $boton = 'salvarci';
    $puestos=array();
    $id = $_POST['id'];
    $idot=$_POST['idot'];
-   foreach($_POST['descpuestos'] as $linea){
+   foreach($_POST['puestos'] as $linea){
    	$puestos[] = array("puesto" => $linea["puesto"],
    					   "numtrabajadores" => $linea["numtrabajadores"],
    					    "actividades" => $linea["actividades"]);
@@ -648,9 +540,9 @@
    exit();
  }
  
-/* ************************************************************* */
-/* ************** Ir a la opcion de puntos ********************* */
-/* ************************************************************* */
+/**************************************************************************************************/
+/* Ir a la opcion de puntos */
+/**************************************************************************************************/
   if((isset($_POST['accion']) and $_POST['accion']=='puntos'))
   {
 	$_SESSION['idrci']=$_POST['id'];
@@ -658,9 +550,9 @@
     exit();
   }
 
-/* ********************************************* */
-/* ***********  accion default  **************** */
-/* ********************************************* */
+/**************************************************************************************************/
+/* Acción por defualt, llevar a búsqueda de ordenes */
+/**************************************************************************************************/
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
   if(isset($_SESSION['idot']) and isset($_SESSION['quien']) and $_SESSION['quien']=='Iluminacion'){
      $idot=$_SESSION['idot'];
@@ -675,34 +567,6 @@
   $recsini=verRecs($idot);
   include 'formarci.html.php';
    exit();
-
-/* ******************************************************* */
-/* ***Funcion para inicializar un reconocimiento nuevo.*** */
-/* ******************************************************* */
-function ininuevorci(){
-  global $pestanapag, $titulopagina, $accion, $boton, $valores;
-  	$pestanapag='Agrega Reconocimiento Inicial';
-    $titulopagina='Agregar un nuevo reconocimiento inicial';
-    $accion='';
-    $boton = 'guardarrci';
-  	$valores = array("fecha" => "",
-					"departamento" => "",
-					"area" => "",
-					"descriproceso" => "",
-					"largo" => "",
-					"ancho" => "",
-					"alto" => "",
-					"tipolampara" => "",
-					"potencialamp" => "",
-					"numlamp" => "",
-					"alturalamp" => "",
-					"techocolor" => "",
-					"paredcolor" => "",
-					"pisocolor" => "",
-					"influencia" => "",
-					"percepcion" => "",
-					"mantenimiento" => "");
-}
 
 /**************************************************************************************************/
 /* Función para ver reconocimientos iniciales de una orden de trabajo */
@@ -741,6 +605,9 @@ function ininuevorci(){
    exit();
   }
 
+/**************************************************************************************************/
+/* Acumulacion del post de editar, para pasarlo a la pantalla del cambio de influencia */
+/**************************************************************************************************/
 function desglosapost($post="")
 { 
   global $campos, $contenidos, $puestos, $numtrabajadores, $actividades;
@@ -751,21 +618,20 @@ function desglosapost($post="")
   $actividades=array();
   foreach ($post as $campo=>$contenido)
   {
-    if ($campo<>'descpuestos' and $campo<>'accion' and $campo<>'boton')
+    if ($campo <> 'puestos' AND $campo <> 'accion' AND $campo <> 'boton')
 	{
 	  $campos[]=$campo;
 	  $contenidos[]=$contenido;
 	}
   }
-  foreach ($post['descpuestos'] as $descrip)
+  foreach ($post['puestos'] as $descrip)
   {
-	 if ($descrip['puesto']!="")
+	 if ($descrip['puesto'] != "")
 	 {
-       $puestos[]=$descrip['puesto'];
-	   $numtrabajadores[]=$descrip['numtrabajadores'];
-	   $actividades[]=$descrip['actividades'];
+       $puestos[] = $descrip['puesto'];
+	   $numtrabajadores[] = $descrip['numtrabajadores'];
+	   $actividades[] = $descrip['actividades'];
 	 }
-	 else{ break; } 
   }
 }
 ?>

@@ -21,25 +21,27 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     {
         function Header()
         {
-            $this->Image("../../img/logolaboratorio3.gif", 10, 15, 165, 31.5);
+            $this->Image("../../img/logoyeslogan.gif", 35, 5, 140, 40);
+            $this->SetTextColor(69, 147, 56);
+            $this->SetFont('Arial', '', 12);
+            $this->SetY(45);
+            $this->Cell(0, 2, utf8_decode('LABORATORIO DEL GRUPO MICROANALISIS, S.A. DE C.V.'), 0, 1, 'C');
         }
 
         function Footer()
         {
-            $this->SetY(-15);
+            $this->SetY(-25);
 
             $this->SetTextColor(125);
             $this->SetFont('Arial', '', 6);
-            $this->MultiCell(0, 3, utf8_decode('El presente informe no podrá ser alterado ni reproducido total o parcialmente sin autorización previa por escrito del Laboratorio del Grupo Microanálisis, S.A. de C.V.'), 0, 'C'); //////////// Dirección
-            /*$this->Ln();
+            $this->MultiCell(0, 3, utf8_decode('El presente informe no podrá ser alterado ni reproducido total o parcialmente sin autorización previa por escrito del Laboratorio del Grupo Microanálisis, S.A. de C.V.')); //////////// Dirección
+            $this->Ln();
 
-            $this->SetTextColor(0);
-            $this->SetFont('Arial', '', 7);
-            $this->Cell(0, 3, utf8_decode('GENERAL SOSTENES ROCHA 28, MAGDALENA MIXHUCA, MÉXICO D.F. 15850'), 0, 1, 'C');
+            $this->SetTextColor(69, 147, 56);
+            $this->SetFont('Arial', 'B', 7);
+            $this->Cell(0, 3, utf8_decode('General Sóstenes Rocha No. 28 Col. Magdalena Mixhuca Del. Venustiano Carranza, México D.F. CP 15850'), 0, 1, 'C');
             $this->Ln(1);
-            $this->Cell(0, 3, utf8_decode('Tel: +52 (55)5768-7744, Fax: +52 (55)5764-0295'), 0, 1, 'C');
-            $this->Ln(1);
-            $this->Cell(0, 3, utf8_decode('E-Mail: ventas@microanalisis.com Web: www.microanalisis.com'), 0, 1, 'C');*/
+            $this->Cell(0, 3, utf8_decode('Tel. 01 (55) 57 68 77 44                E-Mail:ventas@microanalisis.com                Web: www.microanalisis.com'), 0, 1, 'C');
         }
 
         var $widths;
@@ -556,7 +558,6 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                 $this->_out(sprintf('q %.5F %.5F %.5F %.5F %.2F %.2F cm 1 0 0 1 %.2F %.2F cm',$c,$s,-$s,$c,$cx,$cy,-$cx,-$cy));
             }
         }
-
     }
 
     $pdf = new PDF();
@@ -565,7 +566,9 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     try   
     {
-        $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.signatario, ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion
+        $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.fechalta,
+                    ordenestbl.signatarionombre, ordenestbl.signatarioap, ordenestbl.signatarioam,
+                    ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion
                 FROM  ordenestbl
                 INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk';
         if(isset($_GET['ot']) AND isset($_GET['id'])){
@@ -578,20 +581,20 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
         }else{
             $where=' WHERE estudiostbl.nombre="Iluminacion" AND ordenestbl.ot = :ot';
             $s=$pdo->prepare($sql.$where);
-            $s->bindValue(':ot', /*$_POST['ot']*/ 'LO002');
+            $s->bindValue(':ot', /*$_POST['ot']*/ '2591');
             $s->execute();
             $orden = $s->fetch();
         }
 
-        $sql='SELECT puntostbl.*, puntorecilumtbl.*, equipostbl.marca, equipostbl.modelo, equipostbl.serie, equipostbl.correccion
+        $sql='SELECT puntostbl.*, puntorecilumtbl.*, equipos.Marca, equipos.Modelo, equipos.Numero_Serie
             FROM  puntostbl
             INNER JOIN puntorecilumtbl ON puntostbl.id = puntorecilumtbl.puntoidfk
             INNER JOIN recsilumtbl ON puntorecilumtbl.recilumidfk = recsilumtbl.id
             INNER JOIN ordenestbl ON recsilumtbl.ordenidfk = ordenestbl.id
-            INNER JOIN equipostbl ON puntorecilumtbl.equiposidfk = equipostbl.id
+            INNER JOIN equipos ON puntorecilumtbl.equiposidfk = equipos.ID_Equipo
             WHERE ordenestbl.ot = :ot';
         $s=$pdo->prepare($sql);
-        $s->bindValue(':ot', 'LO002');
+        $s->bindValue(':ot', '2591');
         $s->execute();
         $puntos = $s->fetchAll();
 
@@ -601,7 +604,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
 
         if($orden['plantaidfk'] !== NULL){
             $sql='SELECT plantastbl.razonsocial, plantastbl.calle, plantastbl.colonia, plantastbl.ciudad, 
-                    plantastbl.estado, plantastbl.cp, plantastbl.planta
+                plantastbl.estado, plantastbl.cp
                 FROM plantastbl
                 WHERE plantastbl.id = :id';
             $s=$pdo->prepare($sql);
@@ -614,10 +617,22 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                             'Colonia' => $resultado['colonia'],
                             'Ciudad' => $resultado['ciudad'],
                             'Estado' => $resultado['estado'],
-                            'Planta' => $resultado['planta']);
+                            'Giro_Empresa' => '',
+                            'Codigo_Postal' => $resultado['cp']);
+
+            $sql='SELECT clientestbl.Giro_Empresa
+                FROM clientestbl
+                WHERE clientestbl.Numero_Cliente = :id';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':id', $orden['clienteidfk']);
+            $s->execute();
+            $giro = $s->fetch();
+
+            $cliente['Giro_Empresa'] = $giro['Giro_Empresa'];
+
         }else{
             $sql='SELECT clientestbl.Razon_Social, clientestbl.Calle_Numero, clientestbl.Colonia, clientestbl.Ciudad, 
-                    clientestbl.Estado, clientestbl.Giro_Empresa, clientestbl.Codigo_Postal
+                clientestbl.Estado, clientestbl.Giro_Empresa, clientestbl.Codigo_Postal
                 FROM clientestbl
                 WHERE clientestbl.Numero_Cliente = :id';
             $s=$pdo->prepare($sql);
@@ -673,7 +688,6 @@ foreach ($recinis as $key => $recini) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.2);
 
-    $pdf->Ln(43);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, utf8_decode('AIR-F-2'), 0, 1, 'R');
     $pdf->Ln(2);
@@ -864,7 +878,7 @@ foreach ($recinis as $key => $recini) {
     $pdf->Cell(45, 5, '', 0, 1, 'C');
 
     $pdf->SetFont('Arial', 'B', 8);
-    $pdf->Cell(60, 4, utf8_decode($orden['signatario']), 0, 1, 'C');
+    $pdf->Cell(60, 4, utf8_decode($orden['signatarionombre'].' '.$orden['signatarioap'].' '.$orden['signatarioam']), 0, 1, 'C');
     $pdf->Cell(60, 4, utf8_decode('Signatario Autorizado'), 0, 0, 'C');
 }
 /**************************************************************************************************/
@@ -966,7 +980,7 @@ foreach ($recinis as $key => $recini) {
 
     //$pdf->Rotate(90, 150, 145);
 
-    $pdf->Ln(20.5);
+    $pdf->Ln(3);
 
     headerTablaListado1($pdf);
 
@@ -1141,7 +1155,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, utf8_decode('AIR-F-2'), 0, 1, 'R');
     $pdf->Ln(2);
@@ -1249,19 +1262,19 @@ foreach ($puntos as $key => $punto) {
     $pdf->Cell(25, 7, utf8_decode('Marca'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(30, 7, utf8_decode($punto['marca']), 1, 0, 'C', true);
+    $pdf->Cell(30, 7, utf8_decode($punto['Marca']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(30, 7, utf8_decode('Modelo'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(30, 7, utf8_decode($punto['modelo']), 1, 0, 'C', true);
+    $pdf->Cell(30, 7, utf8_decode($punto['Modelo']), 1, 0, 'C', true);
 
     gris($pdf);
     $pdf->Cell(20, 7, utf8_decode('No. de Serie'), 1, 0, 'C', true);
 
     blanco($pdf);
-    $pdf->Cell(0, 7, utf8_decode($punto['serie']), 1, 1, 'C', true);
+    $pdf->Cell(0, 7, utf8_decode($punto['Numero_Serie']), 1, 1, 'C', true);
     $pdf->Ln(3);
 
     azul($pdf);
@@ -1459,7 +1472,8 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(40, 0, 30);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(60);
+    $pdf->Ln(3);
+
     $pdf->SetFont('Arial', 'B', 14);
     $pdf->MultiCell(0, 6, utf8_decode("REPORTE DE EVALUACIÓN DE LOS \n NIVELES DE ILUMINACIÓN \n NOM-025-STPS-2008"), 0, 'C');
     $pdf->Ln(10);
@@ -2175,7 +2189,6 @@ foreach ($puntos as $key => $punto) {
       $pdf->AddPage();
       $pdf->SetMargins(20, 0, 25);
 
-      $pdf->Ln(36);
       $pdf->SetTextColor(100);
       $pdf->SetFont('Arial', 'B', 8);
       $pdf->Cell(0, 3, 'AIR-F-11', 0, 1, 'R');
