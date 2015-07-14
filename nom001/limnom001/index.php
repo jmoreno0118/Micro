@@ -19,114 +19,118 @@
 /**************************************************************************************************/
 /* Editar un máximo de la norma */
 /**************************************************************************************************/
-  if((isset($_POST['accion']) and $_POST['accion']=='guardar') OR (isset($_POST['accion']) and $_POST['accion']=='salvar'))
-  {
+if((isset($_POST['accion']) and $_POST['accion']=='guardar') OR (isset($_POST['accion']) and $_POST['accion']=='salvar'))
+{
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     try   
     {
-     $sql='INSERT INTO limitestbl SET
-     GyA=:GyA,
-     coliformes=:coliformes,
-     ssedimentables=:ssedimentables,
-     ssuspendidos=:ssuspendidos,
-     dbo=:dbo,
-     nkjedahl=:nkjedahl,
-     nitritos=:nitritos,
-     nitratos=:nitratos,
-     fosforo=:fosforo,
-     arsenico=:arsenico,
-     cadmio=:cadmio,
-     cianuros=:cianuros,
-     cobre=:cobre,
-     cromo=:cromo,
-     mercurio=:mercurio,
-     niquel=:niquel,
-     plomo=:plomo,
-     zinc=:zinc,
-     hdehelminto=:hdehelminto,
-     fecha=CURDATE()';
-    $s=$pdo->prepare($sql);
-    $s->bindValue(':GyA', $_POST['GyA']);
-    $s->bindValue(':coliformes', $_POST['coliformes']);
-    $s->bindValue(':ssedimentables', $_POST['ssedimentables']);
-    $s->bindValue(':ssuspendidos', $_POST['ssuspendidos']);
-    $s->bindValue(':dbo', $_POST['dbo']);
-    $s->bindValue(':nkjedahl', $_POST['nkjedahl']);
-    $s->bindValue(':nitritos', $_POST['nitritos']);
-    $s->bindValue(':nitratos', $_POST['nitratos']);
-    $s->bindValue(':fosforo', $_POST['fosforo']);
-    $s->bindValue(':arsenico', $_POST['arsenico']);
-    $s->bindValue(':cadmio', $_POST['cadmio']);
-    $s->bindValue(':cianuros', $_POST['cianuros']);
-    $s->bindValue(':cobre', $_POST['cobre']);
-    $s->bindValue(':cromo', $_POST['cromo']);
-    $s->bindValue(':mercurio', $_POST['mercurio']);
-    $s->bindValue(':niquel', $_POST['niquel']);
-    $s->bindValue(':plomo', $_POST['plomo']);
-    $s->bindValue(':zinc', $_POST['zinc']);
-    $s->bindValue(':hdehelminto', $_POST['hdehelminto']);
-    $s->execute();
-    $id=$pdo->lastInsertid();
+        $sql='INSERT INTO limitestbl SET
+        GyA=:GyA,
+        coliformes=:coliformes,
+        ssedimentables=:ssedimentables,
+        ssuspendidos=:ssuspendidos,
+        dbo=:dbo,
+        nkjedahl=:nkjedahl,
+        nitritos=:nitritos,
+        nitratos=:nitratos,
+        fosforo=:fosforo,
+        arsenico=:arsenico,
+        cadmio=:cadmio,
+        cianuros=:cianuros,
+        cobre=:cobre,
+        cromo=:cromo,
+        mercurio=:mercurio,
+        niquel=:niquel,
+        plomo=:plomo,
+        zinc=:zinc,
+        hdehelminto=:hdehelminto,
+        fecha=CURDATE()';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':GyA', $_POST['GyA']);
+        $s->bindValue(':coliformes', $_POST['coliformes']);
+        $s->bindValue(':ssedimentables', $_POST['ssedimentables']);
+        $s->bindValue(':ssuspendidos', $_POST['ssuspendidos']);
+        $s->bindValue(':dbo', $_POST['dbo']);
+        $s->bindValue(':nkjedahl', $_POST['nkjedahl']);
+        $s->bindValue(':nitritos', $_POST['nitritos']);
+        $s->bindValue(':nitratos', $_POST['nitratos']);
+        $s->bindValue(':fosforo', $_POST['fosforo']);
+        $s->bindValue(':arsenico', $_POST['arsenico']);
+        $s->bindValue(':cadmio', $_POST['cadmio']);
+        $s->bindValue(':cianuros', $_POST['cianuros']);
+        $s->bindValue(':cobre', $_POST['cobre']);
+        $s->bindValue(':cromo', $_POST['cromo']);
+        $s->bindValue(':mercurio', $_POST['mercurio']);
+        $s->bindValue(':niquel', $_POST['niquel']);
+        $s->bindValue(':plomo', $_POST['plomo']);
+        $s->bindValue(':zinc', $_POST['zinc']);
+        $s->bindValue(':hdehelminto', $_POST['hdehelminto']);
+        $s->execute();
+        $id=$pdo->lastInsertid();
     }
-    catch (PDOException $e)
+    catch(PDOException $e)
     {
-     $mensaje='Hubo un error actualizando los máximos.'.$e;
-     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-     exit();
+      $mensaje='Hubo un error actualizando los máximos.'.$e;
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
     }
     header('Location: ../..');
-  }
+}
 
 /**************************************************************************************************/
 /* Acción default */
 /**************************************************************************************************/
-  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php'; 
-  try   
-  {
-   $s=$pdo->prepare('SELECT * FROM limitestbl ORDER BY id DESC'); 
-   $s->execute();
-  }
-  catch (PDOException $e)
-  {
-   $mensaje='Hubo un error extrayendo la información de limites.';
-   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-   exit();
-  }
-  if($param1 = $s->fetch()){
-   $valores = array("GyA" => $param1["GyA"],
-                      "coliformes" => $param1["coliformes"],
-                      "ssedimentables" => $param1["ssedimentables"],
-                      "ssuspendidos" => $param1["ssuspendidos"],
-                      "dbo" => $param1["dbo"],
-                      "nkjedahl" => $param1["nkjedahl"],
-                      "nitritos" => $param1["nitritos"],
-                      "nitratos" => $param1["nitratos"],
-                      "fosforo" => $param1["fosforo"],
-                      "arsenico" => $param1["arsenico"],
-                      "cadmio" => $param1["cadmio"],
-                      "cianuros" => $param1["cianuros"],
-                      "cobre" => $param1["cobre"],
-                      "cromo" => $param1["cromo"],
-                      "mercurio" => $param1["mercurio"],
-                      "niquel" => $param1["niquel"],
-                      "plomo" =>$param1["plomo"],
-                      "zinc" => $param1["zinc"],
-                      "hdehelminto" => $param1["hdehelminto"],
-                      "fecha" => $param1["fecha"]);
-   formularioLimites($valores, "salvar");
-  }else{
-   formularioLimites("", "guardar");
-  }
+include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php'; 
+try   
+{
+    $s=$pdo->prepare('SELECT * FROM limitestbl ORDER BY id DESC'); 
+    $s->execute();
+}
+catch (PDOException $e)
+{
+    $mensaje='Hubo un error extrayendo la información de limites.';
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+    exit();
+}
+if($param1 = $s->fetch())
+{
+    $valores = array("GyA" => $param1["GyA"],
+                    "coliformes" => $param1["coliformes"],
+                    "ssedimentables" => $param1["ssedimentables"],
+                    "ssuspendidos" => $param1["ssuspendidos"],
+                    "dbo" => $param1["dbo"],
+                    "nkjedahl" => $param1["nkjedahl"],
+                    "nitritos" => $param1["nitritos"],
+                    "nitratos" => $param1["nitratos"],
+                    "fosforo" => $param1["fosforo"],
+                    "arsenico" => $param1["arsenico"],
+                    "cadmio" => $param1["cadmio"],
+                    "cianuros" => $param1["cianuros"],
+                    "cobre" => $param1["cobre"],
+                    "cromo" => $param1["cromo"],
+                    "mercurio" => $param1["mercurio"],
+                    "niquel" => $param1["niquel"],
+                    "plomo" =>$param1["plomo"],
+                    "zinc" => $param1["zinc"],
+                    "hdehelminto" => $param1["hdehelminto"],
+                    "fecha" => $param1["fecha"]);
+    formularioLimites($valores, "salvar");
+}
+else
+{
+  formularioLimites("", "guardar");
+}
 
 /**************************************************************************************************/
 /* Función para ver formulario de parametros de una medicion de una orden de trabajo */
 /**************************************************************************************************/
-  function formularioLimites($valor = "", $boton = ""){
-   $pestanapag='Límites';
-   $titulopagina='Límites';
-   if($valor !== ""){
+function formularioLimites($valor = "", $boton = ""){
+  $pestanapag='Límites';
+  $titulopagina='Límites';
+  if($valor !== "")
+  {
     $valores = $valor;
-   }
-   include 'formacapturalimite.html.php';
-   exit();
   }
+  include 'formacapturalimite.html.php';
+  exit();
+}

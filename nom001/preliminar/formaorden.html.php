@@ -36,141 +36,142 @@
         </tr>
         <tr>
           <td>Cuerpo receptor y Uso de agua</td>
-          <td><?php htmlout($maximos[$i]['descargaen']." - ".$maximos[$i]['uso']); ?></td>    
+          <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['descargaen']." - ".$maximos[$orden[$i]['muestreoaguaid']]['uso']); ?></td>    
         </tr>
       </table>
       <br>
+      <?php //var_dump($parametros[$orden[$i]['muestreoaguaid']]); ?>
       <table style="width:50%">
-        <?php if(isset($parametros[$i])): ?>
+        <?php if(isset($parametros[$orden[$i]['muestreoaguaid']])): ?>
           <tr>
             <th style="width:40%;">Párametro</th>
             <th>Resultado</th>
             <th>Norma</th>
           </tr>
-          <?php if($parametros[$i]['hdehelminto'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['hdehelminto'] !== ''): ?>
             <tr>
               <td>Huevos de Helminto</td>
-              <td style="<?php if(strpos($parametros[$i]['hdehelminto'], '<') == false){if($parametros[$i]['hdehelminto'] > doubleval($maximos[$i]['hdehelminto'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['hdehelminto']); ?></td>
-              <td><?php htmlout($maximos[$i]['hdehelminto']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['hdehelminto'], '<') == false){if($parametros[$orden[$i]['muestreoaguaid']]['hdehelminto'] > doubleval($maximos[$orden[$i]['muestreoaguaid']]['hdehelminto'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['hdehelminto']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['hdehelminto']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['ssedimentables'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['ssedimentables'] !== ''): ?>
             <tr>
               <td>Solidos sedimentables</td>
-              <td style="<?php if(strpos($parametros[$i]['ssedimentables'], '<') == false){if(doubleval($parametros[$i]['ssedimentables']) > doubleval($maximos[$i]['ssedimentables'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['ssedimentables']); ?></td>
-              <td><?php htmlout($maximos[$i]['ssedimentables']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['ssedimentables'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['ssedimentables']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['ssedimentables'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['ssedimentables']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['ssedimentables']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['ssuspendidos'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['ssuspendidos'] !== ''): ?>
             <tr>
               <td>Solidos suspendidos</td>
-              <td style="<?php if(strpos($parametros[$i]['ssuspendidos'], '<') == false){if(doubleval($parametros[$i]['ssuspendidos']) > doubleval($maximos[$i]['ssuspendidos'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['ssuspendidos']); ?></td>
-              <td><?php htmlout($maximos[$i]['ssuspendidos']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['ssuspendidos'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['ssuspendidos']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['ssuspendidos'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['ssuspendidos']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['ssuspendidos']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['dbo'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['dbo'] !== ''): ?>
             <tr>
               <td>DBO</td>
-              <td style="<?php if(strpos($parametros[$i]['dbo'], '<') == false){if(doubleval($parametros[$i]['dbo']) > doubleval($maximos[$i]['dbo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['dbo']); ?></td>
-              <td><?php htmlout($maximos[$i]['dbo']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['dbo'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['dbo']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['dbo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['dbo']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['dbo']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['nkjedahl'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['nkjedahl'] !== ''): ?>
             <tr>
               <td>Nitrógeno Kjeldahl</td>
-              <td><?php htmlout($parametros[$i]['nkjedahl']); ?></td>
+              <td><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['nkjedahl']); ?></td>
               <td><?php htmlout('No Aplica'); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['nitritos'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['nitritos'] !== ''): ?>
             <tr>
               <td>Nitrógeno Nitritos</td>
-              <td><?php htmlout($parametros[$i]['nitritos']); ?></td>
+              <td><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['nitritos']); ?></td>
               <td><?php htmlout('No Aplica'); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['nitratos'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['nitratos'] !== ''): ?>
             <tr>
               <td>Nitrógeno Nitratos</td>
-              <td><?php htmlout($parametros[$i]['nitratos']); ?></td>
+              <td><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['nitratos']); ?></td>
               <td><?php htmlout('No Aplica'); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['nitrogeno'] !== '' AND $parametros[$i]['nitrogeno'] !== '0.00'): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['nitrogeno'] !== '' AND $parametros[$orden[$i]['muestreoaguaid']]['nitrogeno'] !== '0.00'): ?>
             <tr>
               <td>Nitrógeno</td>
-              <td><?php htmlout($parametros[$i]['nitrogeno']); ?></td>
+              <td><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['nitrogeno']); ?></td>
               <td><?php htmlout('Calculado'); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['fosforo'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['fosforo'] !== ''): ?>
             <tr>
               <td>Fosforo</td>
-              <td style="<?php if(strpos($parametros[$i]['fosforo'], '<') == false){if(doubleval($parametros[$i]['fosforo']) > doubleval($maximos[$i]['fosforo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['fosforo']); ?></td>
-              <td><?php htmlout($maximos[$i]['fosforo']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['fosforo'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['fosforo']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['fosforo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['fosforo']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['fosforo']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['arsenico'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['arsenico'] !== ''): ?>
             <tr>
               <td>Arsenico</td>
-              <td style="<?php if(strpos($parametros[$i]['arsenico'], '<') == false){if(doubleval($parametros[$i]['arsenico']) > doubleval($maximos[$i]['arsenico'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['arsenico']); ?></td>
-              <td><?php htmlout($maximos[$i]['arsenico']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['arsenico'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['arsenico']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['arsenico'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['arsenico']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['arsenico']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['cadmio'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['cadmio'] !== ''): ?>
             <tr>
               <td>Cadmio</td>
-              <td style="<?php if(strpos($parametros[$i]['cadmio'], '<') == false){if(doubleval($parametros[$i]['cadmio']) > doubleval($maximos[$i]['cadmio'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['cadmio']); ?></td>
-              <td><?php htmlout($maximos[$i]['cadmio']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['cadmio'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['cadmio']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['cadmio'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['cadmio']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['cadmio']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['cianuros'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['cianuros'] !== ''): ?>
             <tr>
               <td>Cianuros</td>
-              <td style="<?php if(strpos($parametros[$i]['cianuros'], '<') == false){if(doubleval($parametros[$i]['cianuros']) > doubleval($maximos[$i]['nitrogeno'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['cianuros']); ?></td>
-              <td><?php htmlout($maximos[$i]['cianuros']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['cianuros'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['cianuros']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['nitrogeno'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['cianuros']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['cianuros']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['cobre'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['cobre'] !== ''): ?>
             <tr>
               <td>Cobre</td>
-              <td style="<?php if(strpos($parametros[$i]['cobre'], '<') == false){if(doubleval($parametros[$i]['cobre']) > doubleval($maximos[$i]['cobre'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['cobre']); ?></td>
-              <td><?php htmlout($maximos[$i]['cobre']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['cobre'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['cobre']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['cobre'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['cobre']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['cobre']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['cromo'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['cromo'] !== ''): ?>
             <tr>
               <td>Cromo</td>
-              <td style="<?php if(strpos($parametros[$i]['cromo'], '<') == false){if(doubleval($parametros[$i]['cromo']) > doubleval($maximos[$i]['cromo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['cromo']); ?></td>
-              <td><?php htmlout($maximos[$i]['cromo']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['cromo'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['cromo']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['cromo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['cromo']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['cromo']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['mercurio'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['mercurio'] !== ''): ?>
             <tr>
               <td>Mercurio</td>
-              <td style="<?php if(strpos($parametros[$i]['mercurio'], '<') == false){if(doubleval($parametros[$i]['mercurio']) > doubleval($maximos[$i]['mercurio'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['mercurio']); ?></td>
-              <td><?php htmlout($maximos[$i]['mercurio']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['mercurio'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['mercurio']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['mercurio'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['mercurio']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['mercurio']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['niquel'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['niquel'] !== ''): ?>
             <tr>
               <td>Niquel</td>
-              <td style="<?php if(strpos($parametros[$i]['niquel'], '<') == false){if(doubleval($parametros[$i]['niquel']) > doubleval($maximos[$i]['niquel'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['niquel']); ?></td>
-              <td><?php htmlout($maximos[$i]['niquel']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['niquel'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['niquel']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['niquel'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['niquel']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['niquel']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['plomo'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['plomo'] !== ''): ?>
             <tr>
               <td>Plomo</td>
-              <td style="<?php if(strpos($parametros[$i]['plomo'], '<') == false){if(doubleval($parametros[$i]['plomo']) > doubleval($maximos[$i]['plomo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['plomo']); ?></td>
-              <td><?php htmlout($maximos[$i]['plomo']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['plomo'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['plomo']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['plomo'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['plomo']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['plomo']); ?></td>
             </tr>
           <?php endif; ?>
-          <?php if($parametros[$i]['zinc'] !== ''): ?>
+          <?php if($parametros[$orden[$i]['muestreoaguaid']]['zinc'] !== ''): ?>
             <tr>
               <td>Zinc</td>
-              <td style="<?php if(strpos($parametros[$i]['zinc'], '<') == false){if(doubleval($parametros[$i]['zinc']) > doubleval($maximos[$i]['zinc'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$i]['zinc']); ?></td>
-              <td><?php htmlout($maximos[$i]['zinc']); ?></td>
+              <td style="<?php if(strpos($parametros[$orden[$i]['muestreoaguaid']]['zinc'], '<') == false){if(doubleval($parametros[$orden[$i]['muestreoaguaid']]['zinc']) > doubleval($maximos[$orden[$i]['muestreoaguaid']]['zinc'])) echo 'font-weight: bold;';} ?>"><?php htmlout($parametros[$orden[$i]['muestreoaguaid']]['zinc']); ?></td>
+              <td><?php htmlout($maximos[$orden[$i]['muestreoaguaid']]['zinc']); ?></td>
             </tr>
           <?php endif; ?>
         <?php else: ?>
@@ -181,7 +182,7 @@
       </table>
       <br>
 
-      <?php if(isset($adicionales[$i]) AND $adicionales[$i] !== ""){ ?>
+      <?php if(isset($adicionales[$orden[$i]['muestreoaguaid']]) AND $adicionales[$orden[$i]['muestreoaguaid']] !== ""){ ?>
         <table style="width:50%">
           <tr>
             <th colspan=3>Adicionales</th>
@@ -191,7 +192,7 @@
             <th>Unidades</th>
             <th>Resultado</th>
           </tr>
-          <?php foreach ($adicionales[$i] as $value): ?>
+          <?php foreach ($adicionales[$orden[$i]['muestreoaguaid']] as $value): ?>
             <tr>
               <td><?php htmlout($value['nombre']); ?></td>
               <td><?php htmlout($value['unidades']); ?></td>

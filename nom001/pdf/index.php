@@ -15,23 +15,27 @@
     {
         function Header()
         {
-            $this->Image("../../img/logolaboratorio3.gif", 20, 15, 165, 33);
+            $this->Image("../../img/logoyeslogan.gif", 35, 5, 140, 40);
+            $this->SetTextColor(69, 147, 56);
+            $this->SetFont('Arial', '', 12);
+            $this->SetY(45);
+            $this->Cell(0, 2, utf8_decode('LABORATORIO DEL GRUPO MICROANALISIS, S.A. DE C.V.'), 0, 1, 'C');
         }
 
         function Footer()
         {
-            $this->SetY(-30);
+            $this->SetY(-25);
 
             $this->SetTextColor(125);
             $this->SetFont('Arial', '', 6);
             $this->MultiCell(0, 3, utf8_decode('El presente informe no podrá ser alterado ni reproducido total o parcialmente sin autorización previa por escrito del Laboratorio del Grupo Microanálisis, S.A. de C.V.')); //////////// Dirección
             $this->Ln();
 
-            $this->SetTextColor(0);
-            $this->SetFont('Arial', '', 7);
-            $this->Cell(0, 3, utf8_decode('GENERAL SOSTENES ROCHA No. 28 COL. MAGDALENA MIXHUCA C.P. 15850  MÉXICO D.F.'), 0, 1, 'C');
+            $this->SetTextColor(69, 147, 56);
+            $this->SetFont('Arial', 'B', 7);
+            $this->Cell(0, 3, utf8_decode('General Sóstenes Rocha No. 28 Col. Magdalena Mixhuca Del. Venustiano Carranza, México D.F. CP 15850'), 0, 1, 'C');
             $this->Ln(1);
-            $this->Cell(0, 3, $this->WriteHTML(utf8_decode('TELS: 5768-7744   E-Mail: <b><u>ventas@microanalisis.com</u></b>   Web: <b><u>www.microanalisis.com</u></b>')), 0, 1, 'C');
+            $this->Cell(0, 3, utf8_decode('Tel. 01 (55) 57 68 77 44                E-Mail:ventas@microanalisis.com                Web: www.microanalisis.com'), 0, 1, 'C');
         }
 
         var $widths;
@@ -338,13 +342,15 @@
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
         try   
         {
-            $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.ot, ordenestbl.fechalta, muestreosaguatbl.id as "muestreoaguaid",
+            $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.fechalta, muestreosaguatbl.id as "muestreoaguaid",
                         ordenestbl.signatarionombre, ordenestbl.signatarioap, ordenestbl.signatarioam,
-                        muestreosaguatbl.fechamuestreo, ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion
+                        muestreosaguatbl.fechamuestreo, ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion,
+                        ordenacreditaciontbl.nombre,  ordenacreditaciontbl.fecha
                     FROM  ordenestbl
                     INNER JOIN generalesaguatbl ON ordenestbl.id = generalesaguatbl.ordenaguaidfk
                     INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
-                    INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk';
+                    INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk
+                    INNER JOIN ordenacreditaciontbl ON ordenestbl.id = ordenacreditaciontbl.ordenidfk';
             if(isset($_GET['ot']) AND isset($_GET['id'])){
                 $where=' WHERE estudiostbl.nombre="NOM 001" AND ordenestbl.ot = :ot AND ordenestbl.id = :id';
                 $s=$pdo->prepare($sql.$where);
@@ -434,7 +440,6 @@
         $pdf->AddPage();
         $pdf->SetMargins(20, 0, 25);
 
-        $pdf->Ln(26);
         $pdf->SetTextColor(100);
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->Cell(0, 3, 'AIR-F-11', 0, 1, 'R');
@@ -519,6 +524,14 @@
         exit();
         }
 
+        $fechasinicio = array();
+        $fechasfin = array();
+        foreach ($fechasmuestreo as $key => $value) {
+            $fechasinicio[] = $value['fechamuestreo'];
+            if(!is_null($value['fechamuestreofin']))
+                $fechasfin[] = $value['fechamuestreofin'];
+        }
+
         $ident = "";
         foreach ($identificaciones as $key => $value) {
             $ident .= '"'.$value['identificacion'].'", '; 
@@ -538,11 +551,18 @@
         $responsable = rtrim($responsable, ', ');
 
         $pdf->SetFont('Arial', '', 11);
+
+
+        if(count($fechasfin) > 0){
+            $fecha = ' desde el día '. date('d', strtotime(min($fechasinicio)))." de ".$meses[date('n', strtotime(min($fechasinicio)))-1]. " del ".date('Y',strtotime(min($fechasinicio))). " a el día ". date('d', strtotime(max($fechasfin)))." de ".$meses[date('n', strtotime(max($fechasfin)))-1]. " del ".date('Y',strtotime(max($fechasfin)));
+        }else{
+            $fecha = ' el día '. date('d', strtotime(min($fechasinicio)))." de ".$meses[date('n', strtotime(min($fechasinicio)))-1]. " del ".date('Y',strtotime(min($fechasinicio)));
+        }
         
         if(count($identificaciones) > 1){
-            $pdf->MultiCell(0, 5, utf8_decode('Con relación a las determinaciones analíticas practicadas a las muestras de agua identificadas como: '.$ident.', tomadas por '.$responsable.' el día '. date('d', strtotime($orden['fechalta']))." de ".$meses[date('n', strtotime($orden['fechalta']))-1]. " del ".date('Y',strtotime($orden['fechalta'])).', nos permitimos informarle lo siguiente:'), 0, 'J');
+            $pdf->MultiCell(0, 5, utf8_decode('Con relación a las determinaciones analíticas practicadas a las muestras de agua identificadas como: '.$ident.', tomadas por '.$responsable.$fecha.', nos permitimos informarle lo siguiente:'), 0, 'J');
         }else{
-            $pdf->MultiCell(0, 5, utf8_decode('Con relación a las determinaciones analíticas practicadas a la muestra de agua identificada como: '.$ident.', tomada por '.$responsable.' el día '. date('d', strtotime($orden['fechalta']))." de ".$meses[date('n', strtotime($orden['fechalta']))-1]. " del ".date('Y',strtotime($orden['fechalta'])).', nos permitimos informarle lo siguiente:'), 0, 'J');
+            $pdf->MultiCell(0, 5, utf8_decode('Con relación a las determinaciones analíticas practicadas a la muestra de agua identificada como: '.$ident.', tomada por '.$responsable.$fecha.', nos permitimos informarle lo siguiente:'), 0, 'J');
         }
         $pdf->Ln();
 
@@ -559,7 +579,7 @@
         $pdf->Ln(4);
 
         $pdf->SetFont('Arial', 'B', 10);
-        $pdf->MultiCell(0, 5, utf8_decode('Acreditación EMA No. AG-016-008/12.  Vigencia: A partir del 09 de Agosto de 2012.'), 0,  'J');
+        $pdf->MultiCell(0, 5, utf8_decode('Acreditación EMA No. '.$orden['nombre'].'.  Vigencia: A partir del '.date('d', strtotime($orden['fecha']))." de ".$meses[date('n', strtotime($orden['fecha']))-1]. " del ".date('Y', strtotime($orden['fecha'])).'.'), 0,  'J');
         $pdf->Ln(4);
 
         $pdf->SetFont('Arial', '', 11);
@@ -581,8 +601,7 @@
          $sql='SELECT generalesaguatbl.numedicion, muestreosaguatbl.fechamuestreo, muestreosaguatbl.identificacion, generalesaguatbl.lugarmuestreo,
               generalesaguatbl.descriproceso, generalesaguatbl.materiasusadas, generalesaguatbl.tratamiento, generalesaguatbl.Caracdescarga,
               generalesaguatbl.receptor, generalesaguatbl.estrategia, generalesaguatbl.observaciones, muestreosaguatbl.temperatura,
-              muestreosaguatbl.pH, muestreosaguatbl.conductividad, muestreosaguatbl.cloro, muestreosaguatbl.mflotante, muestreosaguatbl.olor,
-              muestreosaguatbl.color, muestreosaguatbl.turbiedad, muestreosaguatbl.GyAvisual, muestreosaguatbl.burbujas, muestreosaguatbl.id as "muestreoaguaid",
+              muestreosaguatbl.pH, muestreosaguatbl.conductividad, muestreosaguatbl.mflotante,  muestreosaguatbl.id as "muestreoaguaid",
               generalesaguatbl.nom01maximosidfk, muestreosaguatbl.identificacion, generalesaguatbl.tipomediciones, muestreosaguatbl.caltermometro,
               generalesaguatbl.id as "generalaguaid"
               FROM  generalesaguatbl
@@ -622,6 +641,14 @@
              $s->bindValue(':id', $muestra['muestreoaguaid']);
              $s->execute();
              $parametros = $s->fetch();
+
+             $sql='SELECT *
+                   FROM metodosparametrostbl
+                   WHERE parametrosidfk = :id';
+             $s=$pdo->prepare($sql);
+             $s->bindValue(':id', $parametros['id']);
+             $s->execute();
+             $metodos = $s->fetch();
 
              $sql='SELECT *
                    FROM nom01maximostbl
@@ -693,7 +720,8 @@
                  foreach ($s as $linea) {
                   $adicionales[]=array("nombre" => $linea["nombre"],
                                        "unidades" => $linea["unidades"],
-                                       "resultado" => $linea["resultado"]);
+                                       "resultado" => $linea["resultado"],
+                                       "metodo" => $linea["metodo"]);
                  }
                 }
                 catch (PDOException $e)
@@ -709,8 +737,8 @@
             try   
             {
              $sql='SELECT *
-                   FROM croquistbl
-                   WHERE generalaguaidfk = :id';
+                   FROM documentos001tbl
+                   WHERE generalaguaidfk = :id AND tipo = "Croquis"';
              $s=$pdo->prepare($sql);
              $s->bindValue(':id', $muestra['generalaguaid']);
              $s->execute();
@@ -745,33 +773,33 @@
                 $pdf->Cell(0, 5, utf8_decode('Datos generales'), 1, 1, 'C', true);
 
                 $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(50, 5, utf8_decode('N° de muestra'), 1, 0, 'C');
+                $pdf->Cell(50, 5, utf8_decode('N° de muestra'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(50, 5, utf8_decode($muestra['numedicion']), 1, 0, 'R');
+                $pdf->Cell(50, 5, utf8_decode($muestra['numedicion']), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(20, 5, utf8_decode('Fecha'), 1, 0, 'C');
+                $pdf->Cell(20, 5, utf8_decode('Fecha'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($muestra['fechamuestreo']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($muestra['fechamuestreo']), 1, 1, 'L');
 
                 $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(50, 5, utf8_decode('Compañía'), 1, 0, 'C');
+                $pdf->Cell(50, 5, utf8_decode('Compañía'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', 'B', 9);
-                $pdf->MultiCell(0, 5, utf8_decode($cliente['Razon_Social']), 1, 'R');
+                $pdf->MultiCell(0, 5, utf8_decode($cliente['Razon_Social']), 1, 'L');
 
                 $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(50, 5, utf8_decode('Giro de la empresa'), 1, 0, 'C');
+                $pdf->Cell(50, 5, utf8_decode('Giro de la empresa'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($cliente['Giro_Empresa']), 1, 1, 'R');
+                $pdf->Cell(0, 5, utf8_decode($cliente['Giro_Empresa']), 1, 1, 'L');
 
                 $pdf->SetWidths(array(50,115));
                 $pdf->SetFonts(array('B',''));
                 $pdf->SetFontSizes(array(9));
-                $pdf->SetAligns(array('C','R'));
+                $pdf->SetAligns(array('L','L'));
                 $pdf->Row(array(utf8_decode('Dirección'),utf8_decode(htmldecode($cliente['Calle_Numero'])."\nCol. ".htmldecode($cliente['Colonia'])." C.P. ".htmldecode($cliente['Codigo_Postal'])." ".htmldecode($cliente['Ciudad'])." ".htmldecode($cliente["Estado"]))));
                 $pdf->Ln();
 
@@ -846,33 +874,41 @@
                 $pdf->SetFont('Arial', 'B', 9);
                 $pdf->Cell(0, 5, utf8_decode('Parámetros de Campo'), 1, 1, 'C', true);
                 $pdf->SetFont('Arial', 'B', 9);
-                $pdf->Cell(40, 8, utf8_decode('Parámetros'), 1, 0, 'C', true);
+                $pdf->Cell(30, 8, utf8_decode('Parámetros'), 1, 0, 'C', true);
                 $pdf->Cell(20, 8, utf8_decode('Unidades'), 1, 0, 'C', true);
-                $pdf->Cell(25, 8, utf8_decode('Medición'), 1, 0, 'C', true);
+                $pdf->Cell(20, 8, utf8_decode('Medición'), 1, 0, 'C', true);
                 $x = $pdf->GetX();
                 $y = $pdf->GetY();
-                $pdf->MultiCell(40, 8, utf8_decode('Incertidumbre Estándar'), 1, 'C', true);
-                $pdf->SetXY($x + 40, $y);
-                $pdf->MultiCell(40, 4, utf8_decode('Limites Máximos Permisibles'), 1, 'C', true);
+                $pdf->MultiCell(25, 4, utf8_decode('Incertidumbre Estándar'), 1, 'C', true);
+                $pdf->SetXY($x + 25, $y);
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+                $pdf->MultiCell(30, 4, utf8_decode('Limites Máximos Permisibles'), 1, 'C', true);
+                $pdf->SetXY($x + 30, $y);
+                $pdf->Cell(40, 8, utf8_decode('Método'), 1, 1, 'C', true);
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(40, 5, utf8_decode('Temperatura'), 1, 0, 'C');
+                $pdf->Cell(30, 5, utf8_decode('Temperatura'), 1, 0, 'C');
                 $pdf->Cell(20, 5, utf8_decode('°C'), 1, 0, 'C');
-                $pdf->Cell(25, 5, utf8_decode(($muestra['temperatura'] - $muestra['caltermometro'])), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('±      ').(number_format(($muestra['temperatura'] * 1.645 * 0.02866), 2, '.', '')), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('40'), 1, 1, 'C');
 
-                $pdf->Cell(40, 5, utf8_decode('pH'), 1, 0, 'C');
+                $pdf->Cell(20, 5, utf8_decode(($muestra['temperatura'] + $muestra['caltermometro'])), 1, 0, 'C');
+                $pdf->Cell(25, 5, utf8_decode('±      ').(number_format(($muestra['temperatura'] * 1.645 * 0.02866), 2, '.', '')), 1, 0, 'C');
+                $pdf->Cell(30, 5, utf8_decode('40'), 1, 0, 'C');
+                $pdf->Cell(40, 5, utf8_decode('NMX-AA-007-SCFI-2013'), 1, 1, 'C');
+
+                $pdf->Cell(30, 5, utf8_decode('pH'), 1, 0, 'C');
                 $pdf->Cell(20, 5, utf8_decode('U de pH'), 1, 0, 'C');
-                $pdf->Cell(25, 5, utf8_decode($muestra['pH']), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('±      ').(number_format(($muestra['pH'] * 1.645 * 0.0037), 2, '.', '')), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('de 5 a 10'), 1, 1, 'C');
+                $pdf->Cell(20, 5, utf8_decode($muestra['pH']), 1, 0, 'C');
+                $pdf->Cell(25, 5, utf8_decode('±      ').(number_format(($muestra['pH'] * 1.645 * 0.0037), 2, '.', '')), 1, 0, 'C');
+                $pdf->Cell(30, 5, utf8_decode('de 5 a 10'), 1, 0, 'C');
+                $pdf->Cell(40, 5, utf8_decode('NMX-AA-008-SCFI-2011'), 1, 1, 'C');
                 
-                $pdf->Cell(40, 5, utf8_decode('Conductividad'), 1, 0, 'C');
+                $pdf->Cell(30, 5, utf8_decode('Conductividad'), 1, 0, 'C');
                 $pdf->Cell(20, 5, utf8_decode('ms/m'), 1, 0, 'C');
-                $pdf->Cell(25, 5, utf8_decode($muestra['conductividad']), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('±      ').(number_format(($muestra['conductividad'] * 1.645 * 0.00964), 2, '.', '')), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
+                $pdf->Cell(20, 5, utf8_decode($muestra['conductividad']), 1, 0, 'C');
+                $pdf->Cell(25, 5, utf8_decode('±      ').(number_format(($muestra['conductividad'] * 1.645 * 0.00964), 2, '.', '')), 1, 0, 'C');
+                $pdf->Cell(30, 5, utf8_decode('No Aplica'), 1, 0, 'C');
+                $pdf->Cell(40, 5, utf8_decode('NMX-AA-093-SCFI-2000'), 1, 1, 'C');
                 $pdf->Ln(3);
 
                 $pdf->SetFont('Arial', 'B', 6);
@@ -909,35 +945,8 @@
                 $pdf->SetFont('Arial', '', 9);
                 $pdf->Cell(45, 5, utf8_decode('Materia flotante visual'), 1, 0, 'C');
                 $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                $pdf->Cell(40, 5, utf8_decode(($muestra['mflotante'] === '1')? 'Presente' : 'Ausente'), 1, 0, 'C');
+                $pdf->Cell(40, 5, utf8_decode(( strval($muestra['mflotante']) === '1')? 'Presente' : 'Ausente'), 1, 0, 'C');
                 $pdf->Cell(40, 5, utf8_decode('Ausente'), 1, 1, 'C');
-
-                if($cantidad === 1){
-                    $pdf->Cell(45, 5, utf8_decode('Olor'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode(($muestra['olor'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
-
-                    $pdf->Cell(45, 5, utf8_decode('Color visual'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode(($muestra['color'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
-
-                    $pdf->Cell(45, 5, utf8_decode('Turbiedad visual'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode(($muestra['turbiedad'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
-
-                    $pdf->Cell(45, 5, utf8_decode('Grasas y aceites visual'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode(($muestra['GyAvisual'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
-
-                    $pdf->Cell(45, 5, utf8_decode('Burbujas y espuma visual'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode(($muestra['burbujas'] === '1')? 'Sí' : 'No'), 1, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
-                }
                 $pdf->Ln();
 
                 //var_dump($parametros2);
@@ -946,22 +955,32 @@
                     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
                     exit();
                 }
-                $promcoliformes = 1;
-                $raiz = 0;
+                $promcoliformes = '';
+                $nocoliformes = 0;
                 for ($i=0; $i < $cantidad; $i++) {
-                    if( strcmp($parametros2[$i]['coliformes'], "") !== 0 AND strcmp($parametros2[$i]['coliformes'], "0") !== 0  ){
-                        $dato[1] = $parametros2[$i]['coliformes'];
-                        if( strpos($parametros2[$i]['coliformes'], "<") !== FALSE){
-                            $dato = explode("<", $parametros2[$i]['coliformes']);
-                        }
-                        $promcoliformes = $promcoliformes * $dato[1];
-                        $raiz++;
-                    }
+                  if(strcmp($parametros2[$i]['coliformes'], "") === 0 ){
+                    $nocoliformes++;
+                  }
                 }
-                $promcoliformes = pow($promcoliformes, (1/$raiz) );
+
+                if($nocoliformes !== $cantidad){
+                    $promcoliformes = 1;
+                    $raiz = 0;
+                    for ($i=0; $i < $cantidad; $i++) {
+                        if( strcmp($parametros2[$i]['coliformes'], "") !== 0 AND strcmp($parametros2[$i]['coliformes'], "0") !== 0  ){
+                            $dato[1] = $parametros2[$i]['coliformes'];
+                            if( strpos($parametros2[$i]['coliformes'], "<") !== FALSE){
+                                $dato = explode("<", $parametros2[$i]['coliformes']);
+                            }
+                            $promcoliformes = $promcoliformes * $dato[1];
+                            $raiz++;
+                        }
+                    }
+                    $promcoliformes = pow($promcoliformes, (1/$raiz) );
+                }
 
                 if($cantidad === 1){
-                    parametrosPDF($pdf, $muestra, $parametros, $maximos, $cantidad, $parametros2, '', $promcoliformes);
+                    parametrosPDF($pdf, $muestra, $parametros, $maximos, $cantidad, $parametros2, 0, $promcoliformes, $metodos);
                 }else{
                     observacionesPDF($pdf, $mcompuestas, $cantidad);
                 }
@@ -986,58 +1005,78 @@
                     }else{
                         hojaNueva($pdf, $orden, '3', '5');
                     }
-                    $pdf->SetFont('Arial', 'B', 9);
-                    $x = $pdf->GetX();
-                    $y = $pdf->GetY();
-                    $pdf->MultiCell(35, 5, utf8_decode("Concentración de grasas y aceites\n(mg/L)"), 1, 'C', true);
-                    $pdf->SetXY($x + 35, $y);
-                    $x = $pdf->GetX();
-                    $y = $pdf->GetY();
-                    $pdf->MultiCell(40, 15, utf8_decode("Flujo al tiempo X (L/s)"), 1, 'C', true);
-                    $pdf->SetXY($x + 40, $y);
-                    $x = $pdf->GetX();
-                    $y = $pdf->GetY();
-                    $pdf->MultiCell(50, 5, utf8_decode("Concentración de grasas y aceites por flujo\n(mg/s)"), 1, 'C', true);
-                    $pdf->SetXY($x + 50, $y);
-                    $pdf->MultiCell(40, 5, utf8_decode("Promedio ponderado de grasas y aceites\n(mg/L)"), 1, 'C', true);
 
-                    $pdf->SetFont('Arial', '', 9);
-
-                    $x = $pdf->GetX();
-                    $y = $pdf->GetY();
-                    $flujototal = 0;
-                    $gyatotal = 0;
-                    $totalconcentracion = 0;
-                    //var_dump($parametros2);
+                    $promedio = '';
+                    $nogya = 0;
                     for ($i=0; $i < $cantidad; $i++) {
-                      $gya = (strcmp($parametros2[$i]['GyA'], "") !== 0 )? $parametros2[$i]['GyA'] : 0; 
-                      $pdf->Cell(35, 5, $gya, 1, 0, 'C');
-                      $gyatotal += floatval($gya);
-
-                      $pdf->Cell(40, 5, $mcompuestas[$i]['flujo'], 1, 0, 'C');
-                      $flujototal += floatval($mcompuestas[$i]['flujo']);
-
-                      $concentracion = "S/F";
-                      if($mcompuestas[$i]['flujo'] !== "S/F"){
-                        $concentracion = $mcompuestas[$i]['flujo'] * $parametros2[$i]['GyA'];
-                        $totalconcentracion += $concentracion;
+                      if(strcmp($parametros2[$i]['GyA'], "") === 0 ){
+                        $nogya++;
                       }
-
-                      $pdf->Cell(50, 5, utf8_decode($concentracion), 1, 1, 'C');
                     }
 
-                    $pdf->SetFont('Arial', '', 10);
-                    $pdf->SetXY($x + 35 + 40 + 50, $y);
-                    $promedio = ($totalconcentracion === 0)? $gyatotal/$cantidad : $totalconcentracion/$flujototal;
-                    $pdf->MultiCell(40, ($cantidad === 4) ? 4 : 6, utf8_decode("\n\n".$promedio."\n\n\n"), 1, 'C');
+                    if($nogya !== $cantidad){
+                        $pdf->SetFont('Arial', 'B', 9);
+                        $x = $pdf->GetX();
+                        $y = $pdf->GetY();
+                        $pdf->MultiCell(35, 5, utf8_decode("Concentración de grasas y aceites\n(mg/L)"), 1, 'C', true);
+                        $pdf->SetXY($x + 35, $y);
+                        $x = $pdf->GetX();
+                        $y = $pdf->GetY();
+                        $pdf->MultiCell(40, 15, utf8_decode("Flujo al tiempo X (L/s)"), 1, 'C', true);
+                        $pdf->SetXY($x + 40, $y);
+                        $x = $pdf->GetX();
+                        $y = $pdf->GetY();
+                        $pdf->MultiCell(50, 5, utf8_decode("Concentración de grasas y aceites por flujo\n(mg/s)"), 1, 'C', true);
+                        $pdf->SetXY($x + 50, $y);
+                        $pdf->MultiCell(40, 5, utf8_decode("Promedio ponderado de grasas y aceites\n(mg/L)"), 1, 'C', true);
 
-                    $pdf->SetFont('Arial', 'B', 9);
-                    $pdf->Cell(35, 5, '', 0, 0, 'C');
-                    $pdf->Cell(40, 5, utf8_decode($flujototal), 1, 0, 'C', true);
-                    $pdf->Cell(50, 5, utf8_decode($totalconcentracion), 1, 1, 'C', true);
-                    $pdf->Ln();
+                        $pdf->SetFont('Arial', '', 9);
+                        $x = $pdf->GetX();
+                        $y = $pdf->GetY();
+                        $flujototal = 0;
+                        $gyatotal = 0;
+                        $totalconcentracion = 0;
+                        //var_dump($parametros2);
+                        for ($i=0; $i < $cantidad; $i++) {
+                          $gya = (strcmp($parametros2[$i]['GyA'], "") !== 0 )? $parametros2[$i]['GyA'] : 0; 
+                          if(strpos($gya, '<') !== false){
+                                $gya = explode('<', $gya);
+                                $gya = $gya[1];
+                            }
+                          $pdf->Cell(35, 5, $parametros2[$i]['GyA'], 1, 0, 'C');
+                          $pdf->Cell(40, 5, number_format(doubleval($mcompuestas[$i]['flujo']*1000), 5), 1, 0, 'C');
 
-                    parametrosPDF($pdf, $muestra, $parametros, $maximos, $cantidad, $parametros2, $promedio, $promcoliformes);
+                          $concentracion = "S/F";
+                          if($mcompuestas[$i]['flujo'] !== "S/F"){
+                            //Las GyA sin flujo no deben ser tomadas en cuenta en el calculo
+                            $gyatotal += floatval($gya);
+                            $flujototal += floatval($mcompuestas[$i]['flujo']*1000);
+                            $concentracion = ($mcompuestas[$i]['flujo'] * 1000) * $gya;
+                            $totalconcentracion += $concentracion;
+                          }
+                          $pdf->Cell(50, 5, utf8_decode(number_format(doubleval($concentracion), 5)), 1, 1, 'C');
+                        }
+
+                        $pdf->SetFont('Arial', '', 10);
+                        $pdf->SetXY($x + 35 + 40 + 50, $y);
+                        $promedio = ($totalconcentracion === 0)? $gyatotal/$cantidad : $totalconcentracion/$flujototal;
+                        if(strpos($promedio,'.') !== false){
+                            $promedio = number_format(doubleval($promedio), 5);
+                        }
+                        $promedio1 = $promedio;
+                        if(bccomp($promedio, floatval(12))==0){
+                            $promedio1 = '< '.$promedio;
+                        }
+                        $pdf->MultiCell(40, $cantidad, utf8_decode("\n\n".$promedio1."\n\n\n"), 1, 'C');
+
+                        $pdf->SetFont('Arial', 'B', 9);
+                        $pdf->Cell(35, 5, '', 0, 0, 'C');
+                        $pdf->Cell(40, 5, utf8_decode(number_format(doubleval($flujototal), 5)), 1, 0, 'C', true);
+                        $pdf->Cell(50, 5, utf8_decode(number_format(doubleval($totalconcentracion), 5)), 1, 1, 'C', true);
+                        $pdf->Ln();
+                    }
+                    
+                    parametrosPDF($pdf, $muestra, $parametros, $maximos, $cantidad, $parametros2, $promedio, $promcoliformes, $metodos);
                 }
 
             /**************************************************************************************************/
@@ -1094,7 +1133,9 @@
                     $totalvolalicuota = 0;
                     
                     for ($i=0; $i < $cantidad; $i++) {
-                        $flujototal += floatval($mcompuestas[$i]['flujo']);
+                        if($mcompuestas[$i]['flujo'] !== "S/F"){
+                            $flujototal += floatval($mcompuestas[$i]['flujo']);
+                        }
                     }
 
                     for ($i=0; $i < $cantidad; $i++) { 
@@ -1106,7 +1147,7 @@
                       if($mcompuestas[$i]['flujo'] !== "S/F"){
                         $poralicuota = ($mcompuestas[$i]['flujo'] * 100)/$flujototal;
                         $totalporalicuota += $poralicuota;
-                        $imprimirtotalporalicuota = number_format(doubleval($poralicuota), 5);
+                        $imprimirtotalporalicuota = number_format(doubleval($poralicuota), 2);
                       }
                       $pdf->Cell(35, 5, utf8_decode($imprimirtotalporalicuota), 1, 0, 'C');
                       $pdf->Cell(35, 5, utf8_decode($mcompuestas[$i]['volumen']), 1, 0, 'C');
@@ -1115,7 +1156,7 @@
                       if($mcompuestas[$i]['flujo'] !== "S/F"){
                         $volalicuota = ($mcompuestas[$i]['volumen'] * $poralicuota)/100;
                         $totalvolalicuota += $volalicuota;
-                        $imprimirvolalicuota = number_format(doubleval($volalicuota), 5);
+                        $imprimirvolalicuota = number_format(doubleval($volalicuota), 2);
                       }
                       $pdf->Cell(30, 5, utf8_decode($imprimirvolalicuota), 1, 1, 'C');
                     }
@@ -1132,13 +1173,19 @@
                     $pdf->Cell(30, 8, utf8_decode($flujototal), 1, 0, 'C');
                     $x = $pdf->GetX();
                     $y = $pdf->GetY();
-                    $pdf->Cell(35, 8, utf8_decode(number_format(doubleval($totalporalicuota), 5)), 1, 0, 'C');
+                    if(strpos($totalporalicuota,'.') !== false){
+                        $totalporalicuota = number_format(doubleval($totalporalicuota), 5);
+                    }
+                    $pdf->Cell(35, 8, utf8_decode($totalporalicuota), 1, 0, 'C');
                     $pdf->SetXY($x + 35, $y);
                     $x = $pdf->GetX();
                     $y = $pdf->GetY();
                     $pdf->MultiCell(35, 4, utf8_decode('Volumen total de la muestra compuesta'), 1, 'C');
                     $pdf->SetXY($x + 35, $y);
-                    $pdf->Cell(30, 8, utf8_decode(number_format(doubleval($totalvolalicuota), 5)), 1, 1, 'C');
+                    if(strpos($totalvolalicuota,'.') !== false){
+                        $totalvolalicuota = number_format(doubleval($totalvolalicuota), 5);
+                    }
+                    $pdf->Cell(30, 8, utf8_decode($totalvolalicuota), 1, 1, 'C');
                     $pdf->Ln(4);
 
                     croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables);
@@ -1165,7 +1212,6 @@
       $pdf->AddPage();
       $pdf->SetMargins(20, 0, 25);
 
-      $pdf->Ln(36);
       $pdf->SetTextColor(100);
       $pdf->SetFont('Arial', 'B', 8);
       $pdf->Cell(0, 3, 'AIR-F-11', 0, 1, 'R');
@@ -1223,22 +1269,21 @@
         //var_dump($cantidad);
         $pdf->SetFont('Arial', 'B', 9);
         $pdf->Cell(0, 5, utf8_decode('Caracteristicas y observaciones por toma.'), 1, 1, 'C', true);
-
         for ($i=0; $i < $cantidad; $i++) { 
             $pdf->SetWidths(array(50,115));
             $pdf->SetAligns(array('C','J'));
             $pdf->SetFonts(array('B',''));
             $pdf->SetFontSizes(array(9,9));
-            $pdf->carobsRow(array(utf8_decode('Toma '. ($i+1) .' ('.$mcompuestas[$i]['hora'].')'),array(utf8_decode($mcompuestas[$i]['observaciones']),utf8_decode($mcompuestas[$i]['caracteristicas']))));
+            $pdf->carobsRow(array(utf8_decode('Toma '. ($i+1) .' ('.$mcompuestas[$i]['hora'].')'),array(utf8_decode('Caracteristicas: '.$mcompuestas[$i]['caracteristicas']),utf8_decode('Observaciones: '.$mcompuestas[$i]['observaciones']))));
         }
-        $pdf->carobsRow(array(utf8_decode('Toma Compuesta'),array(utf8_decode($mcompuestas[$cantidad]['observaciones']),utf8_decode($mcompuestas[$cantidad]['caracteristicas']))));
+        $pdf->carobsRow(array(utf8_decode('Toma Compuesta'),array(utf8_decode('Caracteristicas: '.$mcompuestas[$cantidad]['caracteristicas']),utf8_decode('Observaciones: '.$mcompuestas[$cantidad]['observaciones']))));
     }
 
 /**************************************************************************************************/
 /* Función para tabla de parametros */
 /**************************************************************************************************/
 //Recibe el objeto de pdf, los array de muestra, parametros y maximos
-    function parametrosPDF($pdf, $muestra, $parametros, $maximos, $cantidad, $parametros2, $gya, $coliformes){
+    function parametrosPDF($pdf, $muestra, $parametros, $maximos, $cantidad, $parametros2, $gya, $coliformes, $metodos){
         $pdf->SetFont('Arial', 'B', 9);
         $pdf->Cell(0, 5, utf8_decode('Informe de Análisis'), 1, 1, 'C', true);
 
@@ -1280,28 +1325,6 @@
         $formulario2 = array("GyA","coliformes","ssedimentables","ssuspendidos","dbo",
                              "nitrogeno","fosforo","arsenico","cadmio","cianuros","cobre","cromo","mercurio",
                              "niquel","plomo","zinc","hdehelminto");
-
-        $metodos = array("GyA" => "NMX-AA-005-SCFI-2013",
-                        "ssedimentables" => "NMX-AA-004-2013",
-                        "ssuspendidos" => "NMX-AA-034-SCFI-2001",
-                        "dbo" => "NMX-AA-028-SCFI-2001",
-                        "nkjedahl" => "NMX-AA-026-SCFI-2010",
-                        "nitritos" => "NMX-AA-099-SCFI-2006",
-                        "nitratos" => "NMX-AA-082-1986",
-                        "nitrogeno" => "Calculado",
-                        "fosforo" => "NMX-AA-029-SCFI-2001",
-                        "arsenico" => "EPA 6010C",
-                        "cadmio" => "EPA 6010C",
-                        "cianuros" => "NMX-AA-058-SCFI-2001",
-                        "cobre" => "EPA 6010C",
-                        "cromo" => "EPA 6010C",
-                        "mercurio" => "NMX-AA-051-SCFI-2001",
-                        "niquel" => "EPA 6010C",
-                        "plomo" => "EPA 6010C",
-                        "zinc" => "EPA 6010C",
-                        "coliformes" => "NMX-AA-042-1987",
-                        "hdehelminto" => "NMX-AA-113-SCFI-2012" 
-                    );
         
         $pdf->SetFont('Arial', '', 9);
         foreach ($params as $key => $value) {
@@ -1309,6 +1332,9 @@
                 if($parametros[$value] === '' OR $parametros[$value] === '0.00'){
                     continue;
                 }
+            }
+            if(($value == "GyA" and $gya === '') OR ($value == "coliformes" and $coliformes === '') ){
+                continue;
             }
 
             $pdf->Cell(45, 6, utf8_decode($key), 1, 0, 'L');
@@ -1335,7 +1361,10 @@
                             $pdf->SetFont('Arial', 'B', 9);
                         }
                     }
-                    $pdf->Cell(25, 6, utf8_decode(number_format($gya, 5)), 1, 0, 'C');
+                    if(bccomp($gya, floatval(12))==0){
+                            $gya = '< '.$gya;
+                        }
+                    $pdf->Cell(25, 6, utf8_decode($gya), 1, 0, 'C');
                 }
             elseif($value == "coliformes"):
                 if($cantidad === 1){
@@ -1344,21 +1373,32 @@
                             $pdf->SetFont('Arial', 'B', 9);
                         }
                     }
-                    $pdf->Cell(25, 6, utf8_decode(number_format(doubleval($parametros2[0]['coliformes']), 5)), 1, 0, 'C');
+                    if( strpos($parametros2[0]['coliformes'], "<") !== FALSE){
+                        $pdf->Cell(25, 6, utf8_decode($parametros2[0]['coliformes']), 1, 0, 'C');
+                    }else{
+                        $pdf->Cell(25, 6, utf8_decode(number_format(doubleval($parametros2[0]['coliformes']), 5)), 1, 0, 'C');
+                    }
                 }else{
                     if(in_array($value, $formulario2)){
                         if(doubleval($coliformes) > doubleval($maximos[$value])){
                             $pdf->SetFont('Arial', 'B', 9);
                         }
-                    }                    
-                    $pdf->Cell(25, 6, utf8_decode(number_format($coliformes, 5)), 1, 0, 'C');
+                    }
+                    $pdf->Cell(25, 6, utf8_decode(number_format(doubleval($coliformes), 5)), 1, 0, 'C');
                 }
             else:
                 if(in_array($value, $formulario2)){
-                        if(doubleval($parametros[$value]) > doubleval($maximos[$value])){
+                    if( strcmp($maximos[$value], "N.A.") !== 0){
+                        $param = $parametros[$value];
+                        if(strpos($parametros[$value], '<') !== false){
+                            $param = explode('<', $parametros[$value]);
+                            $param = $param[1];
+                        }
+                        if(doubleval($param) > doubleval($maximos[$value])){
                             $pdf->SetFont('Arial', 'B', 9);
                         }
                     }
+                }
                 $pdf->Cell(25, 6, utf8_decode((in_array($value, $formulario)) ? $parametros[$value] : ""), 1, 0, 'C');
             endif;
 
@@ -1366,12 +1406,6 @@
             $pdf->Cell(30, 6, utf8_decode((in_array($value, $formulario2)) ? $maximos[$value] : "No Aplica"), 1, 0, 'C');
             $pdf->Cell(40, 6, utf8_decode($metodos[$value]), 1, 1, 'C');
         }
-        $pdf->Ln(1);
-        $pdf->SetFont('Arial', 'BU', 8);
-        $pdf->MultiCell(0, 3, utf8_decode('Valores que superan el LMP'), 0, 'C');
-        $pdf->Ln(1);
-        $pdf->SetFont('Arial', 'B', 8);
-        $pdf->MultiCell(0, 3, utf8_decode('L.M.P. = Limite Máximo Permisible'), 0, 'L');
         $pdf->Ln();
     }
 
@@ -1380,28 +1414,28 @@
 /**************************************************************************************************/
 //Recibe el objeto de pdf y el array de adicionales
     function adicionalesPDF($pdf, $adicionales){
+
         $pdf->SetFont('Arial', 'B', 9);
         $pdf->Cell(0, 5, utf8_decode('Informe de Análisis Adicionales'), 1, 1, 'C', true);
 
         $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(55, 10, utf8_decode('Parámetros'), 1, 0, 'C', true);
-        $pdf->Cell(30, 10, utf8_decode('Unidades'), 1, 0, 'C', true);
-        $pdf->Cell(40, 10, utf8_decode('Resultado'), 1, 0, 'C', true);
-        $pdf->MultiCell(40, 5, utf8_decode('Limites Máximos Permisibles (LMP)'), 1, 'C', true);
+        $pdf->Cell(45, 8, utf8_decode('Parámetros'), 1, 0, 'C', true);
+        $pdf->Cell(25, 8, utf8_decode('Unidades'), 1, 0, 'C', true);
+        $pdf->Cell(25, 8, utf8_decode('Resultado'), 1, 0, 'C', true);
+        $x = $pdf->GetX();
+        $y = $pdf->GetY();
+        $pdf->MultiCell(30, 4, utf8_decode('Limites Máximos Permisibles (LMP)'), 1, 'C', true);
+        $pdf->SetXY($x + 30, $y);
+        $pdf->Cell(40, 8, utf8_decode('Método'), 1, 1, 'C', true);
 
         $pdf->SetFont('Arial', '', 9);
         foreach ($adicionales as $value) {
-            $pdf->Cell(55, 5, utf8_decode($value['nombre']), 1, 0, 'L');
-            $pdf->Cell(30, 5, utf8_decode($value['unidades']), 1, 0, 'C');
-            $pdf->Cell(40, 5, utf8_decode($value['resultado']), 1, 0, 'C');
-            $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 1, 'C');
+            $pdf->Cell(45, 5, utf8_decode($value['nombre']), 1, 0, 'L');
+            $pdf->Cell(25, 5, utf8_decode($value['unidades']), 1, 0, 'C');
+            $pdf->Cell(25, 5, utf8_decode($value['resultado']), 1, 0, 'C');
+            $pdf->Cell(30, 5, utf8_decode('No Aplica'), 1, 0, 'C');
+            $pdf->Cell(40, 5, utf8_decode($value['metodo']), 1, 1, 'C');
         }
-        $pdf->Ln(1);
-        $pdf->SetFont('Arial', 'BU', 8);
-        $pdf->MultiCell(0, 3, utf8_decode('Valores que superan el LMP'), 0, 'C');
-        $pdf->Ln(1);
-        $pdf->SetFont('Arial', 'B', 8);
-        $pdf->MultiCell(0, 3, utf8_decode('L.M.P. = Limite Máximo Permisible'), 0, 'L');
         $pdf->Ln();
     }
 
@@ -1411,15 +1445,15 @@
 //Recibe el objeto de pdf, el valor de cantidad y la imagen del croquis
     function croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables){
         //var_dump($croquis);
-        $imagen = $_SERVER['DOCUMENT_ROOT'].'/reportes/nom001/croquis/'.$croquis['nombrearchivado'];
+        $imagen = $_SERVER['DOCUMENT_ROOT'].'/reportes/nom001/documentos/'.$croquis['nombrearchivado'];
         $pdf->Cell(0, 5, utf8_decode('Croquis del lugar donde se tomó la muestra'), 1, 1, 'C', true);
         if($croquis!==false){
             if($cantidad === 1){
-                $pdf->Image($imagen, 20, 74, 165, 75);
+                $pdf->Image($imagen, 20, 85, 165, 75);
             }elseif($cantidad === 4){
-                $pdf->Image($imagen, 20, 143, 165, 75);
+                $pdf->Image($imagen, 20, 154, 165, 75);
             }elseif($cantidad === 6){
-                $pdf->Image($imagen, 20, 153, 165, 75);
+                $pdf->Image($imagen, 20, 164, 165, 75);
             }
         }
         $pdf->Cell(0, 75, '', 1, 1, 'C');

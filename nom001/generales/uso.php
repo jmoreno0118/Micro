@@ -10,8 +10,10 @@
 		$uso = $s->fetchAll();
 	 	$selected = ($_POST['uso'] === '') ? 'selected' : '';
 		echo '<option '.$selected.' disabled value="">Seleccionar</option>';
-		if(count($uso) > 0){
-	 		foreach ($uso as $key => $value) {
+		if(count($uso) > 0)
+		{
+	 		foreach ($uso as $key => $value)
+	 		{
 	 			$selected = ($_POST['descargaen'] === $_POST['descarga'] && $_POST['uso'] === strval($value['uso'])) ? 'selected' : '';
 				echo '<option value="'.$value['uso'].'" '.$selected.'>'.$value['uso'].'</option>';
 			}
