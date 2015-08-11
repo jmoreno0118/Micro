@@ -24,7 +24,7 @@
 	 <p>formaconfirmapuntos</p>
      <fieldset>
       <legend>Borrar</legend>
-	   <form action="?" method="post">.
+	   <form action="?" method="post">
 	   <div>
 	     <p>Estas seguro de que deseas borrar al punto con número de medición: <?php htmlout($medicion); ?>, 
 		   con fecha: <?php htmlout($fecha); ?>, ubicado en el departamento: <?php htmlout($departamento);?>,

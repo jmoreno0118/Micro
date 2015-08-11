@@ -68,7 +68,7 @@ function buscaordenes($estudio, $otsproceso = '', $ot = '', $supervisada = ''){
 
       $ordenes[] = array('id' => $linea['id'],
                         'ot' => $linea['ot'],
-                        'idplanta' => $cliente['id'],
+                        'idplanta' => isset($cliente['id']) ? $cliente['id'] : '',
                         'razonsocial' => $cliente['Razon_Social'],
                         'ciudad' => $cliente['Ciudad'],
                         'estado' => $cliente['Estado']);

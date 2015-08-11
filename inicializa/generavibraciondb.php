@@ -51,7 +51,7 @@
   {
     $sql='CREATE TABLE IF NOT EXISTS vib_idstbl (
 	    id INT NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-		vib_recidfk INT NOT NULL,
+		vibrecidfk INT NOT NULL,
 		area VARCHAR(50) NOT NULL,
 		fuente VARCHAR(50) NOT NULL)
 		DEFAULT CHARACTER SET utf8 ENGINE=InnoDB';
@@ -68,7 +68,7 @@
   {
     $sql='CREATE TABLE IF NOT EXISTS vib_puestostbl (
 	    id INT NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-		vib_recidfk INT NOT NULL,
+		vibrecidfk INT NOT NULL,
 		nombre VARCHAR(50) NOT NULL,
 		descripcion VARCHAR(100) NOT NULL,
 		ciclos VARCHAR(50) NOT NULL)
@@ -86,7 +86,7 @@
   {
     $sql='CREATE TABLE IF NOT EXISTS vib_producciontbl (
 	    id INT NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-		vib_recidfk INT NOT NULL,
+		vibrecidfk INT NOT NULL,
 		depto VARCHAR(50) NOT NULL,
 		cnormales VARCHAR(50) NOT NULL,
 		preal VARCHAR(50) NOT NULL)
@@ -104,7 +104,7 @@
   {
     $sql='CREATE TABLE IF NOT EXISTS vib_poetbl (
 	    id INT NOT NULL  AUTO_INCREMENT PRIMARY KEY,
-		vib_recidfk INT NOT NULL,
+		vibrecidfk INT NOT NULL,
 		area VARCHAR(50) NOT NULL,
 		numero VARCHAR(50) NOT NULL,
 		expo VARCHAR(50) NOT NULL)

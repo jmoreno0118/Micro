@@ -19,7 +19,7 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php';?>
 			</header>
 			<div id="cuerpoprincipal">
 				<h2>Administrador de ordenes</h2>
-				<?php var_dump($_SESSION); ?>
+				<?php //var_dump($_SESSION); ?>
 				<form action="" method="get">
 					<p>Buscar a una orden por:</p>
 					<div>

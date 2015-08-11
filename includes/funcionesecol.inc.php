@@ -26,10 +26,10 @@ function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idpar
 		$boton = 'guardar parametros';
 	}
 
+	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+
 	if($valores === "" AND $parametros === "" AND $adicionales === ""){
 	    try{
-	    	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-	        	
 	    	$sql = 'SELECT id
 	    			FROM muestreosaguatbl
 	                WHERE generalaguaidfk = :id';
@@ -47,7 +47,6 @@ function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idpar
 			if($param1 = $s->fetch()){
 				$pestanapag='Editar Parametros';
 	    		$titulopagina='Editar Parametros';
-				include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 				$idparametro = $param1['id'];
 				$valores = array("ssedimentables" => $param1["ssedimentables"],
 									"ssuspendidos" => $param1["ssuspendidos"],
@@ -103,7 +102,7 @@ function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idpar
 					foreach ($s as $key => $linea) {
 						$parametros[$key] = array("GyA" => $linea["GyA"],
 													"coliformes" => $linea["coliformes"],
-													"enabled" => FALSE);
+													"enabled" => TRUE);
 					}
 
 					$sql='SELECT * FROM adicionalestbl WHERE parametroidfk = :id';
@@ -139,9 +138,13 @@ function formularioParametros($id = "", $muestreoid = "", $cantidad = "", $idpar
 	$s=$pdo->prepare($sql);
 	$s->bindValue(':id', $muestreoid);
 	$s->execute();
-	foreach ($s as $key => $linea) {
-		if( strcmp($linea['flujo'], "S/F") !== 0 AND strcmp($linea['flujo'], "s/f") !== 0 ){
-			$parametros[$key]['enabled'] = TRUE;
+	$flujos = $s->fetchAll();
+	if( count($flujos) > 1){
+		foreach ($s as $key => $linea) {
+			$parametros[$key]['enabled'] = FALSE;
+			if( strcmp($linea['flujo'], "S/F") !== 0 AND strcmp($linea['flujo'], "s/f") !== 0 ){
+				$parametros[$key]['enabled'] = TRUE;
+			}
 		}
 	}
 
@@ -238,10 +241,10 @@ function formularioSiralab($id = "", $valores = "", $mcompuestas = "", $cantidad
 		$pestanapag='Editar Siralab';
 		$titulopagina='Editar Siralab';
 		$boton = "salvar";
-	}elseif($accion === "guardar"){
+	}elseif($accion === "guardar" OR $accion == "captura siralab"){
 		$pestanapag='Agregar Siralab';
-			$titulopagina='Agregar Siralab';
-	    	$boton = "guardar";
+		$titulopagina='Agregar Siralab';
+    	$boton = "guardar";
 	}
 
 	if($valores === ""){

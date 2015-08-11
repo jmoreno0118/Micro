@@ -48,10 +48,11 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php'; ?>
             </tr>
             <?php endforeach; ?>
           </table>
+          <p><a href="?accion=reusarpuntos">Reusar puntos</a></p>
         <?php else : ?>
           <p>Lo sentimos no se encontró ningún punto de iluminación en la orden de trabajo seleccionada</p>  
         <?php endif; ?>
-        <p><a href="../">regresar a la orden</a></p> 
+        <p><a href="../">Regresar a la orden</a></p> 
         <p><a href="../../">Regresa a búsqueda de ordenes</a></p> 
       </div>  <!-- cuerpoprincipal -->
       <div id="footer">

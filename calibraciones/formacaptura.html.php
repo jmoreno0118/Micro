@@ -22,7 +22,10 @@
    jQuery.validator.addMethod('entcimales', function (value, element, param) {
       return /^(\d*\.\d{1,3}|\d*)$/.test(value);
    }, 'Sólo valores enteros o de 1 a 3 decimales.');
-
+   
+   jQuery.validator.addMethod('negativeentcimales', function (value, element, param) {
+      return /^(-?\d*\.\d{1,3}|\d*)$/.test(value);
+   }, 'Sólo valores enteros o de 1 a 3 decimales.');
   $("#medsform").validate({
       rules: {
         'rango[0]': {
@@ -35,7 +38,7 @@
         },
         'fcorreccion2[0]': {
          required: true,
-         entcimales: true
+         negativeentcimales: true
         }
       },
       ignore: [],

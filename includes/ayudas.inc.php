@@ -172,16 +172,113 @@
   function getCorreccion($idequipo){
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     try{
+
       $sql='SELECT correccion
           FROM calibracionestbl
           WHERE equipoidfk=:id';
       $s=$pdo->prepare($sql);
       $s->bindValue(':id', $idequipo);
       $s->execute();
-      $correccion = $s->fetch();
+
+      if(!$correccion = $s->fetch()){
+
+        //var_dump($correccion);
+        //exit();
+
+        return "";
+        exit();
+
+        $mensaje='Hubo un error getCorreccion';
+        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+        exit();
+      }
+
       return $correccion['correccion'];
     }catch (PDOException $e){
       //return "";
+      $mensaje='Hubo un error getCorreccion '.$e;
+      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+      exit();
+    }
+  }
+
+/**************************************************************************************************/
+/* Función para obtener la acreditacion de la orden */
+/**************************************************************************************************/
+function getEquipos($tipo, $ot){
+    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+    try
+    {
+        $sql='SELECT equipos.ID_Equipo, Descripcion, Marca, Modelo, Numero_Inventario
+          FROM  equipos
+          INNER JOIN bitacora_uso ON equipos.ID_Equipo = bitacora_uso.ID_Equipo
+          INNER JOIN bitacora_personal ON bitacora_uso.ID_Personal = bitacora_personal.ID_Personal
+          WHERE bitacora_personal.Numero_Orden_Muestreo IN (SELECT ot FROM ordenestbl WHERE id = :ot)
+          AND equipos.Tipo = "'.$tipo.'"';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':ot', $ot);
+        $s->execute();
+
+        $equipos = '';
+        $error = '';
+        if($eqbd = $s->fetchAll()){
+            foreach ($eqbd as $value){
+              $sql='SELECT *
+                FROM  calibracionestbl
+                WHERE equipoidfk=:id';
+              $s=$pdo->prepare($sql);
+              $s->bindValue(':id', $value['ID_Equipo']);
+              $s->execute();
+
+              if(!$s->fetch()){
+                $error.=$value['Numero_Inventario'].',';
+              }
+
+              $equipos[$value['ID_Equipo']] = $value['Descripcion'].' '.$value['Marca'].' '.$value['Modelo'].' '.$value['Numero_Inventario'];
+            }
+        }
+        
+        /*if(strcmp($error, '') !== 0){
+          $mensaje = 'Les hace falta capturar correccion a los equipos: '.rtrim($error, ',');
+          include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+          exit();
+        }*/
+
+      return $equipos;
+    }catch (PDOException $e){
+      return "";
+    }
+}
+
+
+/**************************************************************************************************/
+/* Función para obtener la acreditacion de la orden */
+/**************************************************************************************************/
+  function setObservacion($pdo, $estudio, $ot, $observacion){
+    try
+    {
+        $sql= 'SELECT nombre, apellido FROM usuariostbl
+                WHERE usuario = :usuario';
+        $s = $pdo->prepare($sql);
+        $s->bindValue(':usuario', $_SESSION['usuario']);
+        $s->execute();
+        $e = $s->fetch();
+
+        $sql='INSERT INTO  observacionestbl SET
+          ordenesidfk = :id,
+          observacion = :observacion,
+          fecha = CURDATE(),
+          supervisor = :supervisor,
+          estudio = :estudio';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $ot);
+        $s->bindValue(':observacion', $observacion);
+        $s->bindValue(':supervisor', $e['nombre'].' '.$e['apellido']);
+        $s->bindValue(':estudio', $estudio);
+        $s->execute();
+    }
+    catch (PDOException $e)
+    {
       $mensaje='Hubo un error getCorreccion '.$e;
       include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
       exit();
