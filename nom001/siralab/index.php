@@ -25,6 +25,10 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar')
 	/*$mensaje='Error Forzado 3.';
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 	exit();*/
+
+/*var_dump($_POST['mcompuestas']);
+		exit();*/
+
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
 	try
 	{
@@ -90,11 +94,36 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar')
 						WHERE id=:id';
 	        $s=$pdo->prepare($sql);
 	        $s->bindValue(':id', $value["id"]);
-	        $s->bindValue(':identificacion', $value["identificacion"]);
-	       	$s->bindValue(':fecharecepcion', (isset($value["fechalab"])) ? $value["fechalab"] : '0000-00-00');
-	        $s->bindValue(':horarecepcion', (isset($value["horalab"])) ? $value["horalab"] : '00:00');
-	        $s->bindValue(':temperatura', $value["temperatura"]);
-	        $s->bindValue(':pH', $value["pH"]);
+
+	        if(isset($value["identificacion"]) AND strcmp(trim($value["identificacion"]), '') !== 0 ){
+	        	$s->bindValue(':identificacion', $value["identificacion"]);
+	        }elseif(!isset($value["identificacion"]) OR strcmp(trim($value["identificacion"]), '') === 0 ){
+	        	$s->bindValue(':identificacion', NULL, PDO::PARAM_INT);
+	        }
+
+	        if(isset($value["fechalab"]) AND strcmp(trim($value["fechalab"]), '') !== 0 ){
+	        	$s->bindValue(':fecharecepcion', $value["fechalab"]);
+	        }elseif(!isset($value["fechalab"])  OR strcmp(trim($value["fechalab"]), '') === 0 ){
+	        	$s->bindValue(':fecharecepcion', NULL, PDO::PARAM_INT);
+	        }
+
+	        if(isset($value["horalab"]) AND strcmp(trim($value["horalab"]), '') !== 0 ){
+	        	$s->bindValue(':horarecepcion', $value["horalab"]);
+	        }elseif(!isset($value["horalab"]) OR strcmp(trim($value["horalab"]), '') === 0 ){
+	        	$s->bindValue(':horarecepcion', NULL, PDO::PARAM_INT);
+	        }
+
+	        if(isset($value["temperatura"]) AND strcmp(trim($value["temperatura"]), '') !== 0 ){
+	        	$s->bindValue(':temperatura', $value["temperatura"]);
+	        }elseif(!isset($value["temperatura"]) OR strcmp(trim($value["temperatura"]), '') === 0 ){
+	        	$s->bindValue(':temperatura', NULL, PDO::PARAM_INT);
+	        }
+
+	        if(isset($value["pH"]) AND strcmp(trim($value["pH"]), '') !== 0 ){
+	        	$s->bindValue(':pH', $value["pH"]);
+	        }elseif(!isset($value["pH"]) OR strcmp(trim($value["pH"]), '') === 0 ){
+	        	$s->bindValue(':pH', NULL, PDO::PARAM_INT);
+	        }
 	        $s->execute();
   		}
 
@@ -187,11 +216,36 @@ if(isset($_POST['accion']) and $_POST['accion']=='salvar')
 						WHERE id=:id';
 	        $s=$pdo->prepare($sql);
 	        $s->bindValue(':id', $value["id"]);
-	        $s->bindValue(':identificacion', $value["identificacion"]);
-	       	$s->bindValue(':fecharecepcion', (isset($value["fechalab"])) ? $value["fechalab"] : '0000-00-00');
-	        $s->bindValue(':horarecepcion', (isset($value["horalab"])) ? $value["horalab"] : '00:00');
-	        $s->bindValue(':temperatura', $value["temperatura"]);
-	        $s->bindValue(':pH', $value["pH"]);
+
+	        if(isset($value["identificacion"]) AND strcmp(trim($value["identificacion"]), '') !== 0 ){
+	        	$s->bindValue(':identificacion', $value["identificacion"]);
+	        }elseif(!isset($value["identificacion"]) OR strcmp(trim($value["identificacion"]), '') === 0 ){
+	        	$s->bindValue(':identificacion', NULL, PDO::PARAM_INT);
+	        }
+
+	        if(isset($value["fechalab"]) AND strcmp(trim($value["fechalab"]), '') !== 0 ){
+	        	$s->bindValue(':fecharecepcion', $value["fechalab"]);
+	        }elseif(!isset($value["fechalab"])  OR strcmp(trim($value["fechalab"]), '') === 0 ){
+	        	$s->bindValue(':fecharecepcion', NULL, PDO::PARAM_INT);
+	        }
+
+	        if(isset($value["horalab"]) AND strcmp(trim($value["horalab"]), '') !== 0 ){
+	        	$s->bindValue(':horarecepcion', $value["horalab"]);
+	        }elseif(!isset($value["horalab"]) OR strcmp(trim($value["horalab"]), '') === 0 ){
+	        	$s->bindValue(':horarecepcion', NULL, PDO::PARAM_INT);
+	        }
+
+	        if(isset($value["temperatura"]) AND strcmp(trim($value["temperatura"]), '') !== 0 ){
+	        	$s->bindValue(':temperatura', $value["temperatura"]);
+	        }elseif(!isset($value["temperatura"]) OR strcmp(trim($value["temperatura"]), '') === 0 ){
+	        	$s->bindValue(':temperatura', NULL, PDO::PARAM_INT);
+	        }
+
+	        if(isset($value["pH"]) AND strcmp(trim($value["pH"]), '') !== 0 ){
+	        	$s->bindValue(':pH', $value["pH"]);
+	        }elseif(!isset($value["pH"]) OR strcmp(trim($value["pH"]), '') === 0 ){
+	        	$s->bindValue(':pH', NULL, PDO::PARAM_INT);
+	        }
 	        $s->execute();
   		}
 

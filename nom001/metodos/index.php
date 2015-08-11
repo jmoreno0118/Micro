@@ -9,21 +9,20 @@ if (!usuarioRegistrado())
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/direccionaregistro.inc.php';
 	exit();
 }
-if (!usuarioConPermiso('Captura'))
+if (!usuarioConPermiso('Supervisor'))
 {
-	$mensaje='Solo el Capturista tiene acceso a esta parte del programa';
+	$mensaje='Solo el Supervisor tiene acceso a esta parte del programa';
 	include '../accesonegado.html.php';
 	exit();
 }
 
 $parametros = array('Sólidos Sedimentables','Grasas y Aceites','pH','Oxigeno','Nitrógeno Kjeldahl','DBO',
-					'Sólidos y Sales','Acidez y Alcalinidad','Turbiedad','Color platino cobalto','Dureza',
+					'Sólidos y Sales Suspendidos','Acidez y Alcalinidad','Turbiedad','Color platino cobalto','Dureza',
 					'Cloruros totales','Temperatura','Conductividad eletrolítica','Materia flotante',
 					'Aguas residuales','Muestreo en cuerpos receptores','Fósforo','DQO','SAAM',
-					'Cromo hexavalente','Fenoles totales','Cianuros totales','Ion de sulfato','Fluoruros',
+					'Cromo hexavalente','Fenoles totales','Cianuro','Ion de sulfato','Fluoruros',
 					'Nitrógeno de Nitritos','Nitrógeno de Nitratos','Cloro libre y cloro total','Yodo libre residual',
-					'Coliformes',
-					'Huevos de helminto','Absorción atómica','Metales','Compuestos orgánicos semivolatiles',
+					'Coliformes', 'Huevos de helminto','Absorción atómica','Metales','Compuestos orgánicos semivolatiles',
 					'Compuestos orgánicos volatiles');
 
 /**************************************************************************************************/
@@ -109,10 +108,12 @@ if(isset($_POST['accion']) and $_POST['accion']=='Salvar Metodo')
 
 		$sql='UPDATE metodostbl SET
 			parametro=:parametro,
-			metodo=:metodo';
+			metodo=:metodo
+			WHERE id=:id';
 		$s=$pdo->prepare($sql);
 		$s->bindValue(':parametro',$_POST['parametro']);
 		$s->bindValue(':metodo',$_POST['metodo']);
+		$s->bindValue(':id',$_POST['id']);
 		$s->execute();
 
 		$pdo->commit();

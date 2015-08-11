@@ -74,7 +74,7 @@
                 <fieldset>
                 <legend><?php echo $value['label']; ?>:</legend>
               <?php } ?>
-              <?php /* For1 */ for ($i=0; $i<$cantidad+1; $i++): ?>
+              <?php /* For1 */ for ($i = 0; $i<$cantidad+1; $i++): ?>
                 <?php if(($i+1 === $cantidad+1) AND ($key === "flujo" OR $key === "volumen"))
                       {
                         continue;
@@ -97,36 +97,36 @@
                 <?php if($key !== 'id'){
                         echo "<br>";
                       } ?>
-              <?php /* For1 */endfor; ?>
+              <?php /* For1 */ endfor; ?>
               <?php if($key !== 'id'){ ?>
                 </fieldset>
                 <br>
               <?php } ?>
             <?php /*Foreach 1*/ endforeach; ?>
 
-            <?php/* For2 */for ($i=0; $i<$cantidad+1; $i++): ?>
-            <fieldset>
-              <legend><?php echo "Toma ".(($i < $cantidad) ? $i+1 : "Compuesta"); ?>:</legend>
-              <?php /* Foreach2 */ foreach ($formulario2 as $key => $value): ?>
-                <?php if(isset($_SESSION['supervisada']))
-                      {
-                        $value['atts'] = array('disabled');
-                      } ?>
-                <?php
-                  crearForma(
-                      $value['label'], //Texto del label
-                      "mcompuestas[".$i."][".$key."]", //Texto a colocar en los atributos id y name
-                      ($mcompuestas !== "") ? (isset($mcompuestas[$i][$key])) ? $mcompuestas[$i][$key] : '' : '', //Valor extraido de la bd
-                      (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
-                      $value['tipo'], //Tipo de etiqueta
-                      (isset($value['option'])) ? $value['option'] : '' //Options para los select
-                  );
-                ?>
-                <br>
-              <?php /* Foreach2 */ endforeach; ?>
-            </fieldset>
-            <br>
-            <?php/* For2 */endfor; ?>
+            <?php for ($j=0; $j < ($cantidad+1); $j++) { ?>
+              <fieldset>
+                <legend><?php echo "Toma ".(($j < $cantidad) ? $j+1 : "Compuesta"); ?>:</legend>
+                <?php /* Foreach2 */ foreach ($formulario2 as $key => $value): ?>
+                  <?php if(isset($_SESSION['supervisada']))
+                        {
+                          $value['atts'] = array('disabled');
+                        } ?>
+                  <?php
+                    crearForma(
+                        $value['label'], //Texto del label
+                        "mcompuestas[".$j."][".$key."]", //Texto a colocar en los atributos id y name
+                        ($mcompuestas !== "") ? (isset($mcompuestas[$j][$key])) ? $mcompuestas[$j][$key] : '' : '', //Valor extraido de la bd
+                        (isset($value['atts'])) ? $value['atts'] : '', //Atributos extra de la etiqueta
+                        $value['tipo'], //Tipo de etiqueta
+                        (isset($value['option'])) ? $value['option'] : '' //Options para los select
+                    );
+                  ?>
+                  <br>
+                <?php /* Foreach2 */ endforeach; ?>
+              </fieldset>
+              <br>
+            <?php } ?>
 
             <!-- Se usa para almacenar el numero de la ot y saber que se usó el regreso -->
             <?php if(isset($regreso) AND $regreso === 1)

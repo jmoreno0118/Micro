@@ -497,7 +497,7 @@ function editarParams($post){
 	catch (PDOException $e)
 	{
 		$pdo->rollback();
-		$mensaje='Hubo un error al tratar de insertar los parametros. Favor de intentar nuevamente.';
+		$mensaje='Hubo un error al tratar de actualizar los parametros. Favor de intentar nuevamente.'.$e;
 		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 		exit();
 	}

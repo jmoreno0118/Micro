@@ -158,7 +158,7 @@
               );
 
             $arquitectura = array(
-                                  "valores" => array("variables" => 'titulo,anexo,rfc,cuenca,region,procedencia,cuerporeceptor,lattGrados,lattmin,lattseg,lontGrados,lontmin,lontseg,latpGrados,latpmin,latpseg,lonpGrados,lonpmin,lonpseg,datumgps,comentarios',
+                                  "valores" => array("variables" => 'titulo,anexo,rfc,cuenca,region,procedencia,cuerporeceptor,lattgrados,lattmin,lattseg,lontgrados,lontmin,lontseg,latpgrados,latpmin,latpseg,lonpgrados,lonpmin,lonpseg,datumgps,comentarios',
                                                     "tipo" => 1),
                                   "mcompuestas" => array("variables" => 'fechalab,horalab,identificacion',
                                                     "tipo" => 2),
@@ -271,19 +271,20 @@
 <script type="text/javascript">
   $(document).ready(function() {
    jQuery.validator.addMethod('hora', function (value, element, param) {
-    return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value); 
+    return /^ *|([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value); 
    }, 'Favor de introducir una hora valida.');
 
    jQuery.validator.addMethod('cuatrocimales', function (value, element, param) {
-    return /^\d{1,2}(\.\d{1,4})$/.test(value);
+    return /^ *|\d{1,2}(\.\d{1,4})$/.test(value);
    }, 'Ingresar de 1 a 4 decimales.');
 
-   jQuery.validator.addMethod('dosint', function (value, element, param) {
-    return /^\d{1,2}$/.test(value);
-   }, 'Ingresar de 1 a 4 decimales.');
+   jQuery.validator.addMethod('tresint', function (value, element, param) {
+    return /^ *|\d{1,3}$/.test(value);
+   }, 'Ingresar de 1 a 3 enteros.');
 
-      jQuery.validator.addMethod('doscimales', function (value, element, param) {
-    return /^\d{1,2}(\.\d{1,2})$/.test(value);
+
+   jQuery.validator.addMethod('doscimales', function (value, element, param) {
+    return /^ *|\d{1,2}(\.\d{1,2})$/.test(value);
    }, 'Ingresar de 1 a 2 decimales.');
 
     $("#siralabform").validate({
@@ -295,49 +296,49 @@
         cuenca: "required",
         region: "required",
         procedencia: "required",
-        lattGrados: {
+        lattgrados: {
          required: true,
-         dosint: true
+         tresint: true
         },
         lattmin: {
          required: true,
-         dosint: true
+         tresint: true
         },
         lattseg: {
          required: true,
          cuatrocimales: true
         },
-        lontGrados: {
+        lontgrados: {
          required: true,
-         dosint: true
+         tresint: true
         },
         lontmin: {
          required: true,
-         dosint: true
+         tresint: true
         },
         lontseg: {
          required: true,
          cuatrocimales: true
         },
-        latpGrados: {
+        latpgrados: {
          required: true,
-         dosint: true
+         tresint: true
         },
         latpmin: {
          required: true,
-         dosint: true
+         tresint: true
         },
         latpseg: {
          required: true,
          cuatrocimales: true
         },
-        lonpGrados: {
+        lonpgrados: {
          required: true,
-         dosint: true
+         tresint: true
         },
         lonpmin: {
          required: true,
-         dosint: true
+         tresint: true
         },
         lonpseg: {
          required: true,
@@ -348,15 +349,12 @@
         <?php for ($i=0; $i<$cantidad+1; $i++) :
         echo "
           'mcompuestas[$i][fechalab]':{
-            required: true,
             date: true
           },
           'mcompuestas[$i][horalab]':{
-            required: true,
             hora: true
           },
           'mcompuestas[$i][identificacion]':{
-            required: true
           },
           'mcompuestas[$i][temperatura]':{
             doscimales: true

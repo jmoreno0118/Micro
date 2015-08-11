@@ -67,7 +67,7 @@
                             'ssuspendidos' => array(
                                               'label' => 'Solidos suspendidos',
                                               'tipo' => 'text',
-                                              'metodo' => 'Solidos suspendidos'
+                                              'metodo' => 'Sólidos y Sales Suspendidos'
                                               ),
                             'dbo' => array(
                                               'label' => 'DBO',
@@ -106,47 +106,47 @@
                             'arsenico' => array(
                                               'label' => 'Arsenico',
                                               'tipo' => 'text',
-                                              'metodo' => 'Arsenico'
+                                              'metodo' => 'Metales'
                                               ),
                             'cadmio' => array(
                                               'label' => 'Cadmio',
                                               'tipo' => 'text',
-                                              'metodo' => 'Cadmio'
+                                              'metodo' => 'Metales'
                                               ),
                             'cianuros' => array(
                                               'label' => 'Cianuros',
                                               'tipo' => 'text',
-                                              'metodo' => 'Cianuros'
+                                              'metodo' => 'Metales'
                                               ),
                             'cobre' => array(
                                               'label' => 'Cobre',
                                               'tipo' => 'text',
-                                              'metodo' => 'Cobre'
+                                              'metodo' => 'Metales'
                                               ),
                             'cromo' => array(
                                               'label' => 'Cromo',
                                               'tipo' => 'text',
-                                              'metodo' => 'Cromo'
+                                              'metodo' => 'Metales'
                                               ),
                             'mercurio' => array(
                                               'label' => 'Mercurio',
                                               'tipo' => 'text',
-                                              'metodo' => 'Mercurio'
+                                              'metodo' => 'Absorción atómica'
                                               ),
                             'niquel' => array(
                                               'label' => 'Niquel',
                                               'tipo' => 'text',
-                                              'metodo' => 'Niquel'
+                                              'metodo' => 'Metales'
                                               ),
                             'plomo' => array(
                                               'label' => 'Plomo',
                                               'tipo' => 'text',
-                                              'metodo' => 'Plomo'
+                                              'metodo' => 'Metales'
                                               ),
                             'zinc' => array(
                                               'label' => 'Zinc',
                                               'tipo' => 'text',
-                                              'metodo' => 'Zinc'
+                                              'metodo' => 'Metales'
                                               ),
                             'hdehelminto' => array(
                                               'label' => 'Huevos de Helminto',
@@ -158,7 +158,7 @@
                 $arquitectura = array(
                                       "valores" => array("variables" => 'fechareporte,ssedimentables,ssuspendidos,dbo,nkjedahl,nitritos,nitratos,nitrogeno,fosforo,arsenico,cadmio,cianuros,cobre,cromo,mercurio,niquel,plomo,zinc,hdehelminto',
                                                         "tipo" => 1),
-                                      "metodos" => array("variables" => 'metodossedimentablesmetodo,ssuspendidosmetodo,dbometodo,nkjedahlmetodo,nitritosmetodo,nitratosmetodo,nitrogenometodo,fosforometodo,arsenicometodo,cadmiometodo,cianurosmetodo,cobremetodo,cromometodo,mercuriometodo,niquelmetodo,plomometodo,zincmetodo,hdehelmintometodo,GyAmetodo,coliformes'metodo,
+                                      "metodos" => array("variables" => 'metodossedimentablesmetodo,ssuspendidosmetodo,dbometodo,nkjedahlmetodo,nitritosmetodo,nitratosmetodo,nitrogenometodo,fosforometodo,arsenicometodo,cadmiometodo,cianurosmetodo,cobremetodo,cromometodo,mercuriometodo,niquelmetodo,plomometodo,zincmetodo,hdehelmintometodo,GyAmetodo,coliformes',
                                                         "tipo" => 1),
                                       "parametros" => array("variables" => 'GyA,coliformes',
                                                     "tipo" => 2),
@@ -241,18 +241,23 @@
                     <div>
                       	<label for="parametros[<?php echo $i; ?>][GyA]">Grasas y Aceites:</label>
                         <?php 
+                        //var_dump($parametros);
                         $disabled2 = '';
-                        if(!$parametros[$i]["enabled"])
-                        {
-                          $disabled2 = 'disabled';
-                          ?>
-                            <input type="hidden" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="">
-                            <input type="hidden" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="">
-                        <?php } ?>
-                  			<input type="text" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]["GyA"]) ? htmlout($parametros[$i]["GyA"]) : ""; ?>" <?php echo $disabled; ?> <?php echo $disabled2; ?>>
+                        if( is_array($parametros)){
+                          if(!$parametros[$i]["enabled"])
+                          {
+                            $disabled2 = 'disabled';
+                            ?>
+                              <input type="hidden" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="">
+                              <input type="hidden" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="">
+                          <?php 
+                          }
+                        }
+                        ?>
+                  			<input type="text" class="GyA" name="parametros[<?php echo $i; ?>][GyA]" id="mediciones<?php echo $i; ?>" value="<?php is_array($parametros) ? isset($parametros[$i]["GyA"]) ? htmlout($parametros[$i]["GyA"]) : "" : ""; ?>" <?php echo $disabled; ?> <?php echo $disabled2; ?>>
 
                   			<label for="parametros[<?php echo $i; ?>][coliformes]">Coliformes Fecales:</label>
-                  			<input type="text" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php isset($parametros[$i]["coliformes"]) ? htmlout($parametros[$i]["coliformes"]) : ""; ?>" <?php echo $disabled; ?> <?php echo $disabled2; ?>>
+                  			<input type="text" class="coliformes" name="parametros[<?php echo $i; ?>][coliformes]" id="mediciones<?php echo $i; ?>" value="<?php is_array($parametros) ? isset($parametros[$i]["coliformes"]) ? htmlout($parametros[$i]["coliformes"]) : "" : ""; ?>" <?php echo $disabled; ?> <?php echo $disabled2; ?>>
                     </div>
                  <?php endfor; ?>
 
@@ -369,6 +374,9 @@
                 $("#ssedimentables").val("< "+html['ssedimentables']);
                 $("#ssuspendidos").val("< "+html['ssuspendidos']);
                 $("#dbo").val("< "+html['dbo']);
+                $("#nkjedahl").val("< "+html['nkjedahl']);
+                $("#nitritos").val("< "+html['nitritos']);
+                $("#nitratos").val("< "+html['nitratos']);
                 $("#fosforo").val("< "+html['fosforo']);
                 $("#arsenico").val("< "+html['arsenico']);
                 $("#cadmio").val("< "+html['cadmio']);
@@ -422,16 +430,16 @@
   $(document).ready(function() {
 
    jQuery.validator.addMethod('permitido2', function (value, element, param) {
-    return /^( *|\< *\d{1,3}\.\d{1,4}|\d{1,3}\.\d{1,4} *\± *\d{1,3}\.\d{1,4})$/.test(value);
+    return /^( *|\< *\d{1,4}\.\d{1,4}|\d{1,4}\.\d{1,4} *\± *\d{1,4}\.\d{1,4})$/.test(value);
    }, 'Sólo valores decimales iniciando con < o conteniendo ±.');
 
    jQuery.validator.addMethod('permitido', function (value, element, param) {
-    return /^(\d*\.\d{1,4}| *|\< *\d{1,3}\.\d{1,4}|\d{1,3}\.\d{1,4} *\± *\d{1,3}\.\d{1,4})$/.test(value);
+    return /^(\d*\.\d{1,4}| *|\< *\d{1,4}\.\d{1,4}|\d{1,4}\.\d{1,4} *\± *\d{1,4}\.\d{1,4})$/.test(value);
    }, 'Sólo valores decimales o decimales iniciando con < o conteniendo ±.');
 
    jQuery.validator.addMethod('gya', function (value, element, param) {
-    return /^( *|\< *12|\d*\.\d{1,3}|\d*)$/.test(value);
-   }, 'Sólo "<12" o valores enteros o con 3 decimales.');
+    return /^( *|\< *12|\d*\.\d{1,3}|\d*|\d{1,4}\.\d{1,4} *\± *\d{1,4}\.\d{1,4})$/.test(value);
+   }, 'Sólo "<12" o valores enteros o con 4 decimales.');
 
    jQuery.validator.addMethod('coliformes', function (value, element, param) {
     return /^( *|\< *3|\> *2400|\d*)$/.test(value);

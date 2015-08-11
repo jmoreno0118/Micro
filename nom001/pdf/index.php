@@ -28,7 +28,7 @@
 
             $this->SetTextColor(125);
             $this->SetFont('Arial', '', 6);
-            $this->MultiCell(0, 3, utf8_decode('El presente informe no podrá ser alterado ni reproducido total o parcialmente sin autorización previa por escrito del Laboratorio del Grupo Microanálisis, S.A. de C.V.')); //////////// Dirección
+            $this->MultiCell(0, 3, utf8_decode('El presente informe no podrá ser alterado ni reproducido total o parcialmente sin autorización previa por escrito del Laboratorio del Grupo Microanálisis, S.A. de C.V.'), 0, 'C'); //////////// Dirección
             $this->Ln();
 
             $this->SetTextColor(69, 147, 56);
@@ -339,6 +339,8 @@
 /**************************************************************************************************/
     if(isset($_POST['accion']) AND ($_POST['accion']=='buscar' OR $_POST['accion']=='informe') OR (isset($_GET['ot']) AND isset($_GET['id'])))
     {
+        $errores = 0;
+        $error = '';
         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
         try   
         {
@@ -365,7 +367,15 @@
                 $s->execute();
                 $orden = $s->fetch();
             }
+        }
+        catch (PDOException $e)
+        {
+            $mensaje='Error al tratar de obtener información de la orden. ';
+            include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+            exit();
+        }
 
+        try{
             $sql='SELECT nombre, ap, am
                 FROM responsables
                 WHERE muestreoaguaidfk = :id';
@@ -373,15 +383,23 @@
             $s->bindValue(':id', $orden['muestreoaguaid']);
             $s->execute();
             $responsables = $s->fetchAll();
+        }
+        catch (PDOException $e)
+        {
+            $mensaje='Error, no se encontraron responsables de la orden. ';
+            include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+            exit();
+        }
 
-            $sql='SELECT fechamuestreo, fechamuestreofin
-                FROM muestreosaguatbl
-                WHERE id = :id';
-            $s=$pdo->prepare($sql);
-            $s->bindValue(':id', $orden['muestreoaguaid']);
-            $s->execute();
-            $fechasmuestreo = $s->fetchAll();
+        $sql='SELECT fechamuestreo, fechamuestreofin
+            FROM muestreosaguatbl
+            WHERE id = :id';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id', $orden['muestreoaguaid']);
+        $s->execute();
+        $fechasmuestreo = $s->fetchAll();
 
+        try{
             if($orden['plantaidfk'] !== NULL){
                 $sql='SELECT plantastbl.razonsocial, plantastbl.calle, plantastbl.colonia, plantastbl.ciudad, 
                     plantastbl.estado, plantastbl.cp
@@ -420,16 +438,16 @@
                 $s->execute();
                 $cliente = $s->fetch();
             }
-            
         }
         catch (PDOException $e)
         {
-        $mensaje='Error al tratar de obtener información de la orden.'.$e;
-        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-        exit();
+            $mensaje='Error en la información de la planta. ';
+            include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+            exit();
         }
+
         if(!$orden){
-            $mensaje='Error al tratar de obtener información de la orden.'.$e;
+            $mensaje='Error al tratar de obtener información de la orden.';
             include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
             exit();
         }
@@ -468,9 +486,9 @@
         }
         catch (PDOException $e)
         {
-        $mensaje='Hubo un error extrayendo la orden.'.$e;
-        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-        exit();
+            $mensaje='Hubo un error extrayendo la fecha del reporte. ';
+            include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+            exit();
         }
 
         $meses = array("Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre");
@@ -505,23 +523,23 @@
 
         try   
         {
-        $sql='SELECT muestreosaguatbl.identificacion
-            FROM clientestbl
-            INNER JOIN ordenestbl ON clientestbl.Numero_Cliente = ordenestbl.clienteidfk
-            INNER JOIN generalesaguatbl ON ordenestbl.id = generalesaguatbl.ordenaguaidfk
-            INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
-            INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk
-            WHERE estudiostbl.nombre="NOM 001" AND ordenestbl.ot = :ot ';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':ot', isset($_GET['ot']) ? $_GET['ot'] : $_POST['ot']);
-        $s->execute();
-        $identificaciones = $s->fetchAll();
+            $sql='SELECT muestreosaguatbl.identificacion
+                FROM clientestbl
+                INNER JOIN ordenestbl ON clientestbl.Numero_Cliente = ordenestbl.clienteidfk
+                INNER JOIN generalesaguatbl ON ordenestbl.id = generalesaguatbl.ordenaguaidfk
+                INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
+                INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk
+                WHERE estudiostbl.nombre="NOM 001" AND ordenestbl.ot = :ot ';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':ot', isset($_GET['ot']) ? $_GET['ot'] : $_POST['ot']);
+            $s->execute();
+            $identificaciones = $s->fetchAll();
         }
         catch (PDOException $e)
         {
-        $mensaje='Hubo un error extrayendo la orden.'.$e;
-        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-        exit();
+            $mensaje='Hubo un error extrayendo la identificación de las mediciones. ';
+            include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+            exit();
         }
 
         $fechasinicio = array();
@@ -598,28 +616,49 @@
 
         try   
         {
-         $sql='SELECT generalesaguatbl.numedicion, muestreosaguatbl.fechamuestreo, muestreosaguatbl.identificacion, generalesaguatbl.lugarmuestreo,
-              generalesaguatbl.descriproceso, generalesaguatbl.materiasusadas, generalesaguatbl.tratamiento, generalesaguatbl.Caracdescarga,
-              generalesaguatbl.receptor, generalesaguatbl.estrategia, generalesaguatbl.observaciones, muestreosaguatbl.temperatura,
-              muestreosaguatbl.pH, muestreosaguatbl.conductividad, muestreosaguatbl.mflotante,  muestreosaguatbl.id as "muestreoaguaid",
-              generalesaguatbl.nom01maximosidfk, muestreosaguatbl.identificacion, generalesaguatbl.tipomediciones, muestreosaguatbl.caltermometro,
-              generalesaguatbl.id as "generalaguaid"
-              FROM  generalesaguatbl
-              INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
-              WHERE  generalesaguatbl.ordenaguaidfk = :id;';
-         $s=$pdo->prepare($sql);
-         $s->bindValue(':id', $orden['id']);
-         $s->execute();
-         $muestras = $s->fetchAll();
+            $sql='SELECT generalesaguatbl.id, generalesaguatbl.numedicion
+                FROM  generalesaguatbl
+                INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
+                WHERE  generalesaguatbl.ordenaguaidfk = :id;';
+            $s=$pdo->prepare($sql);
+            $s->bindValue(':id', $orden['id']);
+            $s->execute();
+            $muestras = $s->fetchAll();
         }
         catch (PDOException $e)
         {
-         $mensaje='Hubo un error extrayendo la orden.'.$e;
-         include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-         exit();
+
+            $mensaje='Hubo un error extrayendo las mediciones. ';
+            include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+            exit();
         }
 
-        foreach ($muestras as $muestra) {
+        foreach ($muestras as $muestreo) {
+            try   
+            {
+                $sql='SELECT generalesaguatbl.numedicion, muestreosaguatbl.fechamuestreo, muestreosaguatbl.identificacion,
+                    generalesaguatbl.lugarmuestreo, generalesaguatbl.descriproceso, generalesaguatbl.materiasusadas,
+                    generalesaguatbl.tratamiento, generalesaguatbl.Caracdescarga, generalesaguatbl.estrategia,
+                    generalesaguatbl.observaciones, muestreosaguatbl.temperatura, muestreosaguatbl.pH, 
+                    muestreosaguatbl.conductividad, muestreosaguatbl.mflotante, muestreosaguatbl.id as "muestreoaguaid",
+                    generalesaguatbl.nom01maximosidfk, muestreosaguatbl.identificacion, generalesaguatbl.tipomediciones,
+                    muestreosaguatbl.caltermometro, muestreosaguatbl.caltermometro2, generalesaguatbl.id as "generalaguaid"
+                    FROM  generalesaguatbl
+                    INNER JOIN muestreosaguatbl ON generalesaguatbl.id = muestreosaguatbl.generalaguaidfk
+                    WHERE  generalesaguatbl.id = :id;';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $muestreo['id']);
+                $s->execute();
+                $muestra = $s->fetch();
+            }
+            catch (PDOException $e)
+            {
+
+                $mensaje='Hubo un error extrayendo los datos generales de la medición '.$muestreo['numedicion'].' '."\n";
+                include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+                exit();
+            }
+
             $cantidad = 1;
             if($muestra['tipomediciones'] === '4'){
                 $cantidad = 2;
@@ -634,35 +673,63 @@
     //--------------------------------------------------------------------------------------------------------------------
             try   
             {
-             $sql='SELECT *
-                   FROM parametrostbl
-                   WHERE muestreoaguaidfk = :id';
-             $s=$pdo->prepare($sql);
-             $s->bindValue(':id', $muestra['muestreoaguaid']);
-             $s->execute();
-             $parametros = $s->fetch();
+                $sql='SELECT *
+                    FROM parametrostbl
+                    WHERE muestreoaguaidfk = :id';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $muestra['muestreoaguaid']);
+                $s->execute();
+                $parametros = $s->fetch();
 
-             $sql='SELECT *
-                   FROM metodosparametrostbl
-                   WHERE parametrosidfk = :id';
-             $s=$pdo->prepare($sql);
-             $s->bindValue(':id', $parametros['id']);
-             $s->execute();
-             $metodos = $s->fetch();
+                $sql='SELECT *
+                    FROM metodosparametrostbl
+                    WHERE parametrosidfk = :id';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $parametros['id']);
+                $s->execute();
+                $metodos = $s->fetch();
 
-             $sql='SELECT *
-                   FROM nom01maximostbl
-                   WHERE id = :id';
-             $s = $pdo->prepare($sql);
-             $s->bindValue(':id', $muestra['nom01maximosidfk']);
-             $s->execute();
-             $maximos = $s->fetch();
+                $sql='SELECT *
+                    FROM nom01maximostbl
+                    WHERE id = :id';
+                $s = $pdo->prepare($sql);
+                $s->bindValue(':id', $muestra['nom01maximosidfk']);
+                $s->execute();
+                $maximos = $s->fetch();
+
+                $sql='SELECT *
+                        FROM parametros2tbl
+                        WHERE parametroidfk = :id';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $parametros['id']);
+                $s->execute();
+                $parametros2 = "";
+                foreach ($s as $linea) {
+                    $parametros2[]=array("GyA" => $linea["GyA"],
+                                        "coliformes" => $linea["coliformes"]);
+                }
+
+                $sql='SELECT *
+                    FROM adicionalestbl
+                    WHERE parametroidfk = :id';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id',$parametros['id']);
+                $s->execute();
+                $adicionales = '';
+                foreach ($s as $linea) {
+                    $adicionales[]=array("nombre" => $linea["nombre"],
+                                        "unidades" => $linea["unidades"],
+                                        "resultado" => $linea["resultado"],
+                                        "metodo" => $linea["metodo"]);
+                }
             }
             catch (PDOException $e)
             {
-             $mensaje='Hubo un error extrayendo la orden.'.$e;
-             include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-             exit();
+                $errores++;
+                $error .= 'Hubo un error extrayendo los párametros de la medición '.$muestreo['numedicion'].' '."\n";
+                /*$mensaje='Hubo un error extrayendo los párametros de la medición '.$muestreo['numedicion'].$e;
+                include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+                exit();*/
             }
 
     //--------------------------------------------------------------------------------------------------------------------
@@ -670,86 +737,85 @@
     //--------------------------------------------------------------------------------------------------------------------
             try   
             {
-             $sql='SELECT *
-                    FROM parametros2tbl
-                    WHERE parametroidfk = :id';
-             $s=$pdo->prepare($sql);
-             $s->bindValue(':id', $parametros['id']);
-             $s->execute();
-             $parametros2 = "";
-             foreach ($s as $linea) {
-              $parametros2[]=array("GyA" => $linea["GyA"],
-                                   "coliformes" => $linea["coliformes"]);
-             }
-
-              $sql="SELECT DATE_FORMAT(mcompuestastbl.hora, '%H:%i') as 'hora', mcompuestastbl.flujo, mcompuestastbl.volumen, mcompuestastbl.observaciones,
-                    mcompuestastbl.caracteristicas
-                    FROM mcompuestastbl
-                    WHERE mcompuestastbl.muestreoaguaidfk = :id";
-              $s=$pdo->prepare($sql); 
-              $s->bindValue(':id', $muestra['generalaguaid']);
-              $s->execute();
-              $mcompuestas = "";
-              foreach($s as $linea){
-              $mcompuestas[] = array("hora" => $linea["hora"],
-                         "flujo" => $linea["flujo"],
-                         "volumen" => $linea["volumen"],
-                         "observaciones" => $linea["observaciones"],
-                         "caracteristicas" => $linea["caracteristicas"]);
-             }
+                $sql="SELECT DATE_FORMAT(mcompuestastbl.hora, '%H:%i') as 'hora', mcompuestastbl.flujo, mcompuestastbl.volumen, mcompuestastbl.observaciones,
+                        mcompuestastbl.caracteristicas
+                        FROM mcompuestastbl
+                        WHERE mcompuestastbl.muestreoaguaidfk = :id";
+                $s=$pdo->prepare($sql); 
+                $s->bindValue(':id', $muestra['muestreoaguaid']);
+                $s->execute();
+                $mcompuestas = "";
+                foreach($s as $linea){
+                    $mcompuestas[] = array("hora" => $linea["hora"],
+                                            "flujo" => $linea["flujo"],
+                                            "volumen" => $linea["volumen"],
+                                            "observaciones" => $linea["observaciones"],
+                                            "caracteristicas" => $linea["caracteristicas"]);
+                }
+                //var_dump($mcompuestas);
             }
             catch (PDOException $e)
             {
-             $mensaje='Hubo un error extrayendo la orden.'.$e;
-             include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-             exit();
+                $errores++;
+                $error .= 'Hubo un error extrayendo las compuestas de la medicion '.$muestreo['numedicion'].' '."\n";
+                /*$mensaje='Hubo un error extrayendo las compuestas de la medicion '.$muestreo['numedicion'].$e;
+                include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+                exit();*/
             }
             //var_dump($mcompuestas);
-    //--------------------------------------------------------------------------------------------------------------------
-    //Obtener adicionales-------------------------------------------------------------------------------------------------
-    //--------------------------------------------------------------------------------------------------------------------
-            try   
-                {
-                 $sql='SELECT *
-                  FROM adicionalestbl
-                  WHERE parametroidfk = :id';
-                 $s=$pdo->prepare($sql);
-                 $s->bindValue(':id',$parametros['id']);
-                 $s->execute();
-                 $adicionales = '';
-                 foreach ($s as $linea) {
-                  $adicionales[]=array("nombre" => $linea["nombre"],
-                                       "unidades" => $linea["unidades"],
-                                       "resultado" => $linea["resultado"],
-                                       "metodo" => $linea["metodo"]);
-                 }
-                }
-                catch (PDOException $e)
-                {
-                 $mensaje='Hubo un error extrayendo la orden.'.$e;
-                 include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-                 exit();
-                }
 
     //--------------------------------------------------------------------------------------------------------------------
     //Obtener croquis----------------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------------------------------------------
             try   
             {
-             $sql='SELECT *
-                   FROM documentos001tbl
-                   WHERE generalaguaidfk = :id AND tipo = "Croquis"';
-             $s=$pdo->prepare($sql);
-             $s->bindValue(':id', $muestra['generalaguaid']);
-             $s->execute();
-             $croquis = $s->fetch();
-             //var_dump($croquis);
+                $sql='SELECT *
+                FROM documentos001tbl
+                WHERE generalaguaidfk = :id AND tipo = "Croquis"';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $muestra['generalaguaid']);
+                $s->execute();
+                $croquis = $s->fetch();
+                if(!$croquis){
+                    $errores++;
+                    $error .= 'Hubo un error extrayendo el croquis de la medicion '.$muestreo['numedicion']."\n";
+                }
+                //var_dump($croquis);
             }
             catch (PDOException $e)
             {
-             $mensaje='Hubo un error extrayendo la orden.'.$e;
-             include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-             exit();
+                $errores++;
+                $error .= 'Hubo un error extrayendo el croquis de la medicion '.$muestreo['numedicion'].' '."\n";
+                /*$mensaje='Hubo un error extrayendo el croquis de la medicion '.$muestreo['numedicion'].$e;
+                include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+                exit();*/
+            }
+
+    //--------------------------------------------------------------------------------------------------------------------
+    //Obtener responsable----------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------------------------------------
+
+            try{
+                $sql='SELECT nombre, ap, am
+                    FROM responsables
+                    WHERE muestreoaguaidfk = :id';
+                $s=$pdo->prepare($sql);
+                $s->bindValue(':id', $muestra['muestreoaguaid']);
+                $s->execute();
+                $responsable = $s->fetch();
+
+                if(!$responsable){
+                    $errores++;
+                    $error .= 'Hubo un error extrayendo los responsables de la medicion '.$muestreo['numedicion']."\n";
+                }
+            }
+            catch (PDOException $e)
+            {
+                $errores++;
+                $error .= 'Hubo un error extrayendo el responsable de la medicion '.$muestreo['numedicion'].' '."\n";
+                /*$mensaje='Hubo un error extrayendo el croquis de la medicion '.$muestreo['numedicion'].$e;
+                include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+                exit();*/
             }
 
             /**************************************************************************************************/
@@ -852,7 +918,7 @@
                 $pdf->Cell(50, 5, utf8_decode('Tipo de receptor de la descarga'), 1, 0, 'L');
 
                 $pdf->SetFont('Arial', '', 9);
-                $pdf->Cell(0, 5, utf8_decode($muestra['receptor']), 1, 1, 'L');
+                $pdf->Cell(0, 5, utf8_decode($maximos['descargaen']), 1, 1, 'L');
 
                 $pdf->SetWidths(array(50,115));
                 $pdf->SetFonts(array('B',''));
@@ -891,7 +957,7 @@
                 $pdf->Cell(30, 5, utf8_decode('Temperatura'), 1, 0, 'C');
                 $pdf->Cell(20, 5, utf8_decode('°C'), 1, 0, 'C');
 
-                $pdf->Cell(20, 5, utf8_decode(($muestra['temperatura'] + $muestra['caltermometro'])), 1, 0, 'C');
+                $pdf->Cell(20, 5, utf8_decode(($muestra['temperatura'] * floatval($muestra['caltermometro']) + floatval($muestra['caltermometro2']))), 1, 0, 'C');
                 $pdf->Cell(25, 5, utf8_decode('±      ').(number_format(($muestra['temperatura'] * 1.645 * 0.02866), 2, '.', '')), 1, 0, 'C');
                 $pdf->Cell(30, 5, utf8_decode('40'), 1, 0, 'C');
                 $pdf->Cell(40, 5, utf8_decode('NMX-AA-007-SCFI-2013'), 1, 1, 'C');
@@ -945,7 +1011,13 @@
                 $pdf->SetFont('Arial', '', 9);
                 $pdf->Cell(45, 5, utf8_decode('Materia flotante visual'), 1, 0, 'C');
                 $pdf->Cell(40, 5, utf8_decode('No Aplica'), 1, 0, 'C');
+                if( (strval($muestra['mflotante']) === '1') ){
+                    $pdf->SetFont('Arial', 'B', 9);
+                }else{
+                    $pdf->SetFont('Arial', '', 9);
+                }
                 $pdf->Cell(40, 5, utf8_decode(( strval($muestra['mflotante']) === '1')? 'Presente' : 'Ausente'), 1, 0, 'C');
+                $pdf->SetFont('Arial', '', 9);
                 $pdf->Cell(40, 5, utf8_decode('Ausente'), 1, 1, 'C');
                 $pdf->Ln();
 
@@ -958,7 +1030,7 @@
                 $promcoliformes = '';
                 $nocoliformes = 0;
                 for ($i=0; $i < $cantidad; $i++) {
-                  if(strcmp($parametros2[$i]['coliformes'], "") === 0 ){
+                  if( strcmp($parametros2[$i]['coliformes'], "") === 0 AND strcmp($parametros2[$i]['coliformes'], "") === 0 ){
                     $nocoliformes++;
                   }
                 }
@@ -972,13 +1044,15 @@
                             if( strpos($parametros2[$i]['coliformes'], "<") !== FALSE){
                                 $dato = explode("<", $parametros2[$i]['coliformes']);
                             }
+                            if( strpos($parametros2[$i]['coliformes'], ">") !== FALSE){
+                                $dato = explode(">", $parametros2[$i]['coliformes']);
+                            }
                             $promcoliformes = $promcoliformes * $dato[1];
                             $raiz++;
                         }
                     }
                     $promcoliformes = pow($promcoliformes, (1/$raiz) );
                 }
-
                 if($cantidad === 1){
                     parametrosPDF($pdf, $muestra, $parametros, $maximos, $cantidad, $parametros2, 0, $promcoliformes, $metodos);
                 }else{
@@ -991,13 +1065,13 @@
                 if($cantidad === 1){
                     if($adicionales === ''){
                         hojaNueva($pdf, $orden, '3', '3');
-                        croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables);
+                        croquisPDF($pdf, $cantidad, $croquis, $orden, $responsable);
                     }else{
                         hojaNueva($pdf, $orden, '3', '4');
                         adicionalesPDF($pdf, $adicionales);
 
                         hojaNueva($pdf, $orden, '4', '4');
-                        croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables);
+                        croquisPDF($pdf, $cantidad, $croquis, $orden, $responsable);
                     }
                 }else{
                     if($adicionales === ''){
@@ -1038,23 +1112,31 @@
                         $totalconcentracion = 0;
                         //var_dump($parametros2);
                         for ($i=0; $i < $cantidad; $i++) {
-                          $gya = (strcmp($parametros2[$i]['GyA'], "") !== 0 )? $parametros2[$i]['GyA'] : 0; 
-                          if(strpos($gya, '<') !== false){
+                            $gya = (strcmp($parametros2[$i]['GyA'], "") !== 0 )? $parametros2[$i]['GyA'] : "S/F";
+                            if(strpos($gya, '<') === false AND strpos($gya, '±') === false){
+                                if($gya < 12){
+                                    $gya = "<12";
+                                }
+                            }
+                            if(strpos($gya, '<') !== false){
                                 $gya = explode('<', $gya);
                                 $gya = $gya[1];
+                            }elseif(strpos($gya, '±') !== false){
+                                $gya = explode('±', $gya);
+                                $gya = $gya[0];
                             }
-                          $pdf->Cell(35, 5, $parametros2[$i]['GyA'], 1, 0, 'C');
-                          $pdf->Cell(40, 5, number_format(doubleval($mcompuestas[$i]['flujo']*1000), 5), 1, 0, 'C');
+                            $pdf->Cell(35, 5, $parametros2[$i]['GyA'], 1, 0, 'C');
+                            $pdf->Cell(40, 5, number_format(doubleval($mcompuestas[$i]['flujo']*1000), 5), 1, 0, 'C');
 
-                          $concentracion = "S/F";
-                          if($mcompuestas[$i]['flujo'] !== "S/F"){
-                            //Las GyA sin flujo no deben ser tomadas en cuenta en el calculo
-                            $gyatotal += floatval($gya);
-                            $flujototal += floatval($mcompuestas[$i]['flujo']*1000);
-                            $concentracion = ($mcompuestas[$i]['flujo'] * 1000) * $gya;
-                            $totalconcentracion += $concentracion;
-                          }
-                          $pdf->Cell(50, 5, utf8_decode(number_format(doubleval($concentracion), 5)), 1, 1, 'C');
+                            $concentracion = "S/F";
+                            if($mcompuestas[$i]['flujo'] !== "S/F"){
+                                //Las GyA sin flujo no deben ser tomadas en cuenta en el calculo
+                                $gyatotal += floatval($gya);
+                                $flujototal += floatval($mcompuestas[$i]['flujo']*1000);
+                                $concentracion = ($mcompuestas[$i]['flujo'] * 1000) * $gya;
+                                $totalconcentracion += $concentracion;
+                            }
+                            $pdf->Cell(50, 5, utf8_decode(number_format(doubleval($concentracion), 5)), 1, 1, 'C');
                         }
 
                         $pdf->SetFont('Arial', '', 10);
@@ -1124,7 +1206,7 @@
                     $y = $pdf->GetY();
                     $pdf->MultiCell(35, 4, utf8_decode("\n\nVolumen de la muestra simple \n (V ms) \n (ml)\n\n\n"), 1, 'C', true);
                     $pdf->SetXY($x + 35, $y);
-                    $pdf->MultiCell(30, 4, utf8_decode("\nVolumen de alicuota de cada muestra simple \n (Vx) \n Vx = (Vms) (% Mtx) / 100\n\n"), 1, 'C', true);
+                    $pdf->MultiCell(30, 4, utf8_decode("\nVolumen de alicuota de cada muestra simple \n (Vx) \n Vx = ( (Vms) (% Mtx) / 100 ) * 1.15\n\n"), 1, 'C', true);
 
                     $pdf->SetFont('Arial', '', 8);
 
@@ -1154,9 +1236,9 @@
 
                       $imprimirvolalicuota = "S/F";
                       if($mcompuestas[$i]['flujo'] !== "S/F"){
-                        $volalicuota = ($mcompuestas[$i]['volumen'] * $poralicuota)/100;
+                        $volalicuota = ($mcompuestas[$i]['volumen'] * $poralicuota * 1.15)/100;
                         $totalvolalicuota += $volalicuota;
-                        $imprimirvolalicuota = number_format(doubleval($volalicuota), 2);
+                        $imprimirvolalicuota = number_format(doubleval($volalicuota), 0);
                       }
                       $pdf->Cell(30, 5, utf8_decode($imprimirvolalicuota), 1, 1, 'C');
                     }
@@ -1183,13 +1265,19 @@
                     $pdf->MultiCell(35, 4, utf8_decode('Volumen total de la muestra compuesta'), 1, 'C');
                     $pdf->SetXY($x + 35, $y);
                     if(strpos($totalvolalicuota,'.') !== false){
-                        $totalvolalicuota = number_format(doubleval($totalvolalicuota), 5);
+                        $totalvolalicuota = number_format(doubleval($totalvolalicuota), 0);
                     }
                     $pdf->Cell(30, 8, utf8_decode($totalvolalicuota), 1, 1, 'C');
                     $pdf->Ln(4);
 
-                    croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables);
+                    croquisPDF($pdf, $cantidad, $croquis, $orden, $responsable);
                 }
+        }
+
+        if($errores > 0){
+            $mensaje = $error;
+            include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+            exit();
         }
         $pdf->Output();
         exit();
@@ -1200,7 +1288,7 @@
 /**************************************************************************************************/
     //include 'formabuscaorden.html.php';
     //exit();
-    $mensaje='Hubo un error.';
+    $mensaje='No se accedió adecuadamente al informe.';
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
     exit();
 
@@ -1269,6 +1357,7 @@
         //var_dump($cantidad);
         $pdf->SetFont('Arial', 'B', 9);
         $pdf->Cell(0, 5, utf8_decode('Caracteristicas y observaciones por toma.'), 1, 1, 'C', true);
+        //var_dump($mcompuestas);
         for ($i=0; $i < $cantidad; $i++) { 
             $pdf->SetWidths(array(50,115));
             $pdf->SetAligns(array('C','J'));
@@ -1376,7 +1465,7 @@
                     if( strpos($parametros2[0]['coliformes'], "<") !== FALSE){
                         $pdf->Cell(25, 6, utf8_decode($parametros2[0]['coliformes']), 1, 0, 'C');
                     }else{
-                        $pdf->Cell(25, 6, utf8_decode(number_format(doubleval($parametros2[0]['coliformes']), 5)), 1, 0, 'C');
+                        $pdf->Cell(25, 6, utf8_decode(number_format(doubleval($parametros2[0]['coliformes']), is_float()? 5 : 0)), 1, 0, 'C');
                     }
                 }else{
                     if(in_array($value, $formulario2)){
@@ -1404,7 +1493,7 @@
 
             $pdf->SetFont('Arial', '', 9);
             $pdf->Cell(30, 6, utf8_decode((in_array($value, $formulario2)) ? $maximos[$value] : "No Aplica"), 1, 0, 'C');
-            $pdf->Cell(40, 6, utf8_decode($metodos[$value]), 1, 1, 'C');
+            $pdf->Cell(40, 6, utf8_decode( ($value === "nitrogeno")? "Calculado" : $metodos[$value]), 1, 1, 'C');
         }
         $pdf->Ln();
     }
@@ -1443,13 +1532,15 @@
 /* Función para dibujar el croquis */
 /**************************************************************************************************/
 //Recibe el objeto de pdf, el valor de cantidad y la imagen del croquis
-    function croquisPDF($pdf, $cantidad, $croquis, $orden, $responsables){
+    function croquisPDF($pdf, $cantidad, $croquis, $orden, $responsable){
         //var_dump($croquis);
         $imagen = $_SERVER['DOCUMENT_ROOT'].'/reportes/nom001/documentos/'.$croquis['nombrearchivado'];
-        $pdf->Cell(0, 5, utf8_decode('Croquis del lugar donde se tomó la muestra'), 1, 1, 'C', true);
+        $pdf->Cell(0, 5, utf8_decode('Croquis del lugar donde se tomó la muestra '.$croquis['nombrearchivado']), 1, 1, 'C', true);
         if($croquis!==false){
             if($cantidad === 1){
                 $pdf->Image($imagen, 20, 85, 165, 75);
+            }elseif($cantidad === 2){
+                $pdf->Image($imagen, 20, 144, 165, 75);
             }elseif($cantidad === 4){
                 $pdf->Image($imagen, 20, 154, 165, 75);
             }elseif($cantidad === 6){
@@ -1475,7 +1566,7 @@
         $pdf->SetFont('Arial', 'B', 8);
         $x = $pdf->GetX();
         $y = $pdf->GetY();
-        $pdf->Cell(60, 4, utf8_decode($responsables[0]['nombre'].' '.$responsables[0]['ap'].' '.$responsables[0]['am']), 0, 0, 'C');
+        $pdf->Cell(60, 4, utf8_decode($responsable['nombre'].' '.$responsable['ap'].' '.$responsable['am']), 0, 0, 'C');
         $pdf->SetXY($x + 105, $y);
         $pdf->MultiCell(60, 4, utf8_decode($orden['signatarionombre'].' '.$orden['signatarioap'].' '.$orden['signatarioam']), 0, 'C');
     }

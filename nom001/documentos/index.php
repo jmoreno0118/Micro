@@ -87,6 +87,17 @@ if(isset($_POST['accion']) and $_POST['accion']=='subir')
 			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
 			exit();
 		}
+
+		$archivotipo=exif_imagetype($_FILES['archivo']['tmp_name']);
+		$tiposaceptados=array(IMAGETYPE_GIF,IMAGETYPE_JPEG,IMAGETYPE_PNG,IMAGETYPE_BMP);
+		if (!in_array($archivotipo,$tiposaceptados))
+		{
+			$mensaje='Los croquis sólo pueden ser imagen, ej. GIF, JPEG, PNG O BMP';
+			$errorlink = 'http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/generales';
+			$errornav = 'Volver a mediciones';
+			include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+			exit();
+  		}
 	}
 
 	// se verifica que el nombre del archivo solo contenga caracteres validos

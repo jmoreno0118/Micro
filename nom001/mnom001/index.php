@@ -3,17 +3,17 @@
  include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/magicquotes.inc.php';
  require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/acceso.inc.php';
 
- if (!usuarioRegistrado())
- {
+if (!usuarioRegistrado())
+{
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/direccionaregistro.inc.php';
   exit();
- }
- if (!usuarioConPermiso('Captura'))
- {
-  $mensaje='Solo el Capturista tiene acceso a esta parte del programa';
+}
+if (!usuarioConPermiso('Supervisor'))
+{
+  $mensaje='Solo el Supervisor tiene acceso a esta parte del programa';
   include '../accesonegado.html.php';
   exit();
- }
+}
 
 /**************************************************************************************************/
 /* Agregar un nuevo máximo a la norma */

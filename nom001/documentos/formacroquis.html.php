@@ -55,11 +55,11 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php'; ?>
               <p>Nota: Los archivos que se permite subir al sistema deben tener un tamaño MAXIMO <strong>2Mb</strong></p> 
             </form> 
         </fieldset>
-
-        <table>
-          <?php/*If*/ if ($documentos != ''): ?>
+        
+        <?php if(strcmp($documentos, "") !== 0){ ?>
+          <table>
             <caption>Documentos en el sistema</caption>
-            <tr><th>nombre</th><th>Descripción</th><th>Enlace</th><th></th></tr>
+            <tr><th>Nombre</th><th>Descripción</th><th>Enlace</th><th></th></tr>
             <?php foreach ($documentos as $documento): ?>
               <tr>
                 <td><?php htmlout($documento['nombre']); ?></td>
@@ -75,13 +75,13 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php'; ?>
                     <input type="hidden" name="accion" value="borraplano">
                     <input type="submit" value="Borrar">
                   </div>
-                </form> 
+                </form>
                 </td>
               </tr>
             <?php endforeach; ?>
-          <?php/*If*/ endif; ?> 
-        </table>
-
+          </table>
+        <?php } ?>
+        
         <p><a href="../generales">Volver a mediciones</a></p>
       </div>  <!-- cuerpoprincipal -->
       <div id="footer">

@@ -47,7 +47,7 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar' OR isset($_POST['acci
 									observaciones=:observaciones,
 									caracteristicas=:caracteristicas';
 			        $s=$pdo->prepare($sql);
-			        $s->bindValue(':id',  $_POST['id']);
+			        $s->bindValue(':id',  $_POST['muestreoid']);
 			        $s->bindValue(':hora', (isset($value["hora"])) ? $value["hora"] : '');
 			        $s->bindValue(':flujo', (isset($value["flujo"])) ? $value["flujo"] : '');
 			        $s->bindValue(':volumen', (isset($value["volumen"])) ? $value["volumen"] : 0);

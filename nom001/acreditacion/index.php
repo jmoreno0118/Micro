@@ -9,9 +9,9 @@ if (!usuarioRegistrado())
 	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/direccionaregistro.inc.php';
 	exit();
 }
-if (!usuarioConPermiso('Captura'))
+if (!usuarioConPermiso('Supervisor'))
 {
-	$mensaje='Solo el Capturista tiene acceso a esta parte del programa';
+	$mensaje='Solo el Supervisor tiene acceso a esta parte del programa';
 	include '../accesonegado.html.php';
 	exit();
 }

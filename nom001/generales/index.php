@@ -64,7 +64,6 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar')
             materiasusadas=:materiasusadas,
             tratamiento=:tratamiento,
             Caracdescarga=:Caracdescarga,
-            receptor=:receptor,
             estrategia=:estrategia,
             numuestras=:numuestras,
             observaciones=:observaciones,
@@ -78,7 +77,6 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar')
       $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
       $s->bindValue(':tratamiento', $_POST['tratamiento']);
       $s->bindValue(':Caracdescarga', $_POST['Caracdescarga']);
-      $s->bindValue(':receptor', $_POST['receptor']);
       $s->bindValue(':estrategia', $_POST['estrategia']);
       $s->bindValue(':numuestras', $_POST['numuestras']);
       $s->bindValue(':observaciones', $_POST['observaciones']);
@@ -87,7 +85,8 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar')
       $id=$pdo->lastInsertid();
 
       $correccion = getCorreccion($_POST['termometro']);
-      $calibracion = getCalibracion($correccion, $_POST['temperatura']);
+      $calibracion1 = getCalibracion1($correccion, $_POST['temperatura']);
+      $calibracion2 = getCalibracion2($correccion, $_POST['temperatura']);
 
       $sql='INSERT INTO muestreosaguatbl SET
             generalaguaidfk=:generalaguaidfk,
@@ -95,6 +94,7 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar')
             identificacion=:identificacion,
             temperatura=:temperatura,
             caltermometro=:caltermometro,
+            caltermometro2=:caltermometro2,
             pH=:pH,
             conductividad=:conductividad,
             mflotante=:mflotante,
@@ -105,7 +105,8 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar')
       $s->bindValue(':fechamuestreo', $_POST['fechamuestreo']);
       $s->bindValue(':identificacion', $_POST['identificacion']);
       $s->bindValue(':temperatura', $_POST['temperatura']);
-      $s->bindValue(':caltermometro', $calibracion);
+      $s->bindValue(':caltermometro', $calibracion1);
+      $s->bindValue(':caltermometro2', $calibracion2);
       $s->bindValue(':pH', $_POST['pH']);
       $s->bindValue(':conductividad', $_POST['conductividad']);
       $s->bindValue(':mflotante', $_POST['mflotante']);
@@ -122,7 +123,7 @@ if(isset($_POST['accion']) and $_POST['accion']=='guardar')
             fechamuestreofin=:fechamuestreofin
             WHERE generalaguaidfk=:generalaguaidfk';
         $s=$pdo->prepare($sql);
-        $s->bindValue(':generalaguaidfk', $_POST['id']);
+        $s->bindValue(':generalaguaidfk', $muestreoid);
         $s->bindValue(':fechamuestreofin', $_POST['fechamuestreofin']);
         $s->execute();
       }
@@ -172,7 +173,7 @@ if (isset($_GET['accion']) and $_GET['accion']=='capturar')
   $signatarios = getSignatarios();
   $muestreadores = getMuestradores();
   $acreditaciones = getAcreditaciones();
-  $termometros = getTermometros();
+  $termometros = getEquipos("Term&oacute;metro", $id);
 	if(isset($_POST['valores']))
   {
 		$valores = json_decode($_POST['valores'],TRUE);
@@ -239,7 +240,6 @@ if((isset($_POST['accion']) and $_POST['accion']=='editar') OR (isset($_POST['ac
 			           "materiasusadas" => $linea["materiasusadas"],
 			           "tratamiento" => $linea["tratamiento"],
 			           "Caracdescarga" => $linea["Caracdescarga"],
-			           "receptor" => $linea["receptor"],
 			           "estrategia" => $linea["estrategia"],
 			           "numuestras" => $linea["numuestras"],
 			           "observaciones" => $linea["observaciones"],
@@ -247,7 +247,6 @@ if((isset($_POST['accion']) and $_POST['accion']=='editar') OR (isset($_POST['ac
                  "fechamuestreofin" => $linea["fechamuestreofin"],
 			           "identificacion" => $linea["identificacion"],
 			           "temperatura" => $linea["temperatura"],
-			           "caltermometro" => $linea["caltermometro"],
 			           "pH" => $linea["pH"],
 			           "conductividad" => $linea["conductividad"],
                  "nombresignatario" => getNombreSignatario($linea["ordenaguaidfk"]),
@@ -260,7 +259,7 @@ if((isset($_POST['accion']) and $_POST['accion']=='editar') OR (isset($_POST['ac
   $signatarios = getSignatarios();
   $muestreadores = getMuestradores();
   $acreditaciones = getAcreditaciones();
-  $termometros = getTermometros();
+  $termometros = getEquipos("Term&oacute;metro", $_SESSION['ot']);
   $descargaen = getMaximos();
 	$pestanapag='Editar medicion';
 	$titulopagina='Editar medicion';
@@ -319,7 +318,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Continuar borrando medicion')
       $s->bindValue(':id',$_POST['id']);
       $s->execute();
 
-      $sql='DELETE FROM adicionales WHERE parametroidfk IN (SELECT parametrostbl.id FROM parametrostbl INNER JOIN muestreosaguatbl ON muestreosaguatbl.id=parametrostbl.muestreoaguaidfk WHERE muestreosaguatbl.generalaguaidfk= :id)';
+      $sql='DELETE FROM adicionalestbl WHERE parametroidfk IN (SELECT parametrostbl.id FROM parametrostbl INNER JOIN muestreosaguatbl ON muestreosaguatbl.id=parametrostbl.muestreoaguaidfk WHERE muestreosaguatbl.generalaguaidfk= :id)';
       $s=$pdo->prepare($sql);
       $s->bindValue(':id',$_POST['id']);
       $s->execute();
@@ -339,7 +338,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Continuar borrando medicion')
       $s->bindValue(':id',$_POST['id']);
       $s->execute(); 
 
-      $sql='DELETE FROM reponsables WHERE muestreoaguaidfk IN (SELECT id FROM muestreosaguatbl WHERE generalaguaidfk = :id)';
+      $sql='DELETE FROM responsables WHERE muestreoaguaidfk IN (SELECT id FROM muestreosaguatbl WHERE generalaguaidfk = :id)';
       $s=$pdo->prepare($sql);
       $s->bindValue(':id',$_POST['id']);
       $s->execute(); 
@@ -359,7 +358,9 @@ if (isset($_POST['accion']) and $_POST['accion']=='Continuar borrando medicion')
   catch (PDOException $e)
   {
       $pdo->rollback();
-      $mensaje='Hubo un error borrando la medición. Intente de nuevo. ';
+      $errorlink = 'http://'.$_SERVER['HTTP_HOST'].'/reportes/nom001/generales';
+      $errornav = 'Volver a norma 001';
+      $mensaje='Hubo un error borrando la medición. Intente de nuevo. '.$e;
       include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
       exit();
   }
@@ -412,7 +413,6 @@ if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['
                     materiasusadas=:materiasusadas,
                     tratamiento=:tratamiento,
                     Caracdescarga=:Caracdescarga,
-                    receptor=:receptor,
                     estrategia=:estrategia,
                     numuestras=:numuestras,
                     observaciones=:observaciones,
@@ -427,7 +427,6 @@ if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['
               $s->bindValue(':materiasusadas', $_POST['materiasusadas']);
               $s->bindValue(':tratamiento', $_POST['tratamiento']);
               $s->bindValue(':Caracdescarga', $_POST['Caracdescarga']);
-              $s->bindValue(':receptor', $_POST['receptor']);
               $s->bindValue(':estrategia', $_POST['estrategia']);
               $s->bindValue(':numuestras', $_POST['numuestras']);
               $s->bindValue(':observaciones', $_POST['observaciones']);
@@ -435,13 +434,15 @@ if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['
               $s->execute();
 
               $correccion = getCorreccion($_POST['termometro']);
-              $calibracion = getCalibracion($correccion, $_POST['temperatura']);
+              $calibracion1 = getCalibracion1($correccion, $_POST['temperatura']);
+              $calibracion2 = getCalibracion2($correccion, $_POST['temperatura']);
 
               $sql='UPDATE muestreosaguatbl SET
                     fechamuestreo=:fechamuestreo,
                     identificacion=:identificacion,
                     temperatura=:temperatura,
                     caltermometro=:caltermometro,
+                    caltermometro2=:caltermometro2,
                     pH=:pH,
                     conductividad=:conductividad,
                     mflotante=:mflotante,
@@ -453,11 +454,12 @@ if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['
               $s->bindValue(':fechamuestreo', $_POST['fechamuestreo']);
               $s->bindValue(':identificacion', $_POST['identificacion']);
               $s->bindValue(':temperatura', $_POST['temperatura']);
-              $s->bindValue(':caltermometro', $calibracion);
+              $s->bindValue(':caltermometro', $calibracion1);
+              $s->bindValue(':caltermometro2', $calibracion2);
               $s->bindValue(':pH', $_POST['pH']);
               $s->bindValue(':conductividad', $_POST['conductividad']);
               $s->bindValue(':mflotante', $_POST['mflotante']);
-              $s->bindValue(':equipoidfk', $_POST['termometro']);
+              $s->bindValue(':equipoidfk', ($_POST['termometro'] !== '') ? $_POST['termometro'] : 0);
               $s->bindValue(':correccionterm', $correccion);
               $s->execute();
 
@@ -545,7 +547,6 @@ if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['
                    "materiasusadas" => $linea["materiasusadas"],
                    "tratamiento" => $linea["tratamiento"],
                    "Caracdescarga" => $linea["Caracdescarga"],
-                   "receptor" => $linea["receptor"],
                    "estrategia" => $linea["estrategia"],
                    "numuestras" => $linea["numuestras"],
                    "observaciones" => $linea["observaciones"],
@@ -553,7 +554,6 @@ if((isset($_POST['accion']) AND $_POST['accion'] == 'salvar') OR (isset($_POST['
                    "fechamuestreofin" => $linea["fechamuestreofin"],
                    "identificacion" => $linea["identificacion"],
                    "temperatura" => $linea["temperatura"],
-                   "caltermometro" => $linea["caltermometro"],
                    "pH" => $linea["pH"],
                    "conductividad" => $linea["conductividad"],
                    "nombresignatario" => getNombreSignatario($linea["ordenaguaidfk"]),
@@ -622,10 +622,12 @@ if (isset($_POST['accion']) and $_POST['accion']=='parametros')
       if($_POST['tipomedicion'] === '4')
       {
           $cantidad = 2;
-      }else if($_POST['tipomedicion'] === '8')
+      }
+      else if($_POST['tipomedicion'] === '8')
       {
           $cantidad = 4;
-      }else if($_POST['tipomedicion'] === '12')
+      }
+      else if($_POST['tipomedicion'] === '12')
       {
           $cantidad = 6;
       }
@@ -724,23 +726,7 @@ if(isset($_POST['accion']) and $_POST['accion']=='Vo. Bo.')
   {
       if (isset($_POST['comentario']) AND $_POST['comentario'] !== '')
       {
-        $sql= 'SELECT nombre, apellido FROM usuariostbl
-                WHERE usuario = :usuario';
-        $s = $pdo->prepare($sql);
-        $s->bindValue(':usuario', $_SESSION['usuario']);
-        $s->execute();
-        $e = $s->fetch();
-
-        $sql='INSERT INTO  001obstbl SET
-          ordenesidfk = :id,
-          observacion = :observacion,
-          fecha = CURDATE(),
-          supervisor = :supervisor';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':id', $_POST['ot']);
-        $s->bindValue(':observacion', $_POST['comentario']);
-        $s->bindValue(':supervisor', $e['nombre'].' '.$e['apellido']);
-        $s->execute();
+        setObservacion($pdo, 'NOM 001', $_POST['ot'], $_POST['comentario']);
       }
       
       $sql='UPDATE ordenestbl SET
@@ -771,23 +757,7 @@ if(isset($_POST['accion']) and $_POST['accion']=='Comentar y Regresar Orden')
   {
       if (isset($_POST['comentario']) AND $_POST['comentario'] !== '')
       {
-        $sql= 'SELECT nombre, apellido FROM usuariostbl
-                WHERE usuario = :usuario';
-        $s = $pdo->prepare($sql);
-        $s->bindValue(':usuario', $_SESSION['usuario']);
-        $s->execute();
-        $e = $s->fetch();
-
-        $sql='INSERT INTO  001obstbl SET
-          ordenesidfk = :id,
-          observacion = :observacion,
-          fecha = CURDATE(),
-          supervisor = :supervisor';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':id', $_POST['ot']);
-        $s->bindValue(':observacion', $_POST['comentario']);
-        $s->bindValue(':supervisor', $e['nombre'].' '.$e['apellido']);
-        $s->execute();
+        setObservacion($pdo, 'NOM 001', $_POST['ot'], $_POST['comentario']);
       }
 
       $sql='UPDATE ordenestbl SET
@@ -849,8 +819,9 @@ function verMeds($ot = ""){
 		$s->execute();
 
     $sql='SELECT id, observacion, fecha, supervisor
-      FROM 001obstbl
+      FROM observacionestbl
       WHERE ordenesidfk = :id
+      AND estudio = "NOM 001"
       ORDER BY id DESC';
     $c=$pdo->prepare($sql); 
     $c->bindValue(':id',$ot);
@@ -973,7 +944,7 @@ function getResponsables($ot, $id = ''){
       $placeholders[':ot'] = $ot;
       $s->execute($placeholders);
 
-      $responsables = "";
+      $responsables = array();
   		foreach ($s as $value)
       {
         $responsables[] = array('id' => $value['id'],
@@ -984,7 +955,7 @@ function getResponsables($ot, $id = ''){
 	}
   catch (PDOException $e)
   {
-		return "";
+		return array();
 	}
 }
 
@@ -998,8 +969,11 @@ function getMuestradores(){
         $sql='SELECT muestreadorestbl.id, nombre, ap, am
           FROM  muestreadorestbl
           INNER JOIN estudiosmuestreadortbl ON muestreadorestbl.id = estudiosmuestreadortbl.muestreadoridfk
-          WHERE estudiosmuestreadortbl.estudio = "NOM 001"';
-        $s=$pdo->prepare($sql); 
+          INNER JOIN muestreadorrepresentantetbl r ON  r.muestreadoridfk = muestreadorestbl.id
+          WHERE estudiosmuestreadortbl.estudio = "NOM 001"AND
+          r.representanteidfk = (SELECT representanteidfk FROM ordenestbl WHERE id = :id)';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id',$_SESSION['ot']);
         $s->execute();
         $signatarios = '';
         foreach ($s as $value) {
@@ -1023,8 +997,11 @@ function getSignatarios(){
         $sql='SELECT muestreadorestbl.id, nombre, ap, am
           FROM  muestreadorestbl
           INNER JOIN estudiossignatariotbl ON muestreadorestbl.id = estudiossignatariotbl.muestreadoridfk
-          WHERE  muestreadorestbl.signatario = 1 AND estudiossignatariotbl.estudio = "NOM 001"';
+          INNER JOIN muestreadorrepresentantetbl r ON  r.muestreadoridfk = muestreadorestbl.id 
+          WHERE  muestreadorestbl.signatario = 1 AND estudiossignatariotbl.estudio = "NOM 001" AND
+          r.representanteidfk = (SELECT representanteidfk FROM ordenestbl WHERE id = :id)';
         $s=$pdo->prepare($sql); 
+        $s->bindValue(':id',$_SESSION['ot']);
         $s->execute();
         $signatarios = '';
         foreach ($s as $value) {
@@ -1215,7 +1192,7 @@ function getAcreditaciones(){
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     try
     {
-        $sql='SELECT * from acreditaciontbl';
+        $sql='SELECT * from acreditaciontbl ORDER BY id DESC';
         $s=$pdo->prepare($sql); 
         $s->execute();
         $signatarios = '';
@@ -1238,7 +1215,7 @@ function getAcreditacion($ot){
     try
     {
         $sql='SELECT acreditacionidfk, nombre
-          FROM  ordenacreditaciontbl
+          FROM ordenacreditaciontbl
           WHERE ordenidfk=:id';
         $s=$pdo->prepare($sql);
         $s->bindValue(':id', $ot);
@@ -1300,57 +1277,9 @@ function setAcreditacion($acreditacionid){
 }
 
 /**************************************************************************************************/
-/* Función para obtener la acreditacion de la orden */
+/* Función para obtener la calibracion1 del equipo */
 /**************************************************************************************************/
-function getTermometros(){
-    include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-    try
-    {
-        $sql='SELECT equipos.ID_Equipo, Descripcion, Marca, Modelo, Numero_Inventario
-          FROM  equipos
-          INNER JOIN bitacora_uso ON equipos.ID_Equipo = bitacora_uso.ID_Equipo
-          INNER JOIN bitacora_personal ON bitacora_uso.ID_Personal = bitacora_personal.ID_Personal
-          WHERE bitacora_personal.Numero_Orden_Muestreo IN (SELECT ot FROM ordenestbl WHERE id = :ot)
-          AND equipos.Tipo = "Term&oacute;metro"';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':ot', $_SESSION['OT']);
-        $s->execute();
-        $termometros = '';
-        $error = '';
-
-        if($terms = $s->fetchAll()){
-            foreach ($terms as $value){
-              $sql='SELECT *
-                FROM  calibracionestbl
-                WHERE equipoidfk=:id';
-              $s=$pdo->prepare($sql);
-              $s->bindValue(':id', $value['ID_Equipo']);
-              $s->execute();
-
-              if(!$s->fetch()){
-                $error.=$value['Numero_Inventario'].',';
-              }
-
-              $termometros[$value['ID_Equipo']] = $value['Descripcion'].' '.$value['Marca'].' '.$value['Modelo'].' '.$value['Numero_Inventario'];
-            }
-        }
-        
-        /*if(strcmp($error, '') !== 0){
-          $mensaje = 'Les hace falta capturar correccion a los equipos: '.rtrim($error, ',');
-          include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-          exit();
-        }*/
-
-      return $termometros;
-    }catch (PDOException $e){
-      return "";
-    }
-}
-
-/**************************************************************************************************/
-/* Función para obtener la calibracion del equipo */
-/**************************************************************************************************/
-function getCalibracion($correccion, $parametro)
+function getCalibracion1($correccion, $parametro)
 {
     $intervalos = json_decode($correccion, true);
     for ($i = count($intervalos)-1; $i >= 0; $i--)
@@ -1364,4 +1293,29 @@ function getCalibracion($correccion, $parametro)
           return $intervalos[$i]['Correccion1'];
         }
     }
+    return 0;
+}
+
+/**************************************************************************************************/
+/* Función para obtener la calibracion2 del equipo */
+/**************************************************************************************************/
+function getCalibracion2($correccion, $parametro)
+{
+    $intervalos = json_decode($correccion, true);
+    for ($i = count($intervalos)-1; $i >= 0; $i--)
+    {
+        if($i === 0)
+        {
+          return $intervalos[$i]['Correccion2'];
+        }
+        elseif($parametro < $intervalos[$i]['Rango'])
+        {
+          continue;
+        }
+        else
+        {
+          return $intervalos[$i]['Correccion2'];
+        }
+    }
+    return 0;
 }

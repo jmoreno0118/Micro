@@ -3,14 +3,13 @@
 	try
 	{
 		$pdo->beginTransaction();
-		$sql='SELECT metodo FROM metodostbl WHERE parametro=:parametro';
+		$sql='SELECT id, metodo FROM metodostbl WHERE parametro=:parametro ORDER BY id DESC';
 		$s=$pdo->prepare($sql);
 		$s->bindValue(':parametro', $_POST['parametro']);
 		$s->execute();
 		$metodos = $s->fetchAll();
 		//var_dump($metodos);
-	 	$selected = (strcmp($_POST['seleccionado'], "") === 0) ? 'selected' : '';
-		echo '<option '.$selected.' disabled value="">Seleccionar</option>';
+		echo '<option disabled value="">Seleccionar</option>';
 		if(count($metodos) > 0)
 		{
 	 		foreach ($metodos as $key => $value)

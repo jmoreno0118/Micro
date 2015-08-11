@@ -8,13 +8,13 @@
     <meta charset="utf-8" />
     <!--[if lt IE 9]>
      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]--> 
+    <![endif]-->
      <link rel="stylesheet" type="text/css" href="/reportes/estilo.css" />
   </head>
   <body>
     <div id="contenedor">
       <header>
-       <?php 
+       <?php
         $ruta='/reportes/img/logoblco2.gif';
     	  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/encabezado.inc.php'; ?>
       </header>
@@ -22,12 +22,21 @@
         <h2><?php htmlout($titulopagina); ?></h2>
         <?php
         //var_dump($valores);
+          if(is_array($valores['acreditacion']))
+          {
+            $valoracreditacion = $valores['acreditacion']['id'];
+          }
+          elseif( strcmp($valores['acreditacion'], '') === 0 )
+          {
+            $valoracreditacion = key($acreditaciones);
+          }
+
           $formulario = array(
                       'acreditacion[id]' => array(
                                             'label' => 'Acreditacion',
                                             'tipo' => 'select',
                                             'option' => $acreditaciones,
-                                            'valor' => isset($valores['acreditacion']['id']) ? $valores['acreditacion']['id'] : '',
+                                            'valor' => $valoracreditacion
                                             ),
                       'numedicion' => array(
                                             'label' => 'Número de medición',
@@ -42,7 +51,7 @@
                                             'tipo' => 'text'
                                             ),
                       'empresagiro' => array(
-                                            'label' => 'Giro de la empresa (2)',
+                                            'label' => 'Giro de la empresa (2) (Max. 45)',
                                             'tipo' => 'text'
                                             ),
                       'lugarmuestreo' => array(
@@ -50,18 +59,18 @@
                                             'tipo' => 'text'
                                             ),
                       'descriproceso' => array(
-                                            'label' => 'Descripción del proceso y/o áreas que genera la descarga (7) (Max. 100)',
+                                            'label' => 'Descripción del proceso y/o áreas que genera la descarga (7) (Max. 500)',
                                             'tipo' => 'textarea',
-                                            'atts' => array('maxlength' => 100)
+                                            'atts' => array('maxlength' => 500)
                                             ),
                       'materiasusadas' => array(
                                             'label' => 'Materias primas usadas en el proceso que genera la descarga (8)',
                                             'tipo' => 'text'
                                             ),
                       'tratamiento' => array(
-                                            'label' => 'Tratamiento del agua antes de la descarga (9) (Max. 100)',
+                                            'label' => 'Tratamiento del agua antes de la descarga (9) (Max. 500)',
                                             'tipo' => 'textarea',
-                                            'atts' => array('maxlength' => 100)
+                                            'atts' => array('maxlength' => 500)
                                             ),
                       'Caracdescarga' => array(
                                             'label' => 'Características de la descarga (10)',
@@ -77,19 +86,19 @@
                                             'option' => $descargaen
                                             ),
                       'uso' => array(
-                                            'label' => 'Tipo de cuerpo receptor (uso de agua)', 
+                                            'label' => 'Tipo de cuerpo receptor (uso de agua)',
                                             'tipo' => 'select'
                                             ),
                       'estrategia' => array(
-                                            'label' => 'Estrategia de muestreo (14)',
+                                            'label' => 'Estrategia de muestreo (14)  (Max. 6500)',
                                             'tipo' => 'textarea',
                                             'atts' => array('maxlength' => 6500)
                                             ),
                       'observaciones' => array(
-                                            'label' => 'Observaciones (19)',
+                                            'label' => 'Observaciones (19)  (Max. 6500)',
                                             'tipo' => 'textarea',
                                             'atts' => array('maxlength' => 6500)
-                                            ),                 
+                                            ),
                       'tipomediciones' => array(
                                             'label' => 'Horas que opera el proceso generador de la descarga',
                                             'tipo' => 'select',
@@ -97,10 +106,6 @@
                                                               '4' => '<4 Horas',
                                                               '8' => '>4 y <12 Horas',
                                                               '12' => '>12 Horas')
-                                            ),
-                      'receptor' => array(
-                                            'label' => 'Tipo de receptor de la decarga',
-                                            'tipo' => 'text'
                                             ),
                       'numuestras' => array(
                                             'label' => 'No. muestras tomadas',
@@ -138,32 +143,28 @@
                                             'tipo' => 'select',
                                             'atts' => array('name' => 'resonsable[0]'),
                                             'valor' => isset($valores['responsable'][0]['responsable']) ? $valores['responsable'][0]['responsable'] : '',
-                                            'option' => $muestreadores,
-                                            'extra' => array('disabled' => 'false')
+                                            'option' => $muestreadores
                                             ),
                       "responsable[1][responsable]" => array(
                                             'label' => 'Responsable 2',
                                             'tipo' => 'select',
                                             'atts' => array('name' => 'resonsable[1]'),
                                             'valor' => isset($valores['responsable'][1]['responsable']) ? $valores['responsable'][1]['responsable'] : '',
-                                            'option' => $muestreadores,
-                                            'extra' => array('disabled' => 'false')
+                                            'option' => $muestreadores
                                             ),
                       "responsable[2][responsable]" => array(
                                             'label' => 'Responsable 3',
                                             'tipo' => 'select',
                                             'atts' => array('name' => 'resonsable[2]'),
                                             'valor' => isset($valores['responsable'][2]['responsable']) ? $valores['responsable'][2]['responsable'] : '',
-                                            'option' => $muestreadores,
-                                            'extra' => array('disabled' => 'false')
+                                            'option' => $muestreadores
                                             ),
                       "responsable[3][responsable]" => array(
                                             'label' => 'Responsable 4',
                                             'tipo' => 'select',
                                             'atts' => array('name' => 'resonsable[3]'),
                                             'valor' => isset($valores['responsable'][3]['responsable']) ? $valores['responsable'][3]['responsable'] : '',
-                                            'option' => $muestreadores,
-                                            'extra' => array('disabled' => 'false')
+                                            'option' => $muestreadores
                                             ),
                       'mflotante' => array(
                                             'label' => 'Materia flotante visual',
@@ -245,7 +246,7 @@
                 }
               } ?>
 
-              <?php 
+              <?php
                 $valor = "";
                 if(isset($value['valor']))
                 {
@@ -274,7 +275,7 @@
             <input type="submit" name="accion" value="siguiente">
             <p><a href="../generales">Volver a mediciones</a></p>
             <p><a href="..">Regresa a la búsqueda de ordenes</a></p>
-          </div> 
+          </div>
         </form>
       </div>  <!-- cuerpoprincipal -->
       <div id="footer">
@@ -380,7 +381,7 @@ $(document).ready(function() {
       lugarmuestreo: "required",
       descriproceso: {
        required: true,
-       maxlength: 100
+       maxlength: 500
       },
       tipomediciones: "required",
       proposito: {
@@ -390,7 +391,7 @@ $(document).ready(function() {
       materiasusadas: "required",
       tratamiento: {
        required: true,
-       maxlength: 100
+       maxlength: 500
       },
       Caracdescarga: "required",
       receptor: "required",
@@ -450,9 +451,9 @@ $(document).ready(function() {
       }
     },
     success: "valid",
-    submitHandler: function(form) {  
-                    if ($(form).valid()) 
-                     form.submit(); 
+    submitHandler: function(form) {
+                    if ($(form).valid())
+                     form.submit();
                     return false; // prevent normal form posting
                   }
   });

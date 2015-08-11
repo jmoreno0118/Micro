@@ -146,7 +146,7 @@ include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/ayudas.inc.php'; ?>
         <br>
 
           <?php
-          if($comentarios != '' AND !isset($_SESSION['supervisada']))
+          if(count($comentarios) > 0 AND !isset($_SESSION['supervisada']))
           { ?>
             <b>Comentarios</b>
             <div style="height:150px;width:50%;overflow-y:auto;">
