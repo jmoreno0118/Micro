@@ -14,6 +14,31 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
 /* Modificaciones al FPDF */
 /**************************************************************************************************/
 
+function array_column(array $input, $columnKey, $indexKey = null) {
+        $array = array();
+        foreach ($input as $value) {
+            if ( ! isset($value[$columnKey])) {
+                trigger_error("Key \"$columnKey\" does not exist in array");
+                return false;
+            }
+            if (is_null($indexKey)) {
+                $array[] = $value[$columnKey];
+            }
+            else {
+                if ( ! isset($value[$indexKey])) {
+                    trigger_error("Key \"$indexKey\" does not exist in array");
+                    return false;
+                }
+                if ( ! is_scalar($value[$indexKey])) {
+                    trigger_error("Key \"$indexKey\" does not contain scalar value");
+                    return false;
+                }
+                $array[$value[$indexKey]] = $value[$columnKey];
+            }
+        }
+        return $array;
+    }
+
     //include ('fpdf/fpdf.php');
     include ($_SERVER['DOCUMENT_ROOT'].'/reportes/includes/fpdf/fpdf.php');
 
@@ -34,8 +59,8 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
 
             $this->SetTextColor(125);
             $this->SetFont('Arial', '', 6);
-            $this->MultiCell(0, 3, utf8_decode('El presente informe no podrá ser alterado ni reproducido total o parcialmente sin autorización previa por escrito del Laboratorio del Grupo Microanálisis, S.A. de C.V.')); //////////// Dirección
-            $this->Ln();
+            $this->MultiCell(0, 3, utf8_decode('El presente informe no podrá ser alterado ni reproducido total o parcialmente sin autorización previa por escrito del Laboratorio del Grupo Microanálisis, S.A. de C.V.'), 0, 'C'); //////////// Dirección
+            $this->Ln(3);
 
             $this->SetTextColor(69, 147, 56);
             $this->SetFont('Arial', 'B', 7);
@@ -238,8 +263,10 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
             {
                 if($i === 5 OR $i === 9 OR $i === 13){
                     $fill = true;
-                    $valor = explode(' ± ', $data[$i]);
-                    if(intval($valor[0]) >= $data[$i+1]){
+                    $valor = explode(' ', $data[$i]);
+                    if( strcmp($valor[0], '---') === 0 ){
+                        $this->SetFillColor(255, 255, 255);
+                    }elseif(intval($valor[0]) >= $data[$i+1]){
                         $this->SetFillColor(0, 255, 0);
                     }else{
                         $this->SetFillColor(255, 0, 0);
@@ -327,6 +354,65 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                 
                 //Print the text
                 $this->MultiCell($w,5,$data[$i],0,$a, $fill);
+                //Put the position to the right of the cell
+                $this->SetXY($x+$w,$y);
+            }
+            //Go to the next line
+            $this->Ln($h);
+        }
+
+        function RowColor3($data, $fill=false)
+        {
+            //Calculate the height of the row
+            $nb=0;
+            $sh=array();
+
+            for($i=0;$i<count($data);$i++){
+                if(count($this->nfonts) > 0 AND count($this->nfontsize) > 0){
+                    $b=(count($this->nfonts) === 1) ? $this->nfonts[0] : $this->nfonts[$i];
+                    $c=(count($this->nfontsize) === 1) ? $this->nfontsize[0] : $this->nfontsize[$i];
+                    $this->SetFont('Arial', $b, $c);
+                }
+                $nb=max($nb,$this->NbLines($this->widths[$i],$data[$i]));
+
+                //Se guarda la altura de cada texto
+                $sh[]=$this->NbLines($this->widths[$i],$data[$i]);
+            }
+            $h=5*$nb;
+            //Issue a page break first if needed
+            $this->CheckPageBreak($h);
+            //Draw the cells of the row
+            for($i=0;$i<count($data);$i++)
+            {
+                if($fill[$i] === 1){
+                    gris($this);
+                }else{
+                    blanco($this);
+                }
+
+                $w=$this->widths[$i];
+                $a=isset($this->aligns[$i]) ? $this->aligns[$i] : 'L';
+                //Save the current position
+                $x=$this->GetX();
+                $y=$this->GetY();
+                //Draw the border
+                $this->Rect($x, $y, $w, $h, 'DF');
+
+                //Número de renglones de separación arriba y abajo, se resta la altura
+                //total menos la altura del texto, se divide entre dos (obtener altura de
+                //arriba y de abajo) y esto entre 5 para obtener el número de renglones
+                //según la altura del renglón, y así anexar dichos renglones extra al texto
+                $nr = (($h-($sh[$i]*5))/2)/5;
+                for ($j=0; $j < $nr; $j++){
+                    if($j === 0){
+                        $data[$i]=$data[$i]."\n";
+                    }else{
+                        $data[$i]="\n".$data[$i]."\n";
+                    }
+                }
+                
+                //Print the text
+                $this->MultiCell($w,5,$data[$i],0,$a);
                 //Put the position to the right of the cell
                 $this->SetXY($x+$w,$y);
             }
@@ -466,7 +552,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
                     else
                     {
                         //Extract properties
-                        $a2=split(' ', $e);
+                        $a2=explode(' ', $e);
                         $tag=strtoupper(array_shift($a2));
                         $prop=array();
                         foreach($a2 as $v)
@@ -566,27 +652,27 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
     include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
     try   
     {
-        $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.fechalta,
+        $sql='SELECT ordenestbl.id, ordenestbl.ot, ordenestbl.fechalta, ordenestbl.atencion, ordenestbl.atenciontel,
                     ordenestbl.signatarionombre, ordenestbl.signatarioap, ordenestbl.signatarioam,
-                    ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion
+                    ordenestbl.plantaidfk, ordenestbl.clienteidfk, ordenestbl.atencion, representantestbl.nombre as "representante"
                 FROM  ordenestbl
-                INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk';
+                INNER JOIN estudiostbl ON ordenestbl.id = estudiostbl.ordenidfk
+                INNER JOIN representantestbl ON representantestbl.id = ordenestbl.representanteidfk';
         if(isset($_GET['ot']) AND isset($_GET['id'])){
             $where=' WHERE estudiostbl.nombre="Iluminacion" AND ordenestbl.ot = :ot AND ordenestbl.id = :id';
             $s=$pdo->prepare($sql.$where);
             $s->bindValue(':ot', $_GET['ot']);
             $s->bindValue(':id', $_GET['id']);
-            $s->execute();
-            $orden = $s->fetch();
+            
         }else{
             $where=' WHERE estudiostbl.nombre="Iluminacion" AND ordenestbl.ot = :ot';
             $s=$pdo->prepare($sql.$where);
-            $s->bindValue(':ot', /*$_POST['ot']*/ '2591');
-            $s->execute();
-            $orden = $s->fetch();
+            $s->bindValue(':ot', $_POST['ot'] /*'2591'*/);
         }
+        $s->execute();
+        $orden = $s->fetch();
 
-        $sql='SELECT puntostbl.*, puntorecilumtbl.*, equipos.Marca, equipos.Modelo, equipos.Numero_Serie
+        $sql='SELECT puntostbl.*, puntorecilumtbl.*, recsilumtbl.influencia, equipos.Marca, equipos.Modelo, equipos.Numero_Serie
             FROM  puntostbl
             INNER JOIN puntorecilumtbl ON puntostbl.id = puntorecilumtbl.puntoidfk
             INNER JOIN recsilumtbl ON puntorecilumtbl.recilumidfk = recsilumtbl.id
@@ -594,7 +680,11 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
             INNER JOIN equipos ON puntorecilumtbl.equiposidfk = equipos.ID_Equipo
             WHERE ordenestbl.ot = :ot';
         $s=$pdo->prepare($sql);
-        $s->bindValue(':ot', '2591');
+        if(isset($_GET['ot']) AND isset($_GET['id'])){
+            $s->bindValue(':ot', $_GET['ot'] /*'2591'*/);
+        }else{
+            $s->bindValue(':ot', $_POST['ot'] /*'2591'*/);
+        }
         $s->execute();
         $puntos = $s->fetchAll();
 
@@ -603,26 +693,28 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
         //echo "<br><br>";
 
         if($orden['plantaidfk'] !== NULL){
-            $sql='SELECT plantastbl.razonsocial, plantastbl.calle, plantastbl.colonia, plantastbl.ciudad, 
-                plantastbl.estado, plantastbl.cp
+            $sql='SELECT razonsocial, planta, calle, colonia, ciudad, estado, cp, rfc
                 FROM plantastbl
-                WHERE plantastbl.id = :id';
+                WHERE id = :id';
             $s=$pdo->prepare($sql);
             $s->bindValue(':id', $orden['plantaidfk']);
             $s->execute();
             $resultado = $s->fetch();
 
             $cliente = array('Razon_Social' => $resultado['razonsocial'],
+                            'Planta' => $resultado['planta'],
                             'Calle_Numero' => $resultado['calle'],
                             'Colonia' => $resultado['colonia'],
                             'Ciudad' => $resultado['ciudad'],
                             'Estado' => $resultado['estado'],
                             'Giro_Empresa' => '',
-                            'Codigo_Postal' => $resultado['cp']);
+                            'Codigo_Postal' => $resultado['cp'],
+                            'RFC' => $resultado['rfc']
+                            );
 
-            $sql='SELECT clientestbl.Giro_Empresa
+            $sql='SELECT Giro_Empresa
                 FROM clientestbl
-                WHERE clientestbl.Numero_Cliente = :id';
+                WHERE Numero_Cliente = :id';
             $s=$pdo->prepare($sql);
             $s->bindValue(':id', $orden['clienteidfk']);
             $s->execute();
@@ -631,15 +723,18 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
             $cliente['Giro_Empresa'] = $giro['Giro_Empresa'];
 
         }else{
-            $sql='SELECT clientestbl.Razon_Social, clientestbl.Calle_Numero, clientestbl.Colonia, clientestbl.Ciudad, 
-                clientestbl.Estado, clientestbl.Giro_Empresa, clientestbl.Codigo_Postal
+            $sql='SELECT Razon_Social, Calle_Numero, Colonia, Ciudad, Estado, Giro_Empresa, Codigo_Postal, RFC
                 FROM clientestbl
-                WHERE clientestbl.Numero_Cliente = :id';
+                WHERE Numero_Cliente = :id';
             $s=$pdo->prepare($sql);
             $s->bindValue(':id', $orden['clienteidfk']);
             $s->execute();
             $cliente = $s->fetch();
         }
+
+        $cliente['atencion'] = $orden['atencion'];
+        $cliente['telefono'] = $orden['atenciontel'];
+        $cliente['representante'] = $orden['representante'];
 
         //var_dump($cliente);
         //echo "<br><br>";
@@ -678,7 +773,23 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/jpgraph-3.5.0b1/src/j
         exit();*/
     }
 
-
+    $influencia = array();
+    if(count($recinis) === 1){
+        $influencia = $recinis[0]['influencia'];
+    }else{
+        $existe = FALSE;
+        foreach ($recinis as $recini) {
+            if( array_search($recini['influencia'], $influencia) !== FALSE){
+                $existe = TRUE;
+                break;
+            }
+            if(!$existe){
+                $influencia[] = $recini['influencia'];
+            }
+        }
+        
+    }
+    //var_dump($influencia);
 
 /**************************************************************************************************/
 /********************************************* Hoja 0 *********************************************/
@@ -726,34 +837,34 @@ foreach ($recinis as $key => $recini) {
     $pdf->Cell(15, 5, utf8_decode(count($recinis)), 1, 1, 'C', true);
 
     gris($pdf);
-    $pdf->Cell(43, 6, utf8_decode('Compañía'), 1, 0, 'L', true);
+    $pdf->Cell(25, 6, utf8_decode('Compañía'), 1, 0, 'L', true);
 
     blanco($pdf, 8 ,'B');
     $pdf->Cell(0, 6, utf8_decode($cliente['Razon_Social']), 1, 1, 'L', true);
 
     gris($pdf);
-    $pdf->Cell(43, 6, utf8_decode('Planta'), 1, 0, 'L', true);
+    $pdf->Cell(25, 6, utf8_decode('Planta'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode(isset($cliente['Planta']) ? $cliente['Planta'] : ''), 1, 0, 'L', true);
+    $pdf->Cell(65, 6, utf8_decode(isset($cliente['Planta']) ? $cliente['Planta'] : ''), 1, 0, 'L', true);
 
     gris($pdf);
-    $pdf->Cell(43, 6, utf8_decode('Lugar'), 1, 0, 'L', true);
-
-    blanco($pdf, 6);
-    $pdf->Cell(39.5, 6, utf8_decode($cliente['Ciudad'].' '.$cliente['Estado']), 1, 1, 'L', true);
-
-    gris($pdf);
-    $pdf->Cell(43, 6, utf8_decode('Departamento'), 1, 0, 'L', true);
+    $pdf->Cell(25, 6, utf8_decode('Lugar'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode($recini['departamento']), 1, 0, 'L', true);
+    $pdf->Cell(50, 6, utf8_decode($cliente['Ciudad'].', '.$cliente['Estado']), 1, 1, 'L', true);
 
     gris($pdf);
-    $pdf->Cell(43, 6, utf8_decode('Area'), 1, 0, 'L', true);
+    $pdf->Cell(25, 6, utf8_decode('Departamento'), 1, 0, 'L', true);
 
     blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode($recini['area']), 1, 1, 'L', true);
+    $pdf->Cell(65, 6, utf8_decode($recini['departamento']), 1, 0, 'L', true);
+
+    gris($pdf);
+    $pdf->Cell(25, 6, utf8_decode('Area'), 1, 0, 'L', true);
+
+    blanco($pdf);
+    $pdf->Cell(50, 6, utf8_decode($recini['area']), 1, 1, 'L', true);
 
     azul($pdf);
     $pdf->Cell(0, 6, utf8_decode('Descripción de las instalaciones'), 0, 1, 'C', true);
@@ -821,17 +932,17 @@ foreach ($recinis as $key => $recini) {
     blanco($pdf);
     $pdf->Cell(39.5, 6, utf8_decode($recini['alturalamp']), 1, 1, 'C', true);
 
-    gris($pdf);
-    $pdf->Cell(43, 6, utf8_decode('Programa de mantenimiento'), 1, 0, 'L', true);
+    $pdf->SetWidths(array(43, 39.5, 43, 39.5));
+    $pdf->SetFonts(array(''));
+    $pdf->SetFontSizes(array(9, 8, 9, 8));
+    $pdf->SetAligns(array('L','C','L','C'));
 
-    blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode($recini['mantenimiento']), 1, 0, 'C', true);
-
-    gris($pdf);
-    $pdf->Cell(43, 6, utf8_decode('Tipo de Iluminación'), 1, 0, 'L', true);
-
-    blanco($pdf);
-    $pdf->Cell(39.5, 6, utf8_decode(($recini['influencia'] === 0) ? 'Natural y artificial' : 'Artificial'), 1, 1, 'C', true);
+    $pdf->RowColor3(array(utf8_decode('Programa de mantenimiento'),
+                    utf8_decode($recini['mantenimiento']),
+                    utf8_decode('Tipo de Iluminación'),
+                    utf8_decode(($recini['influencia'] === 0) ? 'Natural y artificial' : 'Artificial')
+                ), array(1, 0, 1, 0)
+            );
 
     azul($pdf);
     $pdf->Cell(0, 6, utf8_decode('Descripción de los puestos de trabajo'), 0, 1, 'C', true);
@@ -889,8 +1000,8 @@ foreach ($recinis as $key => $recini) {
     }
     $deptos = array_unique($deptos);
 
-    $verde = array(0, 0, 0);
-    $rojo = array(0, 0, 0);
+    $verdes = array(0, 0, 0);
+    $rojos = array(0, 0, 0);
     $listado = array();
     $i = 0;
     foreach ($deptos as $numdepto => $depto) {
@@ -906,7 +1017,27 @@ foreach ($recinis as $key => $recini) {
                     $s->execute();
                     $mediciones = $s->fetchAll();
 
-                    $listado[$i] = array('medicion' => $punto['medicion'],
+                    if( 
+                        (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 0) OR
+                        $influencia === 0)
+                    {
+                        $listado[$i] = array('medicion' => $punto['medicion'],
+                                        'fecha' => $punto['fecha'],
+                                        'area' => $punto['area'],
+                                        'ubicacion' => $punto['ubicacion'],
+                                        'identificacion' => $punto['identificacion'],
+                                        'departamento' => $punto['departamento'],
+                                        '0' => array('ni' => '--- ± ---',
+                                                    'nimr' => $punto['nirm'],
+                                                    'reflexpared' => 'No Aplica',
+                                                    'reflexplano' => 'No Aplica')
+                                        );
+                    }elseif(
+                        (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 1) OR
+                        (is_array($influencia) AND count($influencia) > 1) OR
+                         $influencia === 1)
+                    {
+                        $listado[$i] = array('medicion' => $punto['medicion'],
                                         'fecha' => $punto['fecha'],
                                         'area' => $punto['area'],
                                         'ubicacion' => $punto['ubicacion'],
@@ -925,6 +1056,7 @@ foreach ($recinis as $key => $recini) {
                                                     'reflexpared' => 'No Aplica',
                                                     'reflexplano' => 'No Aplica'),
                                         );
+                    }
 
                     $correccion = json_decode($punto['correccion'], TRUE);
                     foreach ($mediciones as $key => $medicion) {
@@ -954,14 +1086,18 @@ foreach ($recinis as $key => $recini) {
                         $reflexpared = (intval($medicion['e1pared']) !== 0) ?  (round(floatval($medicion['e1pared']) * floatval($factor1) + floatval($factor2)) / $medparedcorregida) * 100 : 'No Aplica';
 
                         $listado[$i][$key]['ni'] = $medplanocorregida.' ± '.$incertidumbreplano;
-                        $listado[$i][$key]['reflexpared'] = $reflexpared;
-                        $listado[$i][$key]['reflexplano'] = $reflexplano;
+                        $listado[$i][$key]['reflexpared'] = number_format($reflexpared, 1);
+                        $listado[$i][$key]['reflexplano'] = number_format($reflexplano, 1);
 
-                        if($medplanocorregida >= $punto['nirm']){
-                            $verde[$key]++;
+                        if($medplanocorregida !== '---' AND $medplanocorregida >= $punto['nirm']){
+                            $verdes[$key]++;
                         }else{
-                            $rojo[$key]++;
+                            $rojos[$key]++;
                         }
+                    }
+                    if(count($mediciones) === 1){
+                        $rojos[1] = $verdes[0] + $rojos[0];
+                        $rojos[2] = $verdes[0] + $rojos[0];
                     }
                 }catch (PDOException $e){
                     /*$mensaje='Error al tratar de obtener información de la orden.'.$e;
@@ -1003,14 +1139,14 @@ foreach ($recinis as $key => $recini) {
     $y=$pdf->GetY();
 
     gris($pdf, 'B', 8);
-    $pdf->Cell(120, 6, utf8_decode($cliente['Ciudad'].' '.$cliente['Estado']), 1, 1, 'L', true);
+    $pdf->Cell(120, 6, utf8_decode($cliente['Ciudad'].', '.$cliente['Estado']), 1, 1, 'L', true);
     $pdf->Ln(2);
 
     $pdf->SetXY($x,$y+4);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(205, 3, utf8_decode('AIR-F-2'), 0, 1, 'R');
 
-    headerTablaListado2($pdf);
+    headerTablaListado2($pdf, $influencia);
 
     $j = 0;
     $pag = 0;
@@ -1022,22 +1158,22 @@ foreach ($recinis as $key => $recini) {
 
             //$pdf->Rotate(90, 150, 145);
 
-            $pdf->Ln(20.5);
+            $pdf->Ln(25);
 
             headerTablaListado1($pdf);
-            headerTablaListado2($pdf);
+            headerTablaListado2($pdf, $influencia);
             $pag = 1;
             $j = 1;
         }
         if( ( ($j !== 15 AND $j !== 16) AND $pag === 0) OR ( ($j % 20 !== 0 AND $j % 21 !== 0) AND $pag === 1) ){
             if($key !== 0 AND $value['departamento'] === $listado[$key-1]['departamento']){
-                medListado($pdf, $value);
+                medListado($pdf, $value, $influencia);
                 $j++;
             }else{
-                deptoListado($pdf, $value);
+                deptoListado($pdf, $value, $influencia);
                 $j++;
 
-                medListado($pdf, $value);
+                medListado($pdf, $value, $influencia);
                 $j++;
             }
 
@@ -1079,39 +1215,47 @@ foreach ($recinis as $key => $recini) {
         }
     }
 
-    if($verde[0] === $verde[1] AND $verde[0] === $verde[2] AND $verde[1] === $verde[2] AND
-        $rojo[0] === $rojo[1] AND $rojo[0] === $rojo[2] AND $rojo[1] === $rojo[2]){
+    //var_dump($verdes);
+    //var_dump($rojos);
+    if( 
+        (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 0) OR
+        $influencia === 0)
+    {
+        crearPie($pdf, $verdes[0], $rojos[0], '1er Ciclo', 'C');
 
-        crearPie($pdf, $verde[0], $rojo[0], '1er, 2do y 3er Ciclos', 'C');
+    }elseif($verdes[0] === $verdes[1] AND $verdes[0] === $verdes[2] AND $verdes[1] === $verdes[2] AND
+        $rojos[0] === $rojos[1] AND $rojos[0] === $rojos[2] AND $rojos[1] === $rojos[2]){
 
-    }elseif($verde[0] !== $verde[1] AND $verde[0] !== $verde[2] AND $verde[1] !== $verde[2] AND
-            $rojo[0] !== $rojo[1] AND $rojo[0] !== $rojo[2] AND $rojo[1] !== $rojo[2]){
+        crearPie($pdf, $verdes[0], $rojos[0], '1er, 2do y 3er Ciclos', 'C');
 
-        crearPie($pdf, $verde[0], $rojo[0], '1er  Ciclo', 'L');
+    }elseif($verdes[0] !== $verdes[1] AND $verdes[0] !== $verdes[2] AND $verdes[1] !== $verdes[2] AND
+            $rojos[0] !== $rojos[1] AND $rojos[0] !== $rojos[2] AND $rojos[1] !== $rojos[2]){
 
-        crearPie($pdf, $verde[1], $rojo[1], '2do  Ciclo', 'C');
+        crearPie($pdf, $verdes[0], $rojos[0], '1er  Ciclo', 'L');
 
-        crearPie($pdf, $verde[2], $rojo[2], '3er  Ciclo', 'R');
-    }elseif($verde[0] === $verde[1] AND $rojo[0] === $rojo[1] AND $verde[1] !== $verde[2] AND 
-            $rojo[1] !== $rojo[2] AND $verde[0] !== $verde[2] AND $rojo[0] !== $rojo[2]){
+        crearPie($pdf, $verdes[1], $rojos[1], '2do  Ciclo', 'C');
 
-        crearPie($pdf, $verde[0], $rojo[0], '1er y 2do Ciclo', 'L');
+        crearPie($pdf, $verdes[2], $rojos[2], '3er  Ciclo', 'R');
+    }elseif($verdes[0] === $verdes[1] AND $rojos[0] === $rojos[1] AND $verdes[1] !== $verdes[2] AND 
+            $rojos[1] !== $rojos[2] AND $verdes[0] !== $verdes[2] AND $rojos[0] !== $rojos[2]){
 
-        crearPie($pdf, $verde[2], $rojo[2], '3er  Ciclo', 'C');
+        crearPie($pdf, $verdes[0], $rojos[0], '1er y 2do Ciclo', 'L');
 
-    }elseif($verde[1] === $verde[2] AND $rojo[1] === $rojo[2] AND $verde[0] !== $verde[1] AND
-            $rojo[0] !== $rojo[1] AND $verde[0] !== $verde[2] AND $rojo[0] !== $rojo[2]){
+        crearPie($pdf, $verdes[2], $rojos[2], '3er  Ciclo', 'C');
 
-        crearPie($pdf, $verde[1], $rojo[1], '2do y 3er  Ciclo', 'L');
+    }elseif($verdes[1] === $verdes[2] AND $rojos[1] === $rojos[2] AND $verdes[0] !== $verdes[1] AND
+            $rojos[0] !== $rojos[1] AND $verdes[0] !== $verdes[2] AND $rojos[0] !== $rojos[2]){
 
-        crearPie($pdf, $verde[0], $rojo[0], '1er  Ciclo', 'C');
+        crearPie($pdf, $verdes[1], $rojos[1], '2do y 3er  Ciclo', 'L');
 
-    }elseif($verde[0] === $verde[2] AND $rojo[0] === $rojo[2] AND $verde[1] !== $verde[2] AND 
-            $rojo[1] !== $rojo[2] AND $verde[0] !== $verde[1] AND $rojo[0] !== $rojo[1]){
+        crearPie($pdf, $verdes[0], $rojos[0], '1er  Ciclo', 'C');
 
-        crearPie($pdf, $verde[0], $rojo[0], '1er y 3er Ciclo', 'L');
+    }elseif($verdes[0] === $verdes[2] AND $rojos[0] === $rojos[2] AND $verdes[1] !== $verdes[2] AND 
+            $rojos[1] !== $rojos[2] AND $verdes[0] !== $verdes[1] AND $rojos[0] !== $rojos[1]){
 
-        crearPie($pdf, $verde[1], $rojo[1], '2do  Ciclo', 'C');
+        crearPie($pdf, $verdes[0], $rojos[0], '1er y 3er Ciclo', 'L');
+
+        crearPie($pdf, $verdes[1], $rojos[1], '2do  Ciclo', 'C');
 
     }
 
@@ -1120,6 +1264,7 @@ foreach ($recinis as $key => $recini) {
 /**************************************************************************************************/
 /********************************************* Hoja 2 *********************************************/
 /**************************************************************************************************/
+$equipos = array();
 foreach ($puntos as $key => $punto) {
 
     try   
@@ -1130,15 +1275,6 @@ foreach ($puntos as $key => $punto) {
         $s->bindValue(':id', $punto['id']);
         $s->execute();
         $mediciones = $s->fetchAll();
-
-        $sql="SELECT influencia
-            FROM recsilumtbl
-            INNER JOIN puntorecilumtbl ON recsilumtbl.id = puntorecilumtbl.recilumidfk
-            WHERE puntoidfk = :id";
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':id', $punto['id']);
-        $s->execute();
-        $influencia = $s->fetch();
 
         /*echo "<pre>";
         var_dump($mediciones);
@@ -1277,6 +1413,28 @@ foreach ($puntos as $key => $punto) {
     $pdf->Cell(0, 7, utf8_decode($punto['Numero_Serie']), 1, 1, 'C', true);
     $pdf->Ln(3);
 
+    if(count($equipos) === 0){
+        $equipos[] = array('Marca' => $punto['Marca'],
+                            'Modelo' => $punto['Modelo'],
+                            'Numero_Serie'=> $punto['Numero_Serie']
+                    );
+    }else{
+        $existe = FALSE;
+        foreach ($equipos as $equipo) {
+            if( array_search($punto['Numero_Serie'], array_column($equipos, 'Numero_Serie')) !== FALSE){
+                $existe = TRUE;  
+                break;
+            }
+            if(!$existe){
+                $equipos[] = array('Marca' => $punto['Marca'],
+                                'Modelo' => $punto['Modelo'],
+                                'Numero_Serie'=> $punto['Numero_Serie']
+                        );
+            }
+        }
+        
+    }
+
     azul($pdf);
     $pdf->Cell(0, 8, utf8_decode('RESULTADOS DE LA EVALUACIÓN'), 1, 1, 'C', true);
 
@@ -1337,9 +1495,9 @@ foreach ($puntos as $key => $punto) {
         $pdf->RowColor2(array(utf8_decode($medicion['hora']),
                             utf8_decode($medplanocorregida.' ± '.$incertidumbreplano),
                             utf8_decode($punto['nirm']),
-                            utf8_decode($reflexplano),
+                            utf8_decode(number_format($reflexplano, 1)),
                             utf8_decode($medparedcorregida.' ± '.$incertidumbrepared),
-                            utf8_decode($reflexpared)
+                            utf8_decode(number_format($reflexpared, 1))
                         )
                     );
 
@@ -1350,48 +1508,45 @@ foreach ($puntos as $key => $punto) {
         }
     }
 
-    if(count($verde) === 3){
-
-    }elseif(count($rojo) === 3){
-
+    if($verde[1] === 0 AND $verde[2] === 0 AND $rojo[1] === 0 AND $rojo[1] === 0){
+        if($verde[0] === 1){
+            $analisis = "Se observa que la iluminación es adecuada para el trabajo que ahí se realiza.";
+        }else{
+            $analisis = "Se observa que la iluminación es inadecuada para el trabajo que ahí se realiza.";
+        }
     }else{
-        
-    }
-
-    if($verde[0] === $verde[1] AND $verde[0] === $verde[2] AND $verde[1] === $verde[2] AND
-        $rojo[0] === $rojo[1] AND $rojo[0] === $rojo[2] AND $rojo[1] === $rojo[2]){
-
-        crearPie($pdf, $verde[0], $rojo[0], '1er, 2do y 3er Ciclos', 'C');
-
-    }elseif($verde[0] !== $verde[1] AND $verde[0] !== $verde[2] AND $verde[1] !== $verde[2] AND
-            $rojo[0] !== $rojo[1] AND $rojo[0] !== $rojo[2] AND $rojo[1] !== $rojo[2]){
-
-        crearPie($pdf, $verde[0], $rojo[0], '1er  Ciclo', 'L');
-
-        crearPie($pdf, $verde[1], $rojo[1], '2do  Ciclo', 'C');
-
-        crearPie($pdf, $verde[2], $rojo[2], '3er  Ciclo', 'R');
-
-    }elseif($verde[0] === $verde[1] AND $rojo[0] === $rojo[1] AND $verde[1] !== $verde[2] AND 
-            $rojo[1] !== $rojo[2] AND $verde[0] !== $verde[2] AND $rojo[0] !== $rojo[2]){
-
-        crearPie($pdf, $verde[0], $rojo[0], '1er y 2do Ciclo', 'L');
-
-        crearPie($pdf, $verde[2], $rojo[2], '3er  Ciclo', 'C');
-
-    }elseif($verde[1] === $verde[2] AND $rojo[1] === $rojo[2] AND $verde[0] !== $verde[1] AND
-            $rojo[0] !== $rojo[1] AND $verde[0] !== $verde[2] AND $rojo[0] !== $rojo[2]){
-
-        crearPie($pdf, $verde[1], $rojo[1], '2do y 3er  Ciclo', 'L');
-
-        crearPie($pdf, $verde[0], $rojo[0], '1er  Ciclo', 'C');
-
-    }elseif($verde[0] === $verde[2] AND $rojo[0] === $rojo[2] AND $verde[1] !== $verde[2] AND 
-            $rojo[1] !== $rojo[2] AND $verde[0] !== $verde[1] AND $rojo[0] !== $rojo[1]){
-
-        crearPie($pdf, $verde[0], $rojo[0], '1er y 3er Ciclo', 'L');
-
-        crearPie($pdf, $verde[1], $rojo[1], '2do  Ciclo', 'C');
+        if($rojo[0] === 1 AND $rojo[1] === 1 AND $rojo[2] === 1)
+        {
+            $analisis = "Se observa que la iluminación es inadecuada en todos los ciclo para el trabajo que ahí se realiza.";
+        }
+        elseif($verde[0] === 1 AND $verde[1] === 1 AND $verde[2] === 1)
+        {
+            $analisis = "Se observa que la iluminación es adecuada en todos los ciclo para el trabajo que ahí se realiza.";
+        }
+        elseif($verde[0] === 1 AND $verde[1] === 1 AND $verde[2] === 0)
+        {
+            $analisis = "Se observa una iluminación adecuada en el primer y segundo ciclo medido e inadecuada para el tercer ciclo para el trabajo que ahí se realiza";
+        }
+        elseif($verde[0] === 1 AND $verde[1] === 0 AND $verde[2] === 1)
+        {
+            $analisis = "Se observa una iluminación adecuada en el primer y tercer ciclo medido e inadecuada para el segundo ciclo para el trabajo que ahí se realiza";
+        }
+        elseif($verde[0] === 1 AND $verde[1] === 0 AND $verde[2] === 0)
+        {
+            $analisis = "Se observa una iluminación adecuada en el primer ciclo medido e inadecuada para el segundo y tercer ciclo para el trabajo que ahí se realiza";
+        }
+        elseif($verde[0] === 0 AND $verde[1] === 1 AND $verde[2] === 1)
+        {
+            $analisis = "Se observa una iluminación adecuada en el segundo y tecer ciclo medido e inadecuada para el primer ciclo para el trabajo que ahí se realiza";
+        }
+        elseif($verde[0] === 0 AND $verde[1] === 1 AND $verde[2] === 0)
+        {
+            $analisis = "Se observa una iluminación adecuada en el segundo ciclo medido e inadecuada para el primer y tercer ciclo para el trabajo que ahí se realiza";
+        }
+        elseif($verde[0] === 0 AND $verde[1] === 0 AND $verde[2] === 1)
+        {
+            $analisis = "Se observa una iluminación adecuada en el tecer ciclo medido e inadecuada para el primer y segundo ciclo para el trabajo que ahí se realiza";
+        }
 
     }
 
@@ -1438,7 +1593,7 @@ foreach ($puntos as $key => $punto) {
 
     $pdf->Cell(100, 6, '', 0, 0);
     blanco($pdf);
-    $pdf->Cell(0, 20, utf8_decode('Iluminación '.(($influencia['influencia'] === 0) ? 'Natural y artificial' : 'Iluminación Artificial').'. '.$punto['observaciones']), 1, 1, 'C', true);
+    $pdf->Cell(0, 20, utf8_decode('Iluminación '.(($punto['influencia'] === 0) ? 'Natural y artificial' : 'Iluminación Artificial').'. '.$punto['observaciones']), 1, 1, 'C', true);
 
     $pdf->Ln(2);
 
@@ -1448,7 +1603,7 @@ foreach ($puntos as $key => $punto) {
 
     $pdf->Cell(100, 6, '', 0, 0);
     blanco($pdf);
-    $pdf->MultiCell(0, 7, utf8_decode('Se observa una iluminación adecuada en el primer y segundo ciclo medido e inadecuada para el tercer ciclo para el trabajo que ahí se realiza'), 1, 'C', true);
+    $pdf->MultiCell(0, 7, utf8_decode($analisis), 1, 'C', true);
 
     $pdf->Ln(5);
     $pdf->Cell(60, 6, utf8_decode('Nombre y firma del reponsable'), 0, 1, 'C');
@@ -1465,6 +1620,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->Cell(60, 4, utf8_decode('Signatario Autorizado'), 0, 0, 'C');
 }
 
+//var_dump($equipos);
 /**************************************************************************************************/
 /********************************************* Hoja 3 *********************************************/
 /**************************************************************************************************/
@@ -1487,11 +1643,11 @@ foreach ($puntos as $key => $punto) {
     $pdf->Ln(10);
     
     $pdf->SetFont('Arial', 'B', 28);
-    $pdf->MultiCell(0, 10, utf8_decode("ALCOCER AGUILAR JOSÉ MANUEL"), 0, 'C');
+    $pdf->MultiCell(0, 10, utf8_decode($cliente['Razon_Social']), 0, 'C');
     $pdf->Ln(10);
 
     $pdf->SetFont('Arial', 'B', 24);
-    $pdf->MultiCell(0, 9, utf8_decode("PLANTA ACEROS LAMASI MATRÍZ "), 0, 'C');
+    $pdf->MultiCell(0, 9, utf8_decode(isset($cliente['Planta']) ? 'Planta '.$cliente['Planta'] : ''), 0, 'C');
     $pdf->Ln(10);
 
     $pdf->SetFont('Arial', 'B', 11);
@@ -1501,7 +1657,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetXY($x+40,$y);
     $pdf->Cell(2, 4, utf8_decode(':'), 0, 0, 'C');
     $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(0, 4, utf8_decode('AOAM801017'), 0, 1, 'L');
+    $pdf->Cell(0, 4, utf8_decode($cliente['RFC']), 0, 1, 'L');
     $pdf->Ln(7);
 
     $pdf->SetFont('Arial', 'B', 11);
@@ -1511,7 +1667,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetXY($x+40,$y);
     $pdf->Cell(2, 4, utf8_decode(':'), 0, 0, 'C');
     $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(0, 4, utf8_decode('Avenida Carranza No. 246, C.P. 77000'), 0, 1, 'L');
+    $pdf->Cell(0, 4, utf8_decode($cliente['Calle_Numero'].', CP. '.$cliente['Codigo_Postal']), 0, 1, 'L');
     $pdf->Ln(3);
 
     $pdf->SetFont('Arial', 'B', 11);
@@ -1521,7 +1677,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetXY($x+40,$y);
     $pdf->Cell(2, 4, utf8_decode(':'), 0, 0, 'C');
     $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(0, 4, utf8_decode('01 (983) 129 20 07'), 0, 1, 'L');
+    $pdf->Cell(0, 4, utf8_decode($cliente['telefono']), 0, 1, 'L');
     $pdf->Ln(3);
 
     $pdf->SetFont('Arial', 'B', 11);
@@ -1531,7 +1687,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetXY($x+40,$y);
     $pdf->Cell(2, 4, utf8_decode(':'), 0, 0, 'C');
     $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(0, 4, utf8_decode('Laminas, polines, tubular, acero y solera'), 0, 1, 'L');
+    $pdf->Cell(0, 4, utf8_decode($cliente['Giro_Empresa']), 0, 1, 'L');
     $pdf->Ln(3);
 
     $pdf->SetFont('Arial', 'B', 11);
@@ -1541,7 +1697,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetXY($x+40,$y);
     $pdf->Cell(2, 4, utf8_decode(':'), 0, 0, 'C');
     $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(0, 4, utf8_decode('María del Pilar Aguilar Ortega'), 0, 1, 'L');
+    $pdf->Cell(0, 4, utf8_decode($cliente['representante']), 0, 1, 'L');
     $pdf->Ln(3);
 
     $pdf->SetFont('Arial', 'B', 11);
@@ -1551,14 +1707,12 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetXY($x+40,$y);
     $pdf->Cell(2, 4, utf8_decode(':'), 0, 0, 'C');
     $pdf->SetFont('Arial', '', 11);
-    $pdf->Cell(0, 4, utf8_decode('Lic. José Manuel Alcocer Aguilar'), 0, 1, 'L');
+    $pdf->Cell(0, 4, utf8_decode($cliente['atencion']), 0, 1, 'L');
     $pdf->Ln(10);
 
     $pdf->SetFont('Arial', 'B', 11);
-    $pdf->Cell(0, 4, utf8_decode('CHETUMAL, QUINTANA ROO'), 0, 1, 'C');
+    $pdf->Cell(0, 4, utf8_decode($cliente['Ciudad'].', '.$cliente['Estado']), 0, 1, 'C');
     $pdf->Cell(0, 4, utf8_decode('MARZO DEL 2015'), 0, 1, 'C');
-
-
 
 
 /**************************************************************************************************/
@@ -1568,7 +1722,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(60);
+    $pdf->Ln(30);
     $pdf->SetFont('Arial', 'B', 12);
     $pdf->MultiCell(0, 6, utf8_decode("REPORTE DE EVALUACIÓN DE LOS \n NIVELES DE ILUMINACIÓN \n NOM-025-STPS-2008"), 0, 'C');
     $pdf->Ln(30);
@@ -1595,7 +1749,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetTextColor(100);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
@@ -1615,7 +1768,7 @@ foreach ($puntos as $key => $punto) {
     $pdf->Ln();
     $pdf->MultiCell(0, 5, utf8_decode("      Si se consiguen estos objetivos, las consecuencias no sólo repercuten favorablemente sobre las personas, reduciendo la fatiga, la tasa de errores y accidentes, sino que además contribuyen a aumentar la cantidad y calidad de trabajo."), 0, 'J');
     $pdf->Ln();
-    $pdf->MultiCell(0, 5, $pdf->WriteHTML(utf8_decode("      En el presente reporte se establecen los niveles de iluminación en las diferentes áreas de la empresa <b>ALCOCER AGUILAR JOSÉ MANUEL, en la planta ACEROS LAMASI MATRÍZ</b>, ubicada en <b>Chetumal, Quintana Roo</b>, para control interno, a través de la medición directa de los mismos y su correlación con los niveles mínimos recomendados establecidos en la NOM-025-STPS-2008.")), 0, 'J');
+    $pdf->MultiCell(0, 5, $pdf->WriteHTML(utf8_decode("      En el presente reporte se establecen los niveles de iluminación en las diferentes áreas de la empresa <b>".$cliente['Razon_Social']. ((strcmp($cliente['Razon_Social'], $cliente['Planta']) === 0)? '' : ", en la ".(isset($cliente['Planta']) ? 'Planta '.$cliente['Planta'] : ''))."</b>, ubicada en <b>".$cliente['Ciudad'].', '.$cliente['Estado']."</b>, para control interno, a través de la medición directa de los mismos y su correlación con los niveles mínimos recomendados establecidos en la NOM-025-STPS-2008.")), 0, 'J');
     $pdf->Ln();
 
     $pdf->SetFont('Arial', 'B', 10);
@@ -1661,7 +1814,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetTextColor(100);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
@@ -1716,8 +1868,17 @@ foreach ($puntos as $key => $punto) {
     $pdf->Cell(0, 5, utf8_decode('3.3 Instrumentación'), 0, 1, 'L');
     $pdf->Ln();
 
+    if(count($equipos) > 1){
+        $luminometro = '';
+        foreach ($equipos as $key => $equipo) {
+            $luminometro = "Luminómetro ".($key+1)." - Marca: ".$equipo['Marca'].", Modelo: ".$equipo['Modelo'].",  No. de Serie: ".$equipo['Numero_Serie'].".\n";
+        }
+    }else{
+        $luminometro = "Luminómetro Marca: ".$equipos[0]['Marca'].", Modelo: ".$equipos[0]['Modelo'].",  No. de Serie: ".$equipos[0]['Numero_Serie'].".";
+    }
+
     $pdf->SetFont('Arial', '', 10);
-    $pdf->MultiCell(115, 5, utf8_decode("Luminómetro marca International Light, modelo ILT1400, con corrección cosenoidal y desviación máxima de su detector de +/- 5% de su respuesta espectral fotópica y con exactitud de +/- 5%,  No. de Serie ILT14000655."), 0, 'J');
+    $pdf->MultiCell(115, 5, utf8_decode($luminometro), 0, 'J');
     $pdf->Ln();
 
     $pdf->Image("../../img/luminometro.png", 140, 190, 40, 40);
@@ -1741,7 +1902,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetTextColor(100);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
@@ -1762,7 +1922,8 @@ foreach ($puntos as $key => $punto) {
     $pdf->Ln();
 
     $pdf->Cell(10, 5, '-  ', 0, 0, 'R');
-    $pdf->MultiCell(0, 5, utf8_decode('Se realizaron 3 mediciones en horarios con influencia de luz natural, en condiciones normales de operación.'), 0, 'L');
+
+    $pdf->MultiCell(0, 5, utf8_decode('Se realizaron 1 o 3 mediciones dependiendo si existe influencia de luz natural, en condiciones normales de operación.'), 0, 'L');
     $pdf->Ln();
 
     $pdf->Cell(10, 5, '-  ', 0, 0, 'R');
@@ -1811,7 +1972,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetTextColor(100);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
@@ -1902,7 +2062,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetTextColor(100);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
@@ -1990,7 +2149,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetTextColor(100);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
@@ -2078,7 +2236,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetTextColor(100);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
@@ -2099,17 +2256,78 @@ foreach ($puntos as $key => $punto) {
     $pdf->MultiCell(0, 5, utf8_decode("      Las conclusiones que es posible derivar para el propósito de este estudio, con las reservas que se derivan de lo anteriormente expuesto son:"), 0, 'J');
     $pdf->Ln();
 
-    $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos en los 45 sitios evaluados, en el primer y segundo ciclo de medición son adecuados, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por arriba de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+//var_dump($influencia);
+    //$influencia = 1;
+    if( (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 0) OR
+        $influencia === 0)
+    {
+        if($rojos[0] > 0){
+            $conclusion = "      Los niveles de iluminación obtenidos en ".$rojos[0]." de los ".count($puntos)." sitios evaluados, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana.";
+        }else{
+            $conclusion = "      Todos los niveles de iluminación obtenidos de los sitios evaluados, es suficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por arriba de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana.";
+        }
+
+        $pdf->MultiCell(0, 5, utf8_decode($conclusion), 0, 'J');
+        $pdf->Ln();
+
+    }elseif( (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 1) OR
+        (is_array($influencia) AND count($influencia) > 1) OR
+         $influencia === 1)
+    {
+        //var_dump($verdes);
+        //var_dump($rojos);
+        if( $verdes[0] === 0 ){
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos para todos los sitios del primer ciclo, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }elseif( $rojos[0] === 0){
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos para todos los sitios del primer ciclo, es suficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por arriba de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }else{
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos en el primer ciclo tenemos que en ".$rojos[0]." de los ".($verdes[0] + $rojos[0])." sitios evaluados, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }
+
+        if( $verdes[1] === 0 ){
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos para todos los sitios del segundo ciclo, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }elseif( $rojos[1] === 0){
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos para todos los sitios del segundo ciclo, es suficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por arriba de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }else{
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos en el segundo ciclo tenemos que en ".$rojos[1]." de los ".($verdes[1] + $rojos[1])." sitios evaluados, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }
+
+        if( $verdes[2] === 0 ){
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos para todos los sitios del tercer ciclo, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }elseif( $rojos[2] === 0){
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos para todos los sitios del tercer ciclo, es suficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por arriba de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }else{
+            $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos en el tercer ciclo tenemos que en ".$rojos[2]." de los ".($verdes[2] + $rojos[2])." sitios evaluados, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
+            $pdf->Ln();
+        }
+    }
+
+    $pdf->Cell(0, 5, utf8_decode('El comportamiento general de las mediciones se muestra a continuación:'), 0, 1, 'C');
     $pdf->Ln();
 
-    $pdf->MultiCell(0, 5, utf8_decode("      Los niveles de iluminación obtenidos en 1 de los 45 sitios evaluados, en el tercer ciclo de medición, es deficiente, de acuerdo a las tareas y actividades que allí se realizan, dado que se encuentran por debajo de los Niveles de Iluminación Mínimos Recomendados (NIMR), establecidos en la Normatividad Mexicana."), 0, 'J');
-    $pdf->Ln();
+    if( (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 0) OR
+        $influencia === 0)
+    {
+        crearPie($pdf, $verdes[0], $rojos[0], '1er Ciclo', 'C2');
+        
+    }else{
+        crearPie($pdf, $verdes[0], $rojos[0], '1er  Ciclo', 'L1');
 
-    $pdf->Cell(0, 5, utf8_decode('El comportamiento general de las mediciones se muestra en el siguiente gráfico:'), 0, 1, 'C');
-    $pdf->Ln();
+        crearPie($pdf, $verdes[1], $rojos[1], '2do  Ciclo', 'C1');
 
-    $pdf->Ln(40);
-    $pdf->Ln();
+        crearPie($pdf, $verdes[2], $rojos[2], '3er  Ciclo', 'R1');
+
+    }
+    
+    $pdf->Ln(45);
 
     $pdf->MultiCell(0, 5, $pdf->WriteHTML(utf8_decode("<b>8.1 </b> El factor de reflexión obtenido se encuentra por debajo del nivel máximo recomendado, por lo que se puede concluir que no se presentan deslumbramientos bajo las condiciones en las que se realizó el estudio.")), 0, 'J');
     $pdf->Ln();
@@ -2121,7 +2339,6 @@ foreach ($puntos as $key => $punto) {
     $pdf->SetMargins(20, 0, 25);
     $pdf->SetLineWidth(.1);
 
-    $pdf->Ln(43);
     $pdf->SetTextColor(100);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->Cell(0, 3, 'AIR-F-2', 0, 1, 'R');
@@ -2213,36 +2430,72 @@ foreach ($puntos as $key => $punto) {
         $pdf->SetTextColor(0);
     }
 
-    function medListado($pdf, $data){
-        $pdf->SetWidths(array(10,13,20,20,27,12,9,12,12,12,9,12,12,12,9,12,12));
+    function medListado($pdf, $data, $influencia){
         $pdf->SetFonts(array(''));
         $pdf->SetFontSizes(array(6));
         $pdf->SetAligns(array('C'));
 
-        $pdf->RowColor(array($data['medicion'],
-                            $data['fecha'],
-                            utf8_decode($data['departamento']),
-                            utf8_decode($data['area']),
-                            utf8_decode($data['identificacion']),
-                            utf8_decode($data[0]['ni']),
-                            $data[0]['nimr'],
-                            $data[0]['reflexpared'],
-                            $data[0]['reflexplano'],
-                            utf8_decode($data[1]['ni']),
-                            $data[1]['nimr'],
-                            $data[1]['reflexpared'],
-                            $data[1]['reflexplano'],
-                            utf8_decode($data[2]['ni']),
-                            $data[2]['nimr'],
-                            $data[2]['reflexpared'],
-                            $data[2]['reflexplano']
-                        )
-                    );
+        if( 
+            (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 0) OR
+            $influencia === 0)
+        {
+            $pdf->SetWidths(array(10,13,20,20,27,12,9,12,12));
+
+            $pdf->RowColor(array($data['medicion'],
+                                $data['fecha'],
+                                utf8_decode($data['departamento']),
+                                utf8_decode($data['area']),
+                                utf8_decode($data['identificacion']),
+                                utf8_decode($data[0]['ni']),
+                                $data[0]['nimr'],
+                                $data[0]['reflexpared'],
+                                $data[0]['reflexplano']
+                            )
+                        );
+        }elseif(
+            (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 1) OR
+            (is_array($influencia) AND count($influencia) > 1) OR
+             $influencia === 1)
+        {
+            $pdf->SetWidths(array(10,13,20,20,27,12,9,12,12,12,9,12,12,12,9,12,12));
+
+            $pdf->RowColor(array($data['medicion'],
+                                $data['fecha'],
+                                utf8_decode($data['departamento']),
+                                utf8_decode($data['area']),
+                                utf8_decode($data['identificacion']),
+                                utf8_decode($data[0]['ni']),
+                                $data[0]['nimr'],
+                                $data[0]['reflexpared'],
+                                $data[0]['reflexplano'],
+                                utf8_decode($data[1]['ni']),
+                                $data[1]['nimr'],
+                                $data[1]['reflexpared'],
+                                $data[1]['reflexplano'],
+                                utf8_decode($data[2]['ni']),
+                                $data[2]['nimr'],
+                                $data[2]['reflexpared'],
+                                $data[2]['reflexplano']
+                            )
+                        );
+        }
     }
 
-    function deptoListado($pdf, $data){
+    function deptoListado($pdf, $data, $influencia){
         blanco($pdf, 8, 'B');
-        $pdf->Cell(225, 5, utf8_decode('Departamento: '.$data['departamento']), 1, 1, 'C', true);
+
+        if( 
+            (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 0) OR
+            $influencia === 0)
+        {
+            $pdf->Cell(135, 5, utf8_decode('Departamento: '.$data['departamento']), 1, 1, 'C', true);
+        }elseif(
+            (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 1) OR
+            (is_array($influencia) AND count($influencia) > 1) OR
+             $influencia === 1)
+        {
+            $pdf->Cell(225, 5, utf8_decode('Departamento: '.$data['departamento']), 1, 1, 'C', true);
+        }
     }
 
     function headerTablaListado1($pdf){
@@ -2254,7 +2507,7 @@ foreach ($puntos as $key => $punto) {
             $pdf->Ln(2);
         }
 
-    function headerTablaListado2($pdf){
+    function headerTablaListado2($pdf, $influencia){
             gris($pdf, 'B');
             $x=$pdf->GetX();
             $y=$pdf->GetY();
@@ -2280,27 +2533,33 @@ foreach ($puntos as $key => $punto) {
                                 )
                             );
 
-            $pdf->SetXY($x+45,$y);
-            $x=$pdf->GetX();
-            $y=$pdf->GetY();
-            $pdf->carobsRow(array(utf8_decode('Resultados 2do Ciclo de Medición'),
-                                array(utf8_decode('N.I. (Lux)'),
-                                      utf8_decode('NIMR (lux)'),
-                                      utf8_decode('Reflexión paredes (60%)'),
-                                      utf8_decode('Reflexión plano de trabajo (50%)')
+            if(
+            (is_array($influencia) AND count($influencia) === 1 AND $influencia[0] === 1) OR
+            (is_array($influencia) AND count($influencia) > 1) OR
+             $influencia === 1)
+            {
+                $pdf->SetXY($x+45,$y);
+                $x=$pdf->GetX();
+                $y=$pdf->GetY();
+                $pdf->carobsRow(array(utf8_decode('Resultados 2do Ciclo de Medición'),
+                                    array(utf8_decode('N.I. (Lux)'),
+                                          utf8_decode('NIMR (lux)'),
+                                          utf8_decode('Reflexión paredes (60%)'),
+                                          utf8_decode('Reflexión plano de trabajo (50%)')
+                                        )
                                     )
-                                )
-                            );
+                                );
 
-            $pdf->SetXY($x+45,$y);
-            $pdf->carobsRow(array(utf8_decode('Resultados 3er Ciclo de Medición'),
-                                array(utf8_decode('N.I. (Lux)'),
-                                      utf8_decode('NIMR (lux)'),
-                                      utf8_decode('Reflexión paredes (60%)'),
-                                      utf8_decode('Reflexión plano de trabajo (50%)')
+                $pdf->SetXY($x+45,$y);
+                $pdf->carobsRow(array(utf8_decode('Resultados 3er Ciclo de Medición'),
+                                    array(utf8_decode('N.I. (Lux)'),
+                                          utf8_decode('NIMR (lux)'),
+                                          utf8_decode('Reflexión paredes (60%)'),
+                                          utf8_decode('Reflexión plano de trabajo (50%)')
+                                        )
                                     )
-                                )
-                            );
+                                );
+            }
             $pdf->Ln(12);
     }
 
@@ -2335,9 +2594,17 @@ foreach ($puntos as $key => $punto) {
         if($alineacion === 'C'){
             $pdf->Image($nombreImagen, 145, 142, 55, 45);
         }elseif($alineacion === 'L'){
-            $pdf->Image($nombreImagen, 90, 142  , 55, 45);
+            $pdf->Image($nombreImagen, 90, 142 , 55, 45);
         }elseif($alineacion === 'R'){
             $pdf->Image($nombreImagen, 195, 142, 55, 45);
+        }elseif($alineacion === 'C1'){
+            $pdf->Image($nombreImagen, 75, 207 , 55, 45);
+        }elseif($alineacion === 'L1'){
+            $pdf->Image($nombreImagen, 20, 207 , 55, 45);
+        }elseif($alineacion === 'R1'){
+            $pdf->Image($nombreImagen, 125, 207, 55, 45);
+        }elseif($alineacion === 'C2'){
+            $pdf->Image($nombreImagen, 75, 165 , 55, 45);
         }
 
         unlink($nombreImagen);

@@ -551,87 +551,218 @@
   }
 
 /**************************************************************************************************/
+/* Dar por terminada una orden */
+/**************************************************************************************************/
+if(isset($_POST['accion']) and $_POST['accion']=='Enviar')
+{
+  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+  if(isset($_POST['terminada']))
+  {
+      try
+      {
+        $sql='UPDATE ordenestbl SET
+          fechafin = CURDATE()
+          WHERE id = :id';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id',$_POST['ot']);
+        $s->execute();
+      }
+      catch(PDOException $e)
+      {
+        $mensaje='Hubo un error al tratar de terminar la orden. Intentar nuevamente y avisar de este error a sistemas.';
+        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+        exit(); 
+      }
+  }else{
+      try
+      {
+        $sql='UPDATE ordenestbl SET
+          fechafin = NULL,
+          fecharevision  = NULL
+          WHERE id = :id';
+        $s=$pdo->prepare($sql);
+        $s->bindValue(':id',$_POST['ot']);
+        $s->execute();
+      }
+      catch(PDOException $e)
+      {
+        $mensaje='Hubo un error al tratar de terminar la orden. Intentar nuevamente y avisar de este error a sistemas.';
+        include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+        exit(); 
+      }
+  }
+  $_SESSION['ot'] = $_POST['ot'];
+  header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/iluminacion/');
+  exit();
+}
+
+/**************************************************************************************************/
+/* Dar visto bueno a una orden */
+/**************************************************************************************************/
+if(isset($_POST['accion']) and $_POST['accion']=='Vo. Bo.')
+{
+	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+	try
+	{
+		if (isset($_POST['comentario']) AND $_POST['comentario'] !== '')
+		{
+			setObservacion($pdo, 'Iluminacion', $_POST['ot'], $_POST['comentario']);
+		}
+
+		$sql='UPDATE ordenestbl SET
+		fecharevision = CURDATE()
+		WHERE id = :id';
+		$s=$pdo->prepare($sql);
+		$s->bindValue(':id',$_POST['ot']);
+		$s->execute();
+	}
+	catch(PDOException $e)
+	{
+		$mensaje='Hubo un error al tratar de terminar la orden. Intentar nuevamente y avisar de este error a sistemas.';
+		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+		exit();
+	}
+	$_SESSION['ot'] = $_POST['ot'];
+	header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/iluminacion/');
+	exit();
+}
+
+/**************************************************************************************************/
+/* Poner comentarios a una orden */
+/**************************************************************************************************/
+if(isset($_POST['accion']) and $_POST['accion']=='Comentar y Regresar Orden')
+{
+	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+	try
+	{
+		if (isset($_POST['comentario']) AND $_POST['comentario'] !== '')
+		{
+			setObservacion($pdo, 'Iluminacion', $_POST['ot'], $_POST['comentario']);
+		}
+
+		$sql='UPDATE ordenestbl SET
+		fechafin = NULL,
+		fecharevision  = NULL
+		WHERE id = :id';
+		$s=$pdo->prepare($sql);
+		$s->bindValue(':id', $_POST['ot']);
+		$s->execute();
+	}
+	catch(PDOException $e)
+	{
+		$mensaje='Hubo un error al tratar de terminar la orden. Intentar nuevamente y avisar de este error a sistemas.'.$e;
+		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+		exit();
+	}
+	$_SESSION['ot'] = $_POST['ot'];
+	header('Location: http://'.$_SERVER['HTTP_HOST'].'/reportes/iluminacion/');
+	exit();
+}
+
+/**************************************************************************************************/
 /* Acción por defualt, llevar a búsqueda de ordenes */
 /**************************************************************************************************/
-  include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
-  if(isset($_SESSION['idot']) and isset($_SESSION['quien']) and $_SESSION['quien']=='Iluminacion'){
-     $idot=$_SESSION['idot'];
-	 if (isset($_SESSION['idrci'])){
-	   unset($_SESSION['idrci']);
-	 }
-  }
-  else {
-	  header('Location: http://'.$_SERVER['HTTP_HOST'].str_replace('rci/','',$_SERVER['REQUEST_URI']));
-  }
-  $ot=otdeordenes($idot);
-  $recsini=verRecs($idot);
-  include 'formarci.html.php';
-   exit();
+include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php';
+if(isset($_SESSION['idot']) and isset($_SESSION['quien']) and $_SESSION['quien']=='Iluminacion'){
+	$idot=$_SESSION['idot'];
+	if (isset($_SESSION['idrci']))
+	{
+		unset($_SESSION['idrci']);
+	}
+}
+else {
+	header('Location: http://'.$_SERVER['HTTP_HOST'].str_replace('rci/','',$_SERVER['REQUEST_URI']));
+}
+$ot=otdeordenes($idot);
+$recsini=verRecs($idot);
+include 'formarci.html.php';
+exit();
 
 /**************************************************************************************************/
 /* Función para ver reconocimientos iniciales de una orden de trabajo */
 /**************************************************************************************************/
-  function verRecs($id = ""){
-   global $pdo;
-   try   
-   {
-	$sql='SELECT recsilumtbl.id, deptostbl.departamento, deptostbl.area, deptostbl.descriproceso
-		  FROM recsilumtbl
-		  INNER JOIN ordenestbl ON ordenidfk=ordenestbl.id
-		  INNER JOIN deptorecilumtbl ON recsilumtbl.id=deptorecilumtbl.deptoidfk
-		  INNER JOIN deptostbl ON deptorecilumtbl.deptoidfk=deptostbl.id
-		  WHERE recsilumtbl.ordenidfk = :id';
-	$s=$pdo->prepare($sql); 
-	$s->bindValue(':id',$id);
-   	$s->execute();
-   }
-   catch (PDOException $e)
-   {
-    $mensaje='Hubo un error extrayendo la lista de reconocimientos iniciales.';
-	include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-	exit();
-   }
+function verRecs($id = ""){
+	global $pdo;
+	$idot=$id;
+	$ot=otdeordenes($id);
+	try   
+	{
+		$sql='SELECT ot, fechafin
+				FROM ordenestbl
+				WHERE id = :id';
+		$s=$pdo->prepare($sql); 
+		$s->bindValue(':id', $idot);
+		$s->execute();
+		$nombreot = $s->fetch();
 
-   foreach ($s as $linea)
-   {
-    $recsini[]=array('id'=>$linea['id'],
-					'departamento'=>$linea['departamento'],
-					'area'=>$linea['area'],
-					'descriproceso'=>$linea['descriproceso']);
-   }
-   $idot=$id;
-   $ot=otdeordenes($id);
-   include 'formarci.html.php';
-   exit();
-  }
+
+		$sql='SELECT recsilumtbl.id, deptostbl.departamento, deptostbl.area, deptostbl.descriproceso
+				FROM recsilumtbl
+				INNER JOIN ordenestbl ON ordenidfk=ordenestbl.id
+				INNER JOIN deptorecilumtbl ON recsilumtbl.id=deptorecilumtbl.deptoidfk
+				INNER JOIN deptostbl ON deptorecilumtbl.deptoidfk=deptostbl.id
+				WHERE recsilumtbl.ordenidfk = :id';
+		$s=$pdo->prepare($sql); 
+		$s->bindValue(':id',$id);
+		$s->execute();
+
+		$sql='SELECT id, observacion, fecha, supervisor
+				FROM observacionestbl
+				WHERE ordenesidfk = :id
+				AND estudio = "Iluminacion"
+				ORDER BY id DESC';
+		$c=$pdo->prepare($sql); 
+		$c->bindValue(':id', $idot);
+		$c->execute();
+		$comentarios = $c->fetchAll();
+	}
+	catch (PDOException $e)
+	{
+		$mensaje='Hubo un error extrayendo la lista de reconocimientos iniciales.';
+		include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
+		exit();
+	}
+
+	foreach ($s as $linea)
+	{
+		$recsini[]=array('id'=>$linea['id'],
+						'departamento'=>$linea['departamento'],
+						'area'=>$linea['area'],
+						'descriproceso'=>$linea['descriproceso']);
+	}
+
+	include 'formarci.html.php';
+	exit();
+}
 
 /**************************************************************************************************/
 /* Acumulacion del post de editar, para pasarlo a la pantalla del cambio de influencia */
 /**************************************************************************************************/
 function desglosapost($post="")
 { 
-  global $campos, $contenidos, $puestos, $numtrabajadores, $actividades;
-  $campos=array();
-  $contenidos=array();
-  $puestos=array();
-  $numtrabajadores=array();
-  $actividades=array();
-  foreach ($post as $campo=>$contenido)
-  {
-    if ($campo <> 'puestos' AND $campo <> 'accion' AND $campo <> 'boton')
+	global $campos, $contenidos, $puestos, $numtrabajadores, $actividades;
+	$campos=array();
+	$contenidos=array();
+	$puestos=array();
+	$numtrabajadores=array();
+	$actividades=array();
+	foreach ($post as $campo=>$contenido)
 	{
-	  $campos[]=$campo;
-	  $contenidos[]=$contenido;
+		if ($campo <> 'puestos' AND $campo <> 'accion' AND $campo <> 'boton')
+		{
+			$campos[]=$campo;
+			$contenidos[]=$contenido;
+		}
 	}
-  }
-  foreach ($post['puestos'] as $descrip)
-  {
-	 if ($descrip['puesto'] != "")
-	 {
-       $puestos[] = $descrip['puesto'];
-	   $numtrabajadores[] = $descrip['numtrabajadores'];
-	   $actividades[] = $descrip['actividades'];
-	 }
-  }
+
+	foreach ($post['puestos'] as $descrip)
+	{
+		if ($descrip['puesto'] != "")
+		{
+			$puestos[] = $descrip['puesto'];
+			$numtrabajadores[] = $descrip['numtrabajadores'];
+			$actividades[] = $descrip['actividades'];
+		}
+	}
 }
 ?>

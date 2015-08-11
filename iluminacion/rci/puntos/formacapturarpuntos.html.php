@@ -31,23 +31,23 @@
                                       'tipo' => 'text'
                                       ),
                       'departamento' => array(
-                                      'label' => 'Departamento',
+                                      'label' => 'Departamento (Max. 50)',
                                       'tipo' => 'text'
                                       ),
                       'area' => array(
-                                      'label' => 'Área',
+                                      'label' => 'Área (Max. 50)',
                                       'tipo' => 'text'
                                       ),
                       'ubicacion' => array(
-                                      'label' => 'Ubicación',
+                                      'label' => 'Ubicación (Max. 50)',
                                       'tipo' => 'text'
                                       ),
                       'identificacion' => array(
-                                      'label' => 'Identificación',
+                                      'label' => 'Identificación (Max. 50)',
                                       'tipo' => 'text'
                                       ),
                       'observaciones' => array(
-                                      'label' => 'Observaciones',
+                                      'label' => 'Observaciones (Max. 250)',
                                       'tipo' => 'text'
                                       ),
                       'nirm' => array(
@@ -174,19 +174,24 @@ $(document).ready(function() {
         }
       },
       departamento: {
-        required: true
+        required: true,
+        maxlength: 50
       },
       area: {
-         required: true
+         required: true,
+        maxlength: 50
       },
       ubicacion: {
-         required: true
+         required: true,
+        maxlength: 50
       },
       identificacion: {
-         required: true
+         required: true,
+        maxlength: 50
       },
       observaciones: {
-         required: true
+         required: true,
+        maxlength: 250
       },
       nirm: {
         required: true

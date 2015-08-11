@@ -16,6 +16,13 @@
   exit();
  }
 
+global $rectbl;
+global $recidfk;
+$rectbl = 'puntorecilumtbl';
+$recidfk = 'recilumidfk';
+
+include_once $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/reusapunto/reusarpuntos.php';
+
 /**************************************************************************************************/
 /* Crear un nuevo punto en una orden de trabajo */
 /**************************************************************************************************/
@@ -80,13 +87,15 @@ if(isset($_GET['guardarpunto']))
           departamento=:departamento,
           area=:area,
           ubicacion=:ubicacion,
-          numestudios=0';
+          numestudios=0,
+          ordenidfk=:ordenidfk';
     $s=$pdo->prepare($sql);
     $s->bindValue(':nomedicion',$_POST['nomedicion']);
     $s->bindValue(':fecha',$_POST['fecha']);
     $s->bindValue(':departamento',$_POST['departamento']);
     $s->bindValue(':area',$_POST['area']);
-    $s->bindValue(':ubicacion',$_POST['ubicacion']);      
+    $s->bindValue(':ubicacion',$_POST['ubicacion']);
+    $s->bindValue(':ordenidfk',$_SESSION['idot']);
     $s->execute();
     $puntosid=$pdo->lastInsertId();
 
@@ -233,7 +242,8 @@ if (isset($_GET['salvarpunto']))
           fecha=:fecha,
           departamento=:departamento,
           area=:area,
-          ubicacion=:ubicacion
+          ubicacion=:ubicacion,
+          ordenidfk=:ordenidfk
           WHERE id = :id';
     $s=$pdo->prepare($sql);
     $s->bindValue(':nomedicion',$_POST['nomedicion']);
@@ -242,6 +252,7 @@ if (isset($_GET['salvarpunto']))
     $s->bindValue(':area',$_POST['area']);
     $s->bindValue(':ubicacion',$_POST['ubicacion']);  
     $s->bindValue(':id',$_POST['id']);
+    $s->bindValue(':ordenidfk',$_SESSION['idot']);
     $s->execute();
 
     $sql='UPDATE puntorecilumtbl SET
@@ -307,7 +318,10 @@ if (isset($_POST['accion']) and $_POST['accion']=='borrarpunto')
   include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/conectadb.inc.php'; 
   try
   {
-    $sql='SELECT medicion, fecha, departamento, area, identificacion FROM puntostbl WHERE id=:id';
+    $sql='SELECT .puntostbl.medicion, puntostbl.fecha, puntostbl.departamento, puntostbl.area, puntorecilumtbl.identificacion 
+          FROM puntostbl 
+          INNER JOIN puntorecilumtbl ON puntostbl.id = puntorecilumtbl.puntoidfk
+          WHERE id=:id';
     $s= $pdo->prepare($sql);
     $s->bindValue(':id',$_POST['id']); 
     $s->execute();
@@ -373,7 +387,7 @@ if (isset($_POST['accion']) and $_POST['accion']=='Continuar borrando')
     $idot=$_SESSION['idot'];
     $idrci=$_SESSION['idrci'];
   }
-  else {
+  else{
 	  header('Location: http://'.$_SERVER['HTTP_HOST'].str_replace('puntos/','',$_SERVER['REQUEST_URI']));
   }
   $ot=otdeordenes($idot);
@@ -443,44 +457,7 @@ function formularioPuntos($pestanapag="", $titulopagina="", $accion="", $idrci="
     $mediciones = $meds;
   }
 
-  try{
-    $sql='SELECT equipos.ID_Equipo, Descripcion, Marca, Modelo, Numero_Inventario
-      FROM  equipos
-      INNER JOIN bitacora_uso ON equipos.ID_Equipo = bitacora_uso.ID_Equipo
-      INNER JOIN bitacora_personal ON bitacora_uso.ID_Personal = bitacora_personal.ID_Personal
-      WHERE bitacora_personal.Numero_Orden_Muestreo IN (SELECT ot FROM ordenestbl WHERE id = :ot)
-      AND equipos.Tipo = "Luxometro"';
-    $s=$pdo->prepare($sql);
-    $s->bindValue(':ot', $_SESSION['idot']);
-    $s->execute();
-    $luxometros = '';
-    $error = '';
-    if($terms = $s->fetchAll()){
-      foreach ($terms as $value){
-        $sql='SELECT *
-          FROM  calibracionestbl
-          WHERE equipoidfk=:id';
-        $s=$pdo->prepare($sql);
-        $s->bindValue(':id', $value['ID_Equipo']);
-        $s->execute();
-
-        if(!$s->fetch()){
-          $error.=$value['Numero_Inventario'].',';
-        }
-
-        $luxometros[$value['ID_Equipo']] = $value['Descripcion'].' '.$value['Marca'].' '.$value['Modelo'].' '.$value['Numero_Inventario'];
-      }
-    }
-    
-    /*if(strcmp($error, '') !== 0){
-      $mensaje = 'Les hace falta capturar correccion a los equipos: '.rtrim($error, ',');
-      include $_SERVER['DOCUMENT_ROOT'].'/reportes/includes/error.html.php';
-      exit();
-    }*/
-
-  }catch (PDOException $e){
-    $luxometros = '';
-  }
+  $luxometros = getEquipos("Luxometro", $_SESSION['idot']);
 
   $idot=idotdeidrci($idrci);
   include 'formacapturarpuntos.html.php';
